@@ -1,0 +1,15 @@
+{
+    "model" : {
+        "num_channels" : 100,
+        "num_conv_layers" : 3
+    },
+    "segmentation": {
+        "use_cuda" : true,
+        "visualize" : true,
+        "iteration" : 200,
+        "similarity_loss_ssize" : 1,
+        "continuity_loss_ssize" : 0.5,
+        "learning_rate" : 0.1,
+        "min_classes" : 3
+    }
+}
