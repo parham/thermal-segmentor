@@ -2,6 +2,7 @@
 
 from .core import *
 from .wonjik import *
+from .kanezaki import *
 
 # Initialize the folders
 from pathlib import Path

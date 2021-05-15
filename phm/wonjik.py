@@ -99,7 +99,6 @@ class Wonjik2020Segmentator(Segmentator):
         loss_hpy = torch.nn.L1Loss(size_average = True)
         loss_hpz = torch.nn.L1Loss(size_average = True)
 
-
         HPy_target = torch.zeros(img.shape[0]-1, img.shape[1], nChannel)
         HPz_target = torch.zeros(img.shape[0], img.shape[1]-1, nChannel)
         if self.use_cuda:
@@ -109,6 +108,8 @@ class Wonjik2020Segmentator(Segmentator):
         optimizer = optim.SGD(model.parameters(), lr=self.learning_rate, momentum=0.9)
         label_colours = np.random.randint(255,size=(100,3))
 
+        seg_result = None
+        seg_num_classes = 0
         for batch_idx in range(self.iteration):
             # forwarding
             optimizer.zero_grad()
@@ -124,6 +125,10 @@ class Wonjik2020Segmentator(Segmentator):
             _, target = torch.max( output, 1 )
             im_target = target.data.cpu().numpy()
             nLabels = len(np.unique(im_target))
+
+            seg_result = im_target
+            seg_num_classes = nLabels
+
             if self.visualize:
                 im_target_rgb = np.array([label_colours[ c % nChannel ] for c in im_target])
                 im_target_rgb = im_target_rgb.reshape( img.shape ).astype( np.uint8 )
@@ -140,3 +145,5 @@ class Wonjik2020Segmentator(Segmentator):
             if nLabels <= self.min_classes:
                 print ("nLabels", nLabels, "reached min_classes", self.min_classes, ".")
                 break
+    
+        return seg_result, seg_num_classes
