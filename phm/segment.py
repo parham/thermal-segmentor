@@ -82,17 +82,22 @@ class KWIterativeNNSegmentator(Segmentator):
             self.model.cuda()
         self.model.train()
 
-
         result = {}
         seg_result = None
         seg_num_classes = 0
         seg_step_time = 0
+        img_w = img.shape[0]
+        img_h = img.shape[1]
+        cv2.namedWindow("output", cv2.WINDOW_NORMAL)  
         for batch_idx in range(self.iteration):
             t = time.time()
             self.optimizer.zero_grad()
-            output = self.model(data)[0]
-            output = output.permute(1, 2, 0).contiguous().view( -1, self.nChannel)
-            _, target = torch.max( output, 1 )
+            output = self.model(data)[0,:,0:img_w,0:img_h]
+
+            output_orig = output.permute(1, 2, 0).contiguous()
+            output = output_orig.view(-1, self.nChannel)
+            # output = output.permute(1, 2, 0).contiguous().view( -1, self.nChannel)
+            _, target = torch.max(output, 1)
             im_target = target.data.cpu().numpy()
             nLabels = len(np.unique(im_target))
 
@@ -100,7 +105,7 @@ class KWIterativeNNSegmentator(Segmentator):
             seg_num_classes = nLabels
 
             if self.visualize:
-                im_target_rgb = np.array([self.label_colours[ c % 100 ] for c in im_target])
+                im_target_rgb = np.array([[c, c, c] for c in im_target]) # self.label_colours[ c % 100 ]
                 im_target_rgb = im_target_rgb.reshape(img.shape).astype(np.uint8)
                 cv2.imshow("output", im_target_rgb)
                 cv2.waitKey(10)

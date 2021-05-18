@@ -10,7 +10,7 @@
         "min_classes" : 10,
         "learning_rate" : 0.1,
         "momentum" : 0.9,
-        "superpixel_regions" : 10000,
+        "superpixel_regions" : 30,
         "compactness" : 100
     }
 }

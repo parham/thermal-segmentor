@@ -7,9 +7,9 @@
         "use_cuda" : true,
         "visualize" : true,
         "iteration" : 200,
-        "similarity_loss_ssize" : 0.9,
-        "continuity_loss_ssize" : 0.85,
-        "learning_rate" : 0.01,
+        "similarity_loss_ssize" : 1.0,
+        "continuity_loss_ssize" : 0.3,
+        "learning_rate" : 0.3,
         "momentum" : 0.9,
         "min_classes" : 6
     }

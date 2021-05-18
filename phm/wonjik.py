@@ -1,31 +1,24 @@
 
 """ 
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+    @professor  Professor Xavier Maldague
+    @organization: Laval University
+
     @name           Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering   
     @journal        IEEE Transactions on Image Processing
     @year           2020
     @repo           https://github.com/kanezaki/pytorch-unsupervised-segmentation-tip
     @citation       Wonjik Kim*, Asako Kanezaki*, and Masayuki Tanaka. Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering. IEEE Transactions on Image Processing, accepted, 2020.
-    @info           The code is adopted from the mentioned repo.
-
-    @author     Parham Nooralishahi
-    @email      parham.nooralishahi@gmail.com
-    @professor  Professor Xavier Maldague
-    @organization: Laval University
+    @info           the code is based on the implementation presented in the mentioned repository.
 """
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
-from torchvision import datasets, transforms
-from torch.autograd import Variable
-import cv2
-import sys
-import numpy as np
 import torch.nn.init
-import random
 
-from phm import load_config, Segmentator, KWIterativeNNSegmentator
+from phm import KWIterativeNNSegmentator
 
 
 class Wonjik2020Net (nn.Module):
@@ -75,34 +68,36 @@ class Wonjik2020Net (nn.Module):
         x = self.bn3(x)
         return x
 
-class Wonjik2020Segmentator_(KWIterativeNNSegmentator):
 
-    def __init__(self, 
-        seg_config, 
-        model = None,
-        optimizer = None,
+class Wonjik2020Segmentator(KWIterativeNNSegmentator):
+
+    def __init__(self,
+        seg_config,
+        model=None,
+        optimizer=None,
     ) -> None:
         super().__init__(seg_config=seg_config, model=model, optimizer=optimizer)
         # similarity loss definition
         self.loss_fn = nn.CrossEntropyLoss()
         # continuity loss definition
-        self.loss_hpy = torch.nn.L1Loss(size_average = True)
-        self.loss_hpz = torch.nn.L1Loss(size_average = True)
+        self.loss_hpy = torch.nn.L1Loss(size_average=True)
+        self.loss_hpz = torch.nn.L1Loss(size_average=True)
         self.HPy_target = None
         self.HPz_target = None
 
     def pre_segment(self, img):
-        self.HPy_target = torch.zeros(img.shape[0]-1, img.shape[1], self.nChannel)
-        self.HPz_target = torch.zeros(img.shape[0], img.shape[1]-1, self.nChannel)
+        self.HPy_target = torch.zeros(
+            img.shape[0]-1, img.shape[1], self.nChannel)
+        self.HPz_target = torch.zeros(
+            img.shape[0], img.shape[1]-1, self.nChannel)
         if self.use_cuda:
             self.HPy_target = self.HPy_target.cuda()
             self.HPz_target = self.HPz_target.cuda()
-        
+
         if self.model is None:
             self.model = Wonjik2020Net(self.model_config, img.shape[2])
-        
-        super().pre_segment(img)
 
+        super().pre_segment(img)
 
     def calc_loss(self, img, output, target):
         outputHP = output.reshape((img.shape[0], img.shape[1], self.nChannel))
@@ -117,7 +112,7 @@ class Wonjik2020Segmentator_(KWIterativeNNSegmentator):
 #     def __init__(self, seg_config) -> None:
 #         super().__init__(seg_config['segmentation'])
 #         self.model_config = seg_config['model']
-    
+
 #     def segment(self,img):
 #         nChannel = self.model_config['num_channels']
 
@@ -142,7 +137,7 @@ class Wonjik2020Segmentator_(KWIterativeNNSegmentator):
 #         if self.use_cuda:
 #             HPy_target = HPy_target.cuda()
 #             HPz_target = HPz_target.cuda()
-        
+
 #         optimizer = optim.SGD(model.parameters(), lr=self.learning_rate, momentum=0.9)
 #         label_colours = np.random.randint(255,size=(100,3))
 
@@ -183,5 +178,5 @@ class Wonjik2020Segmentator_(KWIterativeNNSegmentator):
 #             if nLabels <= self.min_classes:
 #                 print ("nLabels", nLabels, "reached min_classes", self.min_classes, ".")
 #                 break
-    
+
 #         return seg_result, seg_num_classes

@@ -24,9 +24,6 @@ from phm import load_config, Segmentator
 
 
 class PHMAutoencoder01 (nn.Module):
-    """
-        Wonjik Kim*, Asako Kanezaki*, and Masayuki Tanaka. Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering. IEEE Transactions on Image Processing, accepted, 2020.
-    """
 
     def __init__(self, net_config, num_dim):
         super(PHMAutoencoder01, self).__init__()
@@ -34,7 +31,6 @@ class PHMAutoencoder01 (nn.Module):
         # Set the model's config based on provided configuration
         self.config = net_config
         nChannel = self.config['num_channels']
-        nConv = self.config['num_conv_layers']
 
         # First convolutional layer
         self.conv1 = nn.Conv2d(num_dim, nChannel, kernel_size=3, stride=1, padding=1)
@@ -45,65 +41,49 @@ class PHMAutoencoder01 (nn.Module):
         # Third Layer
         self.conv3 = nn.Conv2d(nChannel, nChannel, kernel_size=3, stride=1, padding=1)
         self.bn3 = nn.BatchNorm2d(nChannel)
+
+        self.conv31 = nn.Conv2d(nChannel, nChannel, kernel_size=3, stride=1, padding=1)
+        self.bn31 = nn.BatchNorm2d(nChannel)
         # Feature space including multiple convolutional layers
         self.encoder = nn.Sequential( # like the Composition layer you built
-            nn.Conv2d(nChannel, nChannel, 3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(nChannel),
             nn.Conv2d(nChannel, nChannel * 2, 3, stride=2, padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(nChannel * 2),
-            nn.Conv2d(nChannel * 2, nChannel * 4, 3),
+            nn.Conv2d(nChannel * 2, nChannel * 4, 3, stride=2, padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(nChannel * 4),
+            nn.Conv2d(nChannel * 4, nChannel * 8, 3),
+            nn.ReLU(),
+            nn.BatchNorm2d(nChannel * 8),
         )
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(nChannel * 4, nChannel * 2, 3),
+            nn.ConvTranspose2d(nChannel * 8, nChannel * 4, 3),
+            nn.ReLU(),
+            nn.BatchNorm2d(nChannel * 4),
+            nn.ConvTranspose2d(nChannel * 4, nChannel * 2, 3, stride=2, padding=1, output_padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(nChannel * 2),
             nn.ConvTranspose2d(nChannel * 2, nChannel, 3, stride=2, padding=1, output_padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(nChannel),
-            nn.ConvTranspose2d(nChannel, nChannel, 3, stride=2, padding=1, output_padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(nChannel),
+            nn.AvgPool2d(4, stride=1)
         )
-        # self.encoder = nn.Sequential( # like the Composition layer you built
-        #     nn.Conv2d(nChannel, nChannel, 3, stride=2, padding=1),
-        #     nn.ReLU(),
-        #     nn.BatchNorm2d(nChannel),
-        #     nn.Conv2d(nChannel, nChannel * 2, 3, stride=2, padding=1),
-        #     nn.ReLU(),
-        #     nn.BatchNorm2d(nChannel * 2),
-        #     nn.Conv2d(nChannel * 2, nChannel * 4, 3),
-        #     nn.ReLU(),
-        #     nn.BatchNorm2d(nChannel * 4),
-        # )
-        # self.decoder = nn.Sequential(
-        #     nn.ConvTranspose2d(nChannel * 4, nChannel * 2, 3),
-        #     nn.ReLU(),
-        #     nn.BatchNorm2d(nChannel * 2),
-        #     nn.ConvTranspose2d(nChannel * 2, nChannel, 3, stride=2, padding=1, output_padding=1),
-        #     nn.ReLU(),
-        #     nn.BatchNorm2d(nChannel),
-        #     nn.ConvTranspose2d(nChannel, nChannel, 3, stride=2, padding=1, output_padding=1),
-        #     nn.ReLU(),
-        #     nn.BatchNorm2d(nChannel),
-        # )
         # The reference normalization for extracting class labels
-        self.conv4 = nn.Conv2d(nChannel, nChannel, kernel_size=5, stride=1, padding=2)
+        self.conv4 = nn.Conv2d(nChannel, nChannel, kernel_size=3, stride=1, padding=2)
         self.bn4 = nn.BatchNorm2d(nChannel)
 
-        self.conv5 = nn.Conv2d(nChannel, 3, kernel_size=5, stride=1, padding=2)
-        self.bn5 = nn.BatchNorm2d(3)
-
-        self.conv6 = nn.Conv2d(
-            3, 3, kernel_size=1, stride=1, padding=0)
-        self.bn6 = nn.BatchNorm2d(3)
+        self.conv5 = nn.Conv2d(nChannel, nChannel, kernel_size=3, stride=1, padding=2)
+        self.bn5 = nn.BatchNorm2d(nChannel)
+        # self.conv5 = nn.Conv2d(nChannel, 3, kernel_size=5, stride=1, padding=2)
+        # self.bn5 = nn.BatchNorm2d(3)
 
         # self.conv6 = nn.Conv2d(
-        #     nChannel, nChannel, kernel_size=1, stride=1, padding=0)
-        # self.bn6 = nn.BatchNorm2d(nChannel)
+        #     3, 3, kernel_size=1, stride=1, padding=0)
+        # self.bn6 = nn.BatchNorm2d(3)
+
+        self.conv6 = nn.Conv2d(
+            nChannel, nChannel, kernel_size=1, stride=1, padding=0)
+        self.bn6 = nn.BatchNorm2d(nChannel)
 
 
     def forward(self, x):
@@ -119,8 +99,16 @@ class PHMAutoencoder01 (nn.Module):
         x = F.relu(x)
         x = self.bn3(x)
 
+        x = self.conv31(x)
+        x = F.relu(x)
+        x = self.bn31(x)
+
         x = self.encoder(x)
         x = self.decoder(x)
+        max1 = nn.MaxPool2d(4, stride=4)
+        up1 = nn.Upsample(x.shape[2:])
+        x = max1(x)
+        x = up1(x)
 
         x = self.conv4(x)
         x = F.relu(x)
