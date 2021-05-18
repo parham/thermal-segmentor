@@ -1,16 +1,16 @@
 {
     "model" : {
-        "num_channels" : 100,
+        "num_channels" : 120,
         "num_conv_layers" : 3
     },
     "segmentation": {
         "use_cuda" : true,
         "visualize" : true,
         "iteration" : 200,
-        "min_classes" : 10,
-        "learning_rate" : 0.1,
+        "similarity_loss_ssize" : 0.9,
+        "continuity_loss_ssize" : 0.85,
+        "learning_rate" : 0.01,
         "momentum" : 0.9,
-        "superpixel_regions" : 10000,
-        "compactness" : 100
+        "min_classes" : 6
     }
 }

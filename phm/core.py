@@ -7,6 +7,7 @@
     @email      parham.nooralishahi@gmail.com
 """
 
+import time
 import os
 import functools
 import logging
@@ -97,11 +98,13 @@ class Configurable:
     def as_dict(self) -> dict:
         return self.config
 
-class Segmentator(Configurable):
+def running_time(func):
+    def wrapper(*args, **kwargs):
+        t = time.time()
+        result = func(*args, **kwargs)
+        runtime = time.time() - t
 
-    def __init__(self, seg_config) -> None:
-        super().__init__(seg_config)
-
-    def segment(self,img):
-        """ For compatibility purposes, it is better to implement the segmentators to handle OpenCV images. """
-        pass
+        if type(result) is dict:
+            result['running_time'] = runtime
+        return result
+    return wrapper

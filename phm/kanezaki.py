@@ -96,10 +96,11 @@ class Kanezaki2018Segmentator(Segmentator):
 
         seg_result = None
         seg_num_classes = 0
+
         for batch_idx in range(self.iteration):
             # forwarding
             optimizer.zero_grad()
-            output = model(data)[ 0 ]
+            output = model(data)[0]
             output = output.permute(1, 2, 0).contiguous().view( -1, nChannel)
             _, target = torch.max( output, 1 )
             im_target = target.data.cpu().numpy()
@@ -128,7 +129,7 @@ class Kanezaki2018Segmentator(Segmentator):
             if self.use_cuda:
                 target = target.cuda()
 
-            target = Variable( target )
+            target = Variable(target)
             loss = loss_fn(output, target)
             loss.backward()
             optimizer.step()

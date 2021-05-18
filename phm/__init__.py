@@ -1,8 +1,10 @@
 
 
 from .core import *
+from .segment import *
 from .wonjik import *
 from .kanezaki import *
+from .phm_autoenc import *
 
 # Initialize the folders
 from pathlib import Path
