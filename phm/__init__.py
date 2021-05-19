@@ -5,6 +5,7 @@ from .segment import *
 from .wonjik import *
 from .kanezaki import *
 from .phm_autoenc import *
+from .phm_vgg import *
 
 # Initialize the folders
 from pathlib import Path
