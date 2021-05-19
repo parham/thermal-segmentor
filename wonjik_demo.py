@@ -10,7 +10,7 @@ import torch.optim as optim
 config = load_config('wonjik2020_config.json')
 
 test_dir = 'datasets'
-test_filename = 'pipe_color_plate.jpg' # 'aerospace_defect_crop_enhanced.jpg' # 'pipe_color_plate.jpg'
+test_filename = 'aerospace_defect_crop_enhanced.jpg' # 'pipe_color_plate.jpg' # 'aerospace_defect_crop_enhanced.jpg' # 'pipe_color_plate.jpg'
 
 segs = Wonjik2020Segmentator(config)
 

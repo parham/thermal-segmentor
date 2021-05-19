@@ -7,7 +7,7 @@ import cv2
 config = load_config('kanezaki2020_config.json')
 
 test_dir = 'datasets'
-test_filename = 'pipe_color_plate.jpg' # 'aerospace_defect_crop_enhanced.jpg' # 'pipe_color_plate.jpg'
+test_filename = 'aerospace_defect_crop_enhanced.jpg' # 'pipe_color_plate.jpg' # 'aerospace_defect_crop_enhanced.jpg' # 'pipe_color_plate.jpg'
 
 segs = Kanezaki2018Segmentator(config)
 

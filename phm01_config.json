@@ -1,16 +1,30 @@
 {
     "model" : {
         "num_channels" : 120,
-        "num_conv_layers" : 3
+        "autoen_exapnd_rate" : 2,
+        "part01_kernel_size" : 3,
+        "part01_stride" : 1,
+        "part01_padding" : 1,
+        "part02_num_layer" : 3,
+        "part02_output_padding" : 1,
+        "part02_kernel_size" : 3,
+        "part02_stride" : 2,
+        "part02_padding" : 1,
+        "part03_kernel_size" : 3,
+        "part03_stride" : 1,
+        "part03_padding" : 2,
+        "part04_kernel_size" : 1,
+        "part04_stride" : 1,
+        "part04_padding" : 0
     },
     "segmentation": {
         "use_cuda" : true,
         "visualize" : true,
         "iteration" : 200,
-        "similarity_loss_ssize" : 1.0,
-        "continuity_loss_ssize" : 0.3,
-        "learning_rate" : 0.3,
-        "momentum" : 0.9,
+        "similarity_loss_ssize" : 1,
+        "continuity_loss_ssize" : 0.5,
+        "learning_rate" : 0.1,
+        "momentum" : 0.3,
         "min_classes" : 6
     }
 }

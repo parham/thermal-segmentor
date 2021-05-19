@@ -105,7 +105,7 @@ class KWIterativeNNSegmentator(Segmentator):
             seg_num_classes = nLabels
 
             if self.visualize:
-                im_target_rgb = np.array([[c, c, c] for c in im_target]) # self.label_colours[ c % 100 ]
+                im_target_rgb = np.array([[c, c, c] for c in im_target]) # [c, c, c] # self.label_colours[ c % 100 ]
                 im_target_rgb = im_target_rgb.reshape(img.shape).astype(np.uint8)
                 cv2.imshow("output", im_target_rgb)
                 cv2.waitKey(10)
