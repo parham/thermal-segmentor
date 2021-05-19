@@ -88,7 +88,10 @@ class KWIterativeNNSegmentator(Segmentator):
         seg_step_time = 0
         img_w = img.shape[0]
         img_h = img.shape[1]
-        cv2.namedWindow("output", cv2.WINDOW_NORMAL)  
+
+        if self.visualize:
+            cv2.namedWindow("output", cv2.WINDOW_NORMAL)  
+
         for batch_idx in range(self.iteration):
             t = time.time()
             self.optimizer.zero_grad()
@@ -101,7 +104,7 @@ class KWIterativeNNSegmentator(Segmentator):
             im_target = target.data.cpu().numpy()
             nLabels = len(np.unique(im_target))
 
-            seg_result = im_target
+            seg_result = im_target.reshape(img.shape[0:2])
             seg_num_classes = nLabels
 
             if self.visualize:
