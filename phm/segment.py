@@ -99,7 +99,7 @@ class KWIterativeNNSegmentator(Segmentator):
 
             output_orig = output.permute(1, 2, 0).contiguous()
             output = output_orig.view(-1, self.nChannel)
-            # output = output.permute(1, 2, 0).contiguous().view( -1, self.nChannel)
+
             _, target = torch.max(output, 1)
             im_target = target.data.cpu().numpy()
             nLabels = len(np.unique(im_target))

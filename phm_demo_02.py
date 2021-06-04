@@ -7,13 +7,13 @@ import os
 import cv2
 
 config = load_config('phm01_config.json')
-# config = load_config('kanezaki2020_config.json')
 
 test_dir = 'datasets'
-test_filename = 'aerospace_defect_crop_enhanced.jpg' # '8049.jpg' # 'pipe_color_plate.jpg'
+test_filename = 'pipe_color_plate.jpg' # 'aerospace_defect_crop_enhanced.jpg' # '8049.jpg' # 'pipe_color_plate.jpg'
 
 model = UnsupervisedNN(config['model'], 3)
 segs = UnsupervisedSegmentor(config, model=model)
+# segs = Kanezaki2018Segmentator(config, model=model)
 
 img = cv2.imread(os.path.join(test_dir,test_filename))
 if img is None:

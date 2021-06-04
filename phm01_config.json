@@ -1,6 +1,6 @@
 {
     "model" : {
-        "num_channels" : 120,
+        "num_channels" : 100,
         "autoen_exapnd_rate" : 2,
         "part01_kernel_size" : 3,
         "part01_stride" : 1,
@@ -21,10 +21,13 @@
         "use_cuda" : true,
         "visualize" : true,
         "iteration" : 200,
-        "similarity_loss_ssize" : 1,
-        "continuity_loss_ssize" : 0.5,
+        "similarity_loss_ssize" : 0.5,
+        "continuity_loss_ssize" : 0.8,
         "learning_rate" : 0.1,
-        "momentum" : 0.3,
-        "min_classes" : 6
+        "momentum" : 0.9,
+        "min_classes" : 6,
+
+        "superpixel_regions" : 30,
+        "compactness" : 100
     }
 }
