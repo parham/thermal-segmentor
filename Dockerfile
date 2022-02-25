@@ -26,6 +26,11 @@ RUN echo "" && \
     banner UNIVERSITE LAVAL && \
     echo "-----------------------------------------"
 
+# Install Pytorch-Lightening
+RUN pip install pytorch-lightning
+# Install Comet
+RUN pip install comet-ml scikit-image
+
 RUN mkdir -p /phm
 
 COPY . /phm

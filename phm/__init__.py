@@ -1,11 +1,25 @@
 
+""" 
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+    @professor  Professor Xavier Maldague
+    @organization: Laval University
+
+    @year           2018
+    @repo           https://github.com/parham/thermal-segmentor
+"""
+
 
 from .core import *
-from .segment import *
-from .wonjik import *
-from .kanezaki import *
-from .phm_autoenc import *
-from .phm_vgg import *
+from ..phm2.segment import *
+from ..phm2.wonjik import *
+from ..phm2.kanezaki import *
+from ..phm2.phm_autoenc import *
+from ..phm2.phm_vgg import *
+
+# Check CUDA Availability
+if not torch.cuda.is_available():
+    print(terminal('CUDA is not available!', TerminalStyle.WARNING))
 
 # Initialize the folders
 from pathlib import Path
