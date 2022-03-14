@@ -7,40 +7,33 @@
     @email      parham.nooralishahi@gmail.com
 """
 
-import time
+from ctypes import Union
 import os
-import functools
-import logging
-import logging.config
+from typing import Any, Dict, Tuple
 import yaml
 import json
+import logging
+import logging.config
+import functools
 
-from prettytable import PrettyTable
-
-default_log_config_file = 'log_config.yml'
-
-
-def print_table(pairs: dict):
-    table = PrettyTable(['Parameter', 'Value'])
-    for key, value in pairs.items():
-        table.add_row([key, value])
-
-    logging.info('')
-    logging.info(table)
-
+from time import time
+from dotmap import DotMap
+from comet_ml import Experiment
 
 def initialize_log():
     """Initialize the log configuration"""
-    if os.path.isfile(default_log_config_file):
-        with open(default_log_config_file, 'r') as f:
-            config = yaml.safe_load(f.read())
-            logging.config.dictConfig(config)
-            logging.getLogger().setLevel(logging.INFO)
-        logging.info(
-            'Logging is configured based on the defined configuration file.')
-    else:
-        logging.error('the logging configuration file does not exist')
+    def _init_impl(log_cfile):
+        if os.path.isfile(log_cfile):
+            with open(log_cfile, 'r') as f:
+                config = yaml.safe_load(f.read())
+                logging.config.dictConfig(config)
+                logging.getLogger().setLevel(logging.INFO)
+            logging.info(
+                'Logging is configured based on the defined configuration file.')
+        else:
+            logging.error('the logging configuration file does not exist')
 
+    _init_impl('log_config.yml')
 
 def exception_logger(function):
     """
@@ -59,52 +52,64 @@ def exception_logger(function):
             raise
     return wrapper
 
-
-def check_nonone(*fields):
-    """
-    A decorator that wraps the passed in function and check the determined field for None value
-    """
-    def inner_function(function):
-        @functools.wraps(function)
-        def wrapper(*args, **kwargs):
-            # Check all the fields to determined the None value scenario!
-            for f in fields:
-                msg = '%s value must be determined!' % f
-                index = function.__code__.co_varnames.index(f)
-                if index < len(args) and args[index] is None:
-                    raise ValueError(msg)
-            return function(*args, **kwargs)
-        return wrapper
-    return inner_function
-
-
-@exception_logger
-def load_config(config_file):
-    config = dict()
-    with open(config_file, 'r') as cfile:
-        config = json.load(cfile)
-    return config
-
-
-def save_config(config, config_file):
-    with open(config_file, 'w') as cfile:
-        json.dump(config, config_file)
-
-class Configurable:
-    def __init__(self, config : dict) -> None:
-        for key, value in config.items():
-            self.__setattr__(key,value)
-
-    def as_dict(self) -> dict:
-        return self.config
-
 def running_time(func):
     def wrapper(*args, **kwargs):
         t = time.time()
-        result = func(*args, **kwargs)
+        res = func(*args, **kwargs)
         runtime = time.time() - t
-
-        if type(result) is dict:
-            result['running_time'] = runtime
-        return result
+        res = res + (runtime, ) if isinstance(res,tuple) or \
+            isinstance(res,list) else (res, runtime)
+        return res
     return wrapper
+
+
+@exception_logger
+def load_config(config_file, dotflag : bool = True):
+    config = dict()
+    with open(config_file, 'r') as cfile:
+        config = json.load(cfile)
+    return DotMap(config) if dotflag else config
+
+@exception_logger
+def save_config(config, config_file):
+    cnf = config.toDict() if isinstance(config, DotMap) else config
+    with open(config_file, 'w') as cfile:
+        json.dump(cnf, cfile)
+
+class Segmentor:
+    def __init__(self,
+        config : DotMap,
+        experiment : Experiment, 
+        model = None,
+        optimizer = None,
+        loss_fn = None,
+        use_cuda : bool = True) -> None:
+        """Segmentor base class
+
+        Args:
+            config (DotMap): configuration of the segmentor
+            experiment (Experiment, optional): the experiment instance.
+            model (_type_, optional): the model for segmentation. Defaults to None.
+            optimizer (_type_, optional): the optimizer for segmentation. Defaults to None.
+            loss_fn (_type_, optional): the loss function. Defaults to None.
+            use_cuda (bool, optional): use CUDA?. Defaults to True.
+        """
+        self.config = config
+        self.experiment = experiment
+        self.model = model
+        self.optimizer = optimizer
+        self.use_cuda = use_cuda
+        self.loss_fn = loss_fn
+    
+    def __call__(self, img) -> dict:
+        return self.segment(img)
+
+    def segment(self, input): #-> Union[Tuple[Any,Dict], Any]:
+        output, metrics = self._segment(input)
+        self.experiment.log_metrics(metrics, prefix='final_')
+        self.experiment.log_image(output,name='final_result')
+        return output, metrics
+
+    def _segment(self, input): #-> Union[Tuple[Any,Dict], Any]:
+        pass
+

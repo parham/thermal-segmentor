@@ -1,5 +1,5 @@
 
-from phm.core import TerminalStyle, terminal
+from phm2.core import TerminalStyle, terminal
 
 from pytorch_lightning import LightningDataModule, Trainer
 from typing import Optional

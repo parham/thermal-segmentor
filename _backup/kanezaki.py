@@ -73,8 +73,8 @@ class Kanezaki2018Segmentator(KWIterativeNNSegmentator):
 
     def pre_segment(self, img):
         # slic
-        labels = segmentation.slic(
-            img, compactness=self.compactness, n_segments=self.superpixel_regions)
+        labels = segmentation.slic(img, compactness=self.compactness, 
+            n_segments=self.superpixel_regions)
         labels = labels.reshape(img.shape[0] * img.shape[1])
         u_labels = np.unique(labels)
         self.l_inds = []

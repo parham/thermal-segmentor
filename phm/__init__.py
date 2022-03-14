@@ -9,17 +9,14 @@
     @repo           https://github.com/parham/thermal-segmentor
 """
 
-
 from .core import *
-from ..phm2.segment import *
-from ..phm2.wonjik import *
-from ..phm2.kanezaki import *
-from ..phm2.phm_autoenc import *
-from ..phm2.phm_vgg import *
+from .kanezaki2018 import *
+from .wonjik2020 import *
 
 # Check CUDA Availability
+import torch
 if not torch.cuda.is_available():
-    print(terminal('CUDA is not available!', TerminalStyle.WARNING))
+    print('CUDA is not available!')
 
 # Initialize the folders
 from pathlib import Path

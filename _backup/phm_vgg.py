@@ -116,12 +116,3 @@ class VGGBasedAutoEncoder (nn.Module):
         
         res = self.classifier(tmp)
         return res
-
-        # x[-1] = self.decoder[0](x[-1])
-
-        # for i, l in enumerate(self.decoder[1:]):
-        #     x[(-2-i)] = l(torch.cat((x[-1-i], x[-2-i]), dim=1))
-
-        # x = self.classifier(x[1])
-        
-        # return x
