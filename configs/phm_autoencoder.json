@@ -15,18 +15,18 @@
         "part03_padding" : 2,
         "part04_kernel_size" : 1,
         "part04_stride" : 1,
-        "part04_padding" : 0
+        "part04_padding" : 0,
+        "num_conv_layers" : 3
     },
     "segmentation": {
         "use_cuda" : true,
-        "visualize" : true,
+        "visualize" : false,
         "iteration" : 200,
-        "similarity_loss_ssize" : 0.5,
-        "continuity_loss_ssize" : 0.8,
+        "similarity_loss_ssize" : 0.99,
+        "continuity_loss_ssize" : 0.5,
         "learning_rate" : 0.1,
         "momentum" : 0.9,
         "min_classes" : 6,
-
         "superpixel_regions" : 30,
         "compactness" : 100
     }
