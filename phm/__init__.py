@@ -12,11 +12,16 @@
 from .core import *
 from .kanezaki2018 import *
 from .wonjik2020 import *
+from .phm2022_autoencoder import *
 
 # Check CUDA Availability
-import torch
+import torch, gc
+
 if not torch.cuda.is_available():
     print('CUDA is not available!')
+else:
+    gc.collect()
+    torch.cuda.empty_cache()
 
 # Initialize the folders
 from pathlib import Path

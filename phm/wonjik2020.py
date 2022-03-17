@@ -105,7 +105,7 @@ class Wonjik2020Segmentator(Segmentor):
         # loss calculation
         return self.config.segmentation.similarity_loss_ssize * self.loss_fn(output, target) + self.config.segmentation.continuity_loss_ssize * (lhpy + lhpz)
 
-    def _segment(self, img) -> dict:
+    def _segment(self, img):
         img_w = img.shape[0]
         img_h = img.shape[1]
         img_dim = img.shape[2]

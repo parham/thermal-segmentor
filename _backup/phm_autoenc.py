@@ -243,6 +243,7 @@ class UnsupervisedNN (nn.Module):
         return x
 
 class UnsupervisedSegmentor(Wonjik2020Segmentator):
+
     def __init__(self,
                  seg_config,
                  model=None,

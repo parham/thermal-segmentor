@@ -97,7 +97,7 @@ class Kanezaki2018Segmentator(Segmentor):
 
         return self.loss_fn(output, target)
 
-    def _segment(self, img) -> dict:
+    def _segment(self, img):
         img_w = img.shape[0]
         img_h = img.shape[1]
         img_dim = img.shape[2]
