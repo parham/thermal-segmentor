@@ -26,7 +26,7 @@
         "continuity_loss_ssize" : 0.5,
         "learning_rate" : 0.1,
         "momentum" : 0.9,
-        "min_classes" : 6,
+        "min_classes" : 12,
         "superpixel_regions" : 30,
         "compactness" : 100
     }
