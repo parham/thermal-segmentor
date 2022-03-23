@@ -30,7 +30,7 @@ experiment.add_tag(sample_file.split('.')[0])
 experiment.log_parameters(config.model, prefix='model')
 experiment.log_parameters(config.segmentation, prefix='segmentation')
 
-segs = phmAutoencoderSegmentor(config, experiment=experiment, use_cuda=False)
+segs = phmAutoencoderSegmentor(config, experiment=experiment, use_cuda=True)
 
 img = Image.open(os.path.join(root_dir,sample_file))
 img = img.convert('RGB')
