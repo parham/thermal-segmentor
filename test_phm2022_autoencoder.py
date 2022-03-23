@@ -15,7 +15,7 @@ from phm import phmAutoencoderSegmentor
 config = load_config('configs/phm_autoencoder.json')
 
 root_dir = 'datasets'
-sample_file = 'aerospace_defect_crop_enhanced.jpg' # 'pipe_color_plate.jpg' # 'aerospace_defect_crop_enhanced.jpg' # 'pipe_color_plate.jpg'
+sample_file = 'pipe_color_plate.jpg' # 'pipe_color_plate.jpg' # 'aerospace_defect_crop_enhanced.jpg' # 'pipe_color_plate.jpg'
 
 # Create an experiment with your api key
 now = datetime.now()
