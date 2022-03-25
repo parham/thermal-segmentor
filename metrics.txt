@@ -1,0 +1,16 @@
+
+Evaluation metrics
+* IoU
+** mIoU
+* Recall-Precision
+* F-measure
+* SSIM
+* ODS
+* OIS
+
+
+*** The IoU is a value between zero and 100, where a larger value indicates a more accurate segmentation. 
+    The mIoU is then the mean value across all the classes in the dataset.
+
+*** For evaluation, I think we can start checking the intersection of segmented regions. 
+    Then we will use IoU for the regions with highest intersection.
