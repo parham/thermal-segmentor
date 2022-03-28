@@ -27,7 +27,8 @@ RUN echo "" && \
     echo "-----------------------------------------"
 
 # Install Dependencies
-RUN pip install pytorch-lightning comet-ml scikit-image opencv-python
+RUN pip install pytorch-ignite comet-ml scikit-image opencv-python 
+# RUN pip install pytorch-lightning comet-ml scikit-image opencv-python 
 
 RUN mkdir -p /phm
 
