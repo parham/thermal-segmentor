@@ -4,6 +4,8 @@
         "num_conv_layers" : 3
     },
     "segmentation": {
+        "image_size_w" : 250,
+        "image_size_h" : 250,
         "use_cuda" : true,
         "visualize" : true,
         "iteration" : 200,

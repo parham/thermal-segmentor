@@ -62,7 +62,6 @@ def running_time(func):
         return res
     return wrapper
 
-
 @exception_logger
 def load_config(config_file, dotflag : bool = True):
     config = dict()
