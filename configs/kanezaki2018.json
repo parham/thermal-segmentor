@@ -6,13 +6,15 @@
     "segmentation": {
         "image_size_w" : 250,
         "image_size_h" : 250,
-        "use_cuda" : true,
-        "visualize" : true,
         "iteration" : 200,
         "min_classes" : 10,
         "learning_rate" : 0.1,
         "momentum" : 0.9,
         "superpixel_regions" : 30,
-        "compactness" : 100
+        "compactness" : 10
+    },
+    "general" : {
+        "log_image" : true,
+        "log_metrics" : true
     }
 }

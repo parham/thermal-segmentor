@@ -6,7 +6,7 @@
     @organization: Laval University
 """
 
-from cgitb import reset
+import functools
 import os
 import tempfile
 import logging
@@ -18,9 +18,10 @@ import torch.nn as nn
 import torch.nn.init
 import torch.optim as optim
 import torch.nn.functional as F
+from torchmetrics import Metric
 from torchvision.transforms import Resize
 
-from ignite.engine import Engine
+from ignite.engine import Engine, Events, EventEnum
 
 import time
 import cv2
@@ -99,8 +100,8 @@ class Kanezaki2018Loss(nn.Module):
         img_h = ref.shape[1]
         # SLIC : segment the image using SLIC algorithm
         labels = segmentation.slic(ref,
-                                   compactness=self.compactness,
-                                   n_segments=self.superpixel_regions)
+            compactness=self.compactness,
+            n_segments=self.superpixel_regions)
         # Flatten the resulted segmentation using SLIC
         labels = labels.reshape(img_w * img_h)
         # Extract the unique label
@@ -125,6 +126,8 @@ class Kanezaki2018Loss(nn.Module):
 
         return self.loss_fn(output, target)
 
+class Kanezaki2018Events(EventEnum):
+    INTERNAL_TRAIN_LOOP_COMPLETED = 'internal_train_loop_completed'
 
 class Kanezaki2018_Impl:
 
@@ -142,22 +145,27 @@ class Kanezaki2018_Impl:
         self.model = model
         self.model.to(self.device)
         self.optimizer = optimizer
-        self.loss = loss
+        self.loss_fn = loss
         self.experiment = experiment
-        # self.use_cuda = use_cuda
         # Number of channels
         self.nChannel = num_channel
         self.iteration = iteration
         self.min_classes = min_classes
+        self.last_label_count = 0
 
-    def unsupervise_segmentation_step__(self, trainer, batch, reset_after : bool = True):
+    def check_label_limit(self, engine : Engine):
+        if self.last_label_count <= self.min_classes:
+            logging.info(f'Number of labels has reached {self.last_label_count}.')
+            engine.terminate()
+
+    def unsupervise_segmentation_step__(self, engine, batch, log_img : bool = True, log_metrics : bool = True):
         img = batch[0]
-        return self.unsupervise_segmentation(img, log_img = True, log_metrics = True, reset_after=reset_after)
+        self.last_label_count = 0
+        return self.unsupervise_segmentation(img, log_img = log_img, log_metrics = log_metrics)
 
-    def unsupervise_segmentation(self, img, 
+    def unsupervise_segmentation(self, img,
         log_img : bool = True, 
-        log_metrics : bool = True,
-        reset_after : bool = True) -> Dict:
+        log_metrics : bool = True) -> Dict:
         """Segment an image using the unsupervise approach presented in,
         Unsupervised Image Segmentation by Backpropagation.
 
@@ -170,90 +178,68 @@ class Kanezaki2018_Impl:
         seg_result = None
         seg_step_time = 0
 
-        __reset_ftmp = None
-        try:
-            if reset_after:
-                tmp = tempfile.NamedTemporaryFile()
-                torch.save(self.model, tmp)
+        img_w = img.shape[0]
+        img_h = img.shape[1]
+        img_data = np.array([img.transpose((2, 0, 1)).astype('float32')/255.])
 
-            img_w = img.shape[0]
-            img_h = img.shape[1]
-            img_dim = img.shape[2]
-            img_data = np.array([img.transpose((2, 0, 1)).astype('float32')/255.])
-            # Convert image to tensor
-            data = torch.from_numpy(img_data).to(self.device)
-            # if self.use_cuda:
-            #     data = data.cuda()
-            # Initialize loss object
-            self.loss_fn.set_ref(img)
+        self.experiment.log_image(
+            img, name='original', step=0)
+        # Convert image to tensor
+        data = torch.from_numpy(img_data).to(self.device)
 
-            # # Create an instance of the model
-            # if self.model is None:
-            #     self.model = Kanezaki2018Module(self.config.model, img_dim)
+        self.loss_fn.set_ref(img)
 
-            # if self.optimizer is None:
-            #     lr = self.config.segmentation.learning_rate
-            #     momentum = self.config.segmentation.momentum
-            #     self.optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=momentum)
-            #####################################
+        self.model.train()
+        with self.experiment.train():
+            for step in range(self.iteration):
+                t = time.time()
+                self.optimizer.zero_grad()
+                output = self.model(data)[0, :, 0:img_w, 0:img_h]
 
-            # Create an instance of the model and set it to learn
-            # if torch.cuda.is_available():
-            #     self.model.cuda()
-            self.model.train()
-            with self.experiment.train():
-                for step in range(self.iteration):
-                    t = time.time()
-                    self.optimizer.zero_grad()
-                    output = self.model(data)[0, :, 0:img_w, 0:img_h]
+                output_orig = output.permute(1, 2, 0).contiguous()
+                output = output_orig.view(-1, self.nChannel)
 
-                    output_orig = output.permute(1, 2, 0).contiguous()
-                    output = output_orig.view(-1, self.nChannel)
+                _, target = torch.max(output, 1)
+                im_target = target.data.cpu().numpy()
+                nLabels = len(np.unique(im_target))
 
-                    _, target = torch.max(output, 1)
-                    im_target = target.data.cpu().numpy()
-                    nLabels = len(np.unique(im_target))
+                seg_result = im_target.reshape(img.shape[0:2])
 
-                    seg_result = im_target.reshape(img.shape[0:2])
+                target = torch.from_numpy(im_target).to(self.device)
 
-                    target = torch.from_numpy(im_target).to(self.device)
-                    # if self.use_cuda:
-                    #     target = target.cuda()
+                loss = self.loss_fn(output, target)
+                loss.backward()
+                last_loss = loss
+                self.optimizer.step()
 
-                    loss = self.loss_fn(output, target)
-                    loss.backward()
-                    last_loss = loss
-                    self.optimizer.step()
+                logging.info(
+                    f'{step} / {self.iteration} : {nLabels} , {loss.item()}')
 
-                    logging.info(
-                        f'{step} / {self.iteration} : {nLabels} , {loss.item()}')
+                step_time = time.time() - t
+                seg_step_time += step_time
+                self.last_label_count = nLabels
 
-                    step_time = time.time() - t
-                    seg_step_time += step_time
+                if log_metrics:
+                    self.experiment.log_metrics({
+                        'noref_step_time': step_time,
+                        'noref_class_count': nLabels,
+                        'noref_loss': loss
+                    }, step=step, epoch=1)
+                if log_img:
+                    self.experiment.log_image(
+                        seg_result, name='steps', step=step)
+                
+                if nLabels <= self.min_classes:
+                    logging.info(f'Number of labels has reached {self.last_label_count}.')
+                    break
 
-                    if log_metrics:
-                        self.experiment.log_metrics({
-                            'noref_step_time': step_time,
-                            'noref_class_count': nLabels,
-                            'noref_loss': loss
-                        }, step=step, epoch=1)
-                    if log_img:
-                        self.experiment.log_image(
-                            seg_result, name='steps', step=step)
-
-                    if nLabels <= self.min_classes:
-                        logging.info(f'Number of labels has reached {nLabels}.')
-                        break
-            if reset_after:
-                self.model = torch.load(__reset_ftmp)
-            return last_loss.item(), seg_result
-        finally:
-            if reset_after:
-                __reset_ftmp.close()
-                os.unlink(__reset_ftmp.name)
+        return last_loss.item(), seg_result
 
 
-def create_noref_predict_Kanezaki2018__(config_file : str = 'configs/kanezaki2018.json'):
+def create_noref_predict_Kanezaki2018__(
+    config_file : str = 'configs/kanezaki2018.json', 
+    experiment : Experiment = None,
+    metrics : Dict[str,Metric] = None):
 
     config = load_config(config_file)
     # Initialize model
@@ -264,11 +250,32 @@ def create_noref_predict_Kanezaki2018__(config_file : str = 'configs/kanezaki201
     loss = Kanezaki2018Loss(config.segmentation.compactness,
         config.segmentation.superpixel_regions)
     # Initialize optimizer
-    lr = config.segmentation.learning_rate
-    momentum = config.segmentation.momentum
-    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
+    optimizer = optim.SGD(model.parameters(), 
+        lr=config.segmentation.learning_rate, 
+        momentum=config.segmentation.momentum)
 
-    Kanezaki2018_Impl
+    if experiment is not None:
+        experiment.log_parameters(config.model, prefix='model')
+        experiment.log_parameters(config.segmentation, prefix='segmentation')
 
-    engine = Engine()
-    
+    seg_obj = Kanezaki2018_Impl(
+        model=model, 
+        optimizer=optimizer,
+        loss=loss,
+        num_channel=config.model.num_channels,
+        iteration=config.segmentation.iteration,
+        min_classes=config.segmentation.min_classes,
+        experiment=experiment
+    )
+
+    pred_func = functools.partial(seg_obj.unsupervise_segmentation_step__,
+        log_img=config.general.log_image,
+        log_metrics=config.general.log_metrics    
+    )
+    engine = Engine(pred_func)
+
+    if metrics is not None:
+        for x in metrics.keys():
+            metrics[x].attach(engine, x)
+
+    return engine
