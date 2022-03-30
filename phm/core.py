@@ -80,7 +80,7 @@ def save_config(config, config_file):
 
 class Segmentor(abc.ABC):
     def __init__(self,
-        experiment : Experiment) -> None:
+        experiment : Experiment = None) -> None:
         self.experiment = experiment
 
     @abc.abstractmethod

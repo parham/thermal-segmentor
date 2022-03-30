@@ -142,13 +142,13 @@ class Wonjik2020_Impl(Segmentor):
                  min_classes: int = 10,
                  experiment: Experiment = None) -> None:
 
+        super().__init__(experiment)
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu")
         self.model = model
         self.model.to(self.device)
         self.optimizer = optimizer
         self.loss_fn = loss
-        self.experiment = experiment
         # Number of channels
         self.nChannel = num_channel
         self.iteration = iteration
@@ -175,8 +175,9 @@ class Wonjik2020_Impl(Segmentor):
         # Convert image to numpy data
         img_data = np.array([img.transpose((2, 0, 1)).astype('float32')/255.])
 
-        self.experiment.log_image(
-            img, name='original', step=0)
+        if log_img:
+            self.experiment.log_image(
+                img, name='original', step=0)
         # Convert image to tensor
         data = torch.from_numpy(img_data).to(self.device)
 
