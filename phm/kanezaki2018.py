@@ -1,17 +1,14 @@
 
 """ 
-    @author     Parham Nooralishahi
-    @email      parham.nooralishahi@gmail.com
-    @professor  Professor Xavier Maldague
+    @author        Parham Nooralishahi
+    @email         parham.nooralishahi@gmail.com
+    @professor     Professor Xavier Maldague
     @organization: Laval University
 """
 
 import functools
-import os
-import tempfile
 import logging
 from typing import Dict
-from dotmap import DotMap
 
 import torch
 import torch.nn as nn
@@ -19,20 +16,18 @@ import torch.nn.init
 import torch.optim as optim
 import torch.nn.functional as F
 from torchmetrics import Metric
-from torchvision.transforms import Resize
 
-from ignite.engine import Engine, Events, EventEnum
+from ignite.engine import Engine, EventEnum
 
 import time
-import cv2
 import numpy as np
 from skimage import segmentation
-from phm import running_time
-from tkinter import Variable
 from comet_ml import Experiment
 
-from phm.core import Segmentor, load_config
+from phm.core import load_config
 
+class Kanezaki2018Events(EventEnum):
+    INTERNAL_TRAIN_LOOP_COMPLETED = 'internal_train_loop_completed'
 
 class Kanezaki2018Module (nn.Module):
     """ Implementation of the model presented in:
@@ -45,6 +40,9 @@ class Kanezaki2018Module (nn.Module):
 
     def __init__(self, num_dim, num_channels: int = 100, num_convs: int = 3):
         super(Kanezaki2018Module, self).__init__()
+
+        self.num_convs = num_convs
+        self.num_channel = num_channels
 
         self.conv1 = nn.Conv2d(
             num_dim, num_channels, kernel_size=3, stride=1, padding=1)
@@ -59,7 +57,6 @@ class Kanezaki2018Module (nn.Module):
         self.conv3 = nn.Conv2d(num_channels, num_channels,
                                kernel_size=1, stride=1, padding=0)
         self.bn3 = nn.BatchNorm2d(num_channels)
-        self.num_convs = num_convs
 
     def forward(self, x):
         x = self.conv1(x)
@@ -73,10 +70,13 @@ class Kanezaki2018Module (nn.Module):
         x = self.bn3(x)
         return x
 
-
 class Kanezaki2018Loss(nn.Module):
     """Loss function implemented based on the loss function defined in,
-       'Unsupervised Image Segmentation by Backpropagation'
+    @name           Unsupervised Image Segmentation by Backpropagation
+    @journal        IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)
+    @year           2018
+    @repo           https://github.com/kanezaki/pytorch-unsupervised-segmentation
+    @citation       Asako Kanezaki. Unsupervised Image Segmentation by Backpropagation. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018.
     """
 
     def __init__(self,
@@ -126,19 +126,23 @@ class Kanezaki2018Loss(nn.Module):
 
         return self.loss_fn(output, target)
 
-class Kanezaki2018Events(EventEnum):
-    INTERNAL_TRAIN_LOOP_COMPLETED = 'internal_train_loop_completed'
-
 class Kanezaki2018_Impl:
+    """Implementation of unsupervised segmentation method presented in,
+    @name           Unsupervised Image Segmentation by Backpropagation
+    @journal        IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)
+    @year           2018
+    @repo           https://github.com/kanezaki/pytorch-unsupervised-segmentation
+    @citation       Asako Kanezaki. Unsupervised Image Segmentation by Backpropagation. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018.
+    """
 
     def __init__(self,
-                 model,
-                 optimizer,
-                 loss,
-                 num_channel: int = 100,
-                 iteration: int = 100,
-                 min_classes: int = 10,
-                 experiment: Experiment = None) -> None:
+        model,
+        optimizer,
+        loss,
+        num_channel: int = 100,
+        iteration: int = 100,
+        min_classes: int = 10,
+        experiment: Experiment = None) -> None:
 
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu")
@@ -165,7 +169,7 @@ class Kanezaki2018_Impl:
 
     def unsupervise_segmentation(self, img,
         log_img : bool = True, 
-        log_metrics : bool = True) -> Dict:
+        log_metrics : bool = True):
         """Segment an image using the unsupervise approach presented in,
         Unsupervised Image Segmentation by Backpropagation.
 

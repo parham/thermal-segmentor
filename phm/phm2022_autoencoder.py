@@ -6,8 +6,9 @@
     @organization: Laval University
 """
 
+import functools
 import logging
-from dotmap import DotMap
+from typing import Dict, Tuple
 
 import torch
 import torch.nn as nn
@@ -15,15 +16,14 @@ import torch.nn.init
 import torch.optim as optim
 import torch.nn.functional as F
 
+from ignite.engine import Engine
+
 import time
-import cv2
 import numpy as np
-from skimage import segmentation
-from phm import running_time
-from tkinter import Variable
+from torchmetrics import Metric
 from comet_ml import Experiment
 
-from phm.core import Segmentor
+from phm.core import load_config
 
 class Classifier(nn.Module):
     def __init__(self,
@@ -40,7 +40,7 @@ class Classifier(nn.Module):
             padding=padding
         )
         self.bn = nn.BatchNorm2d(out_channel)
-        self.cls = nn.Softmax2d()
+        # self.cls = nn.Softmax2d()
 
     def forward(self, x):
         x = self.conv(x)
@@ -93,60 +93,78 @@ class TransposeFeature(nn.Module):
         return x
 
 class phmAutoencoderModule (nn.Module):
-    def __init__(self, config : DotMap, num_dim):
+    def __init__(self, 
+        num_dim : int = 3,
+        num_channels : int = 100,
+        part01_kernel_size : int = 3,
+        part01_stride : int = 1,
+        part01_padding : int = 1,
+        part02_num_layer : int = 3,
+        part02_kernel_size : int = 3,
+        part02_stride : int = 2,
+        part02_padding : int = 1,
+        part02_output_padding : int = 1,
+        part03_kernel_size : int = 3,
+        part03_stride : int = 1,
+        part03_padding : int = 2,
+        part04_kernel_size : int = 1,
+        part04_stride : int = 1,
+        part04_padding : int = 0,
+        num_conv_layers : int = 3
+
+    ):
         super(phmAutoencoderModule, self).__init__()
         # Set the model's config based on provided configuration
-        self.config = config
-        self.nChannel = self.config.num_channels
+        self.nChannel = num_channels
         # Part 01 : the feature extraction
         self.part01 = nn.ModuleList([
             Feature(num_dim, self.nChannel,
-                kernel_size=self.config.part01_kernel_size,
-                stride=self.config.part01_stride,
-                padding=self.config.part01_padding),
+                kernel_size = part01_kernel_size,
+                stride = part01_stride,
+                padding = part01_padding),
             Feature(self.nChannel, self.nChannel,
-                kernel_size=self.config.part01_kernel_size,
-                stride=self.config.part01_stride,
-                padding=self.config.part01_padding),
+                kernel_size = part01_kernel_size,
+                stride = part01_stride,
+                padding = part01_padding),
             Feature(self.nChannel, self.nChannel,
-                kernel_size=self.config.part01_kernel_size,
-                stride=self.config.part01_stride,
-                padding=self.config.part01_padding),
+                kernel_size = part01_kernel_size,
+                stride = part01_stride,
+                padding = part01_padding),
         ])
         # Feature space including multiple convolutional layers
         # Part 02 : Auto-Encoder
         self.encoder = []
         inc_ch = self.nChannel
         # Encoder
-        for i in range(self.config.part02_num_layer):
+        for i in range(part02_num_layer):
             tmp = Feature(inc_ch, inc_ch * 2,
-                kernel_size=self.config.part02_kernel_size,
-                stride=self.config.part02_stride,
-                padding=self.config.part02_padding)
+                kernel_size = part02_kernel_size,
+                stride = part02_stride,
+                padding = part02_padding)
             inc_ch *= 2
             self.encoder.append(tmp)
         self.encoder = nn.ModuleList(self.encoder)
         # Decoder
         self.decoder = []
-        for i in range(self.config.part02_num_layer):
+        for i in range(part02_num_layer):
             tmp = TransposeFeature(int(inc_ch), int(inc_ch / 2),
-                                   kernel_size=self.config.part02_kernel_size,
-                                   stride=self.config.part02_stride,
-                                   padding=self.config.part02_padding,
-                                   output_padding=self.config.part02_output_padding)
+                kernel_size = part02_kernel_size,
+                stride = part02_stride,
+                padding = part02_padding,
+                output_padding = part02_output_padding)
             inc_ch /= 2
             self.decoder.append(tmp)
         self.decoder = nn.ModuleList(self.decoder)
         # Part 03 : the reference normalization for extracting class labels
         self.part03 = nn.ModuleList([
             Feature(self.nChannel, self.nChannel,
-                    kernel_size=self.config.part03_kernel_size,
-                    stride=self.config.part03_stride,
-                    padding=self.config.part03_padding),
+                kernel_size = part03_kernel_size,
+                stride = part03_stride,
+                padding = part03_padding),
             Feature(self.nChannel, self.nChannel,
-                    kernel_size=self.config.part03_kernel_size,
-                    stride=self.config.part03_stride,
-                    padding=self.config.part03_padding),
+                kernel_size = part03_kernel_size,
+                stride = part03_stride,
+                padding = part03_padding),
         ])
         self.part04 = nn.ModuleList([
             Feature(self.nChannel, self.nChannel,
@@ -172,9 +190,9 @@ class phmAutoencoderModule (nn.Module):
         ])
         # Part 04 : the final classification
         self.classify = Classifier(self.nChannel, self.nChannel,
-            kernel_size=self.config.part04_kernel_size,
-            stride=self.config.part04_stride,
-            padding=self.config.part04_padding)
+            kernel_size = part04_kernel_size,
+            stride = part04_stride,
+            padding = part04_padding)
 
     def forward(self, x):
         # Part 01
@@ -193,7 +211,6 @@ class phmAutoencoderModule (nn.Module):
             if first_layer:
                 first_layer = False
             else:
-                # import pdb; pdb.set_trace()
                 x = torch.cat((x,tmp), dim=-1)
             x = sp(x)
 
@@ -216,77 +233,92 @@ class phmAutoencoderModule (nn.Module):
 
         return x
 
-class phmAutoencoderSegmentor(Segmentor):
-    
-    def __init__(self, 
-        config: DotMap, 
-        experiment: Experiment = None, 
-        optimizer=None, 
-        use_cuda: bool = True) -> None:
-
-        super().__init__(config, 
-            experiment, None, optimizer, 
-            torch.nn.CrossEntropyLoss(), use_cuda)
-        # Number of channels
-        self.nChannel = self.config.model.num_channels
-        # Label Colors
-        self.label_colours = np.random.randint(255,size=(100,3))
+class phmAutoencoderLoss(nn.Module):
+    def __init__(self,
+        num_channel: int = 100,
+        similarity_loss: float = 0.99,
+        continuity_loss: float = 0.5
+    ) -> None:
+        super().__init__()
         # similarity loss definition
         self.loss_fn = nn.CrossEntropyLoss()
         # continuity loss definition
         self.loss_hpy = torch.nn.SmoothL1Loss(size_average=True)
         self.loss_hpz = torch.nn.SmoothL1Loss(size_average=True)
 
-    def calc_loss(self, img, output, target):
-        img_w = img.shape[0]
-        img_h = img.shape[1]
+        self.device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu")
+        self.similarity_loss = similarity_loss
+        self.continuity_loss = continuity_loss
+        self.nChannel = num_channel
+    
+    def set_ref(self, ref):
+        self._ref = ref
+        img_w = ref.shape[0]
+        img_h = ref.shape[1]
+        self.HPy_target = torch.zeros(
+            img_w-1, img_h, self.nChannel).to(self.device)
+        self.HPz_target = torch.zeros(
+            img_w, img_h-1, self.nChannel).to(self.device)
+
+    def forward(self, output, target, img_size: Tuple):
+        img_w = img_size[0]
+        img_h = img_size[1]
         outputHP = output.reshape((img_w, img_h, self.nChannel))
         HPy = outputHP[1:, :, :] - outputHP[0:-1, :, :]
         HPz = outputHP[:, 1:, :] - outputHP[:, 0:-1, :]
         lhpy = self.loss_hpy(HPy, self.HPy_target)
         lhpz = self.loss_hpz(HPz, self.HPz_target)
         # loss calculation
-        # return self.config.segmentation.similarity_loss_ssize * self.loss_fn(output, target) + self.config.segmentation.continuity_loss_ssize * (lhpy + lhpz)
-        return self.config.segmentation.similarity_loss_ssize * self.loss_fn(output.view(-1, self.nChannel), target.view(-1)) + self.config.segmentation.continuity_loss_ssize * (lhpy + lhpz)
+        return self.segmentation.similarity_loss * self.loss_fn(output.view(-1, self.nChannel), target.view(-1)) + \
+            self.segmentation.continuity_loss * (lhpy + lhpz)
 
-    def _segment(self, img):
+class phmAutoencoder_Impl:
+    
+    def __init__(self, 
+        model,
+        optimizer,
+        loss,
+        num_channel: int = 100,
+        iteration: int = 100,
+        min_classes: int = 10,
+        experiment: Experiment = None) -> None:
+
+        self.model = model
+        self.model.to(self.device)
+        self.optimizer = optimizer
+        self.loss_fn = loss
+        self.experiment = experiment
+        # Number of channels
+        self.nChannel = num_channel
+        self.iteration = iteration
+        self.min_classes = min_classes
+        self.last_label_count = 0
+
+    def unsupervise_segmentation(self, img,
+        log_img: bool = True,
+        log_metrics: bool = True):
+
+        last_loss = None
+        seg_result = None
+        seg_step_time = 0
+
         img_w = img.shape[0]
         img_h = img.shape[1]
-        img_dim = img.shape[2]
         # Convert image to numpy data
         img_data = np.array([img.transpose((2, 0, 1)).astype('float32')/255.])
-        data = torch.from_numpy(img_data)
-        if self.use_cuda:
-            data = data.cuda()
 
-        self.HPy_target = torch.zeros(
-            img_w-1, img_h, self.nChannel)
-        self.HPz_target = torch.zeros(
-            img_w, img_h-1, self.nChannel)
-        if self.use_cuda:
-            self.HPy_target = self.HPy_target.cuda()
-            self.HPz_target = self.HPz_target.cuda()
-
-        if self.model is None:
-            self.model = phmAutoencoderModule(self.config.model, img_dim)
-
-        if self.optimizer is None:       
-            lr = self.config.segmentation.learning_rate
-            momentum = self.config.segmentation.momentum
-            self.optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=momentum)
-        #####################################
-
+        self.experiment.log_image(
+            img, name='original', step=0)
+        # Convert image to tensor
+        data = torch.from_numpy(img_data).to(self.device)
         # Create an instance of the model and set it to learn
         if torch.cuda.is_available():
             self.model.cuda()
         self.model.train()
 
-        seg_result = None
-        seg_num_classes = 0
-        seg_step_time = 0
-
         with self.experiment.train():
-            for step in range(self.config.segmentation.iteration):
+            for step in range(self.iteration):
                 t = time.time()
                 self.optimizer.zero_grad()
                 output = self.model(data)[0,:,0:img_w,0:img_h]
@@ -299,33 +331,95 @@ class phmAutoencoderSegmentor(Segmentor):
                 nLabels = len(np.unique(im_target))
 
                 seg_result = im_target.reshape(img.shape[0:2])
-                seg_num_classes = nLabels
 
-                target = torch.from_numpy(im_target)
-                if self.use_cuda:
-                    target = target.cuda()
+                target = torch.from_numpy(im_target).to(self.device)
 
                 loss = self.calc_loss(img, output, target)
                 loss.backward()
                 self.optimizer.step()
 
-                logging.info(f'{step} / {self.config.segmentation.iteration} : {nLabels} , {loss.item()}')
+                logging.info(
+                    f'{step} / {self.iteration} : {nLabels} , {loss.item()}')
 
                 step_time = time.time() - t
                 seg_step_time += step_time
+                self.last_label_count = nLabels
                 
-                self.experiment.log_metrics({
-                    'step_time' : step_time,
-                    'class_count' : nLabels,
-                    'loss' : loss
-                }, step=step, epoch=1)
-                self.experiment.log_image(seg_result,name='steps',step=step)
+                if log_metrics:
+                    self.experiment.log_metrics({
+                        'noref_step_time': step_time,
+                        'noref_class_count': nLabels,
+                        'noref_loss': loss
+                    }, step=step, epoch=1)
+                if log_img:
+                    self.experiment.log_image(
+                        seg_result, name='steps', step=step)
         
-                if nLabels <= self.config.segmentation.min_classes:
-                    logging.info(f'Number of labels has reached {nLabels}.')
+                if nLabels <= self.min_classes:
+                    logging.info(
+                        f'Number of labels has reached {self.last_label_count}.')
                     break
 
-        return seg_result, {
-            'iteration_time' : seg_step_time,
-            'num_classes' : seg_num_classes
-        }
+        return last_loss.item(), seg_result
+
+def create_noref_predict_phmAutoencoder__(
+    config_file : str = 'configs/wonjik2020.json', 
+    experiment : Experiment = None,
+    metrics : Dict[str,Metric] = None):
+
+    config = load_config(config_file)
+    # Initialize model
+    model = phmAutoencoderModule(num_dim=3, 
+        num_channels=config.model.num_channels, 
+        num_convs=config.model.num_conv_layers,
+        part01_kernel_size = config.model.part01_kernel_size,
+        part01_stride = config.model.part01_stride,
+        part01_padding = config.model.part01_padding,
+        part02_num_layer = config.model.part02_num_layer,
+        part02_kernel_size = config.model.part02_kernel_size,
+        part02_stride = config.model.part02_stride,
+        part02_padding = config.model.part02_padding,
+        part02_output_padding = config.model.part02_output_padding,
+        part03_kernel_size = config.model.part03_kernel_size,
+        part03_stride = config.model.part03_stride,
+        part03_padding = config.model.part03_padding,
+        part04_kernel_size = config.model.part04_kernel_size,
+        part04_stride = config.model.part04_stride,
+        part04_padding = config.model.part04_padding,
+        num_conv_layers = config.model.num_conv_layers
+    )
+    # Initialize loss
+    loss = phmAutoencoderLoss(
+        num_channel = config.model.num_channels,
+        similarity_loss = config.segmentation.similarity_loss,
+        continuity_loss = config.segmentation.continuity_loss)
+    # Initialize optimizer
+    optimizer = optim.SGD(model.parameters(), 
+        lr=config.segmentation.learning_rate, 
+        momentum=config.segmentation.momentum)
+
+    if experiment is not None:
+        experiment.log_parameters(config.model, prefix='model')
+        experiment.log_parameters(config.segmentation, prefix='segmentation')
+
+    seg_obj = phmAutoencoder_Impl(
+        model=model, 
+        optimizer=optimizer,
+        loss=loss,
+        num_channel=config.model.num_channels,
+        iteration=config.segmentation.iteration,
+        min_classes=config.segmentation.min_classes,
+        experiment=experiment
+    )
+
+    pred_func = functools.partial(seg_obj.unsupervise_segmentation_step__,
+        log_img=config.general.log_image,
+        log_metrics=config.general.log_metrics    
+    )
+    engine = Engine(pred_func)
+
+    if metrics is not None:
+        for x in metrics.keys():
+            metrics[x].attach(engine, x)
+
+    return engine

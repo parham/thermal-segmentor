@@ -1,7 +1,6 @@
 
-import logging
 import os
-import cv2
+import logging
 import numpy as np
 
 from PIL import Image
@@ -31,9 +30,6 @@ engine = create_noref_predict_Kanezaki2018__(
     metrics=None
 )
 
-# config = load_config('configs/kanezaki2018.json')
-# segs = Kanezaki2018Segmentator(config, experiment=experiment)
-
 img = Image.open(os.path.join(root_dir,sample_file))
 img = img.convert('RGB')
 img = np.asarray(img)
@@ -45,6 +41,4 @@ if img is None:
 
 engine.run([[img,np.zeros(img.shape)]])
 
-# res = segs.segment(img)
-# print(res)
 experiment.end()
