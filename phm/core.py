@@ -77,6 +77,14 @@ def save_config(config, config_file):
 
 class Segmentor:
     def __init__(self,
+        experiment : Experiment) -> None:
+        self.experiment = experiment
+
+    def segment_noref(self, img):
+        pass
+
+class Segmentor:
+    def __init__(self,
         config : DotMap,
         experiment : Experiment, 
         model = None,
