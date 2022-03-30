@@ -23,7 +23,7 @@ from ignite.engine import Engine
 import time
 import numpy as np
 
-from phm.core import load_config
+from phm.core import Segmentor, load_config
 
 
 class Wonjik2020Module (nn.Module):
@@ -124,7 +124,7 @@ class Wonjik2020Loss(nn.Module):
             self.continuity_loss * (lhpy + lhpz)
 
 
-class Wonjik2020_Impl:
+class Wonjik2020_Impl(Segmentor):
     """ Implementation of unsupervised segmentation method presented in,
     @name           Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering   
     @journal        IEEE Transactions on Image Processing
@@ -155,14 +155,16 @@ class Wonjik2020_Impl:
         self.min_classes = min_classes
         self.last_label_count = 0
 
-    def unsupervise_segmentation_step__(self, engine, batch, log_img : bool = True, log_metrics : bool = True):
+    def segment_noref_step__(self, engine, batch,
+        log_img: bool = True,
+        log_metrics: bool = True):
         img = batch[0]
         self.last_label_count = 0
-        return self.unsupervise_segmentation(img, log_img = log_img, log_metrics = log_metrics)
+        return self.segment_noref(img, log_img = log_img, log_metrics = log_metrics)
 
-    def unsupervise_segmentation(self, img,
-                                 log_img: bool = True,
-                                 log_metrics: bool = True):
+    def segment_noref(self, img,
+        log_img: bool = True,
+        log_metrics: bool = True):
 
         last_loss = None
         seg_result = None
@@ -262,7 +264,8 @@ def create_noref_predict_Wonjik2020__(
         experiment=experiment
     )
 
-    pred_func = functools.partial(seg_obj.unsupervise_segmentation_step__,
+    pred_func = functools.partial(
+        seg_obj.segment_noref_step__,
         log_img=config.general.log_image,
         log_metrics=config.general.log_metrics    
     )

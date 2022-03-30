@@ -24,7 +24,7 @@ import numpy as np
 from skimage import segmentation
 from comet_ml import Experiment
 
-from phm.core import load_config
+from phm.core import Segmentor, load_config
 
 class Kanezaki2018Events(EventEnum):
     INTERNAL_TRAIN_LOOP_COMPLETED = 'internal_train_loop_completed'
@@ -126,7 +126,7 @@ class Kanezaki2018Loss(nn.Module):
 
         return self.loss_fn(output, target)
 
-class Kanezaki2018_Impl:
+class Kanezaki2018_Impl(Segmentor):
     """Implementation of unsupervised segmentation method presented in,
     @name           Unsupervised Image Segmentation by Backpropagation
     @journal        IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)
@@ -162,12 +162,14 @@ class Kanezaki2018_Impl:
             logging.info(f'Number of labels has reached {self.last_label_count}.')
             engine.terminate()
 
-    def unsupervise_segmentation_step__(self, engine, batch, log_img : bool = True, log_metrics : bool = True):
+    def segment_noref_step__(self, engine, batch, 
+        log_img : bool = True, 
+        log_metrics : bool = True):
         img = batch[0]
         self.last_label_count = 0
-        return self.unsupervise_segmentation(img, log_img = log_img, log_metrics = log_metrics)
+        return self.segment_noref(img, log_img = log_img, log_metrics = log_metrics)
 
-    def unsupervise_segmentation(self, img,
+    def segment_noref(self, img,
         log_img : bool = True, 
         log_metrics : bool = True):
         """Segment an image using the unsupervise approach presented in,
@@ -272,7 +274,8 @@ def create_noref_predict_Kanezaki2018__(
         experiment=experiment
     )
 
-    pred_func = functools.partial(seg_obj.unsupervise_segmentation_step__,
+    pred_func = functools.partial(
+        seg_obj.segment_noref_step__,
         log_img=config.general.log_image,
         log_metrics=config.general.log_metrics    
     )

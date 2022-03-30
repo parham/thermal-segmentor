@@ -23,7 +23,7 @@ import numpy as np
 from torchmetrics import Metric
 from comet_ml import Experiment
 
-from phm.core import load_config
+from phm.core import Segmentor, load_config
 
 class Classifier(nn.Module):
     def __init__(self,
@@ -273,7 +273,7 @@ class phmAutoencoderLoss(nn.Module):
         return self.segmentation.similarity_loss * self.loss_fn(output.view(-1, self.nChannel), target.view(-1)) + \
             self.segmentation.continuity_loss * (lhpy + lhpz)
 
-class phmAutoencoder_Impl:
+class phmAutoencoder_Impl(Segmentor):
     
     def __init__(self, 
         model,
@@ -295,7 +295,14 @@ class phmAutoencoder_Impl:
         self.min_classes = min_classes
         self.last_label_count = 0
 
-    def unsupervise_segmentation(self, img,
+    def segment_noref_step__(self, engine, batch,
+        log_img: bool = True,
+        log_metrics: bool = True):
+        img = batch[0]
+        self.last_label_count = 0
+        return self.segment_noref(img, log_img = log_img, log_metrics = log_metrics)
+
+    def segment_noref(self, img,
         log_img: bool = True,
         log_metrics: bool = True):
 
@@ -412,7 +419,8 @@ def create_noref_predict_phmAutoencoder__(
         experiment=experiment
     )
 
-    pred_func = functools.partial(seg_obj.unsupervise_segmentation_step__,
+    pred_func = functools.partial(
+        seg_obj.segment_noref_step__,
         log_img=config.general.log_image,
         log_metrics=config.general.log_metrics    
     )

@@ -7,14 +7,17 @@
     @email      parham.nooralishahi@gmail.com
 """
 
-from ctypes import Union
 import os
-from typing import Any, Dict, Tuple
+import abc
+from torchmetrics import Metric
 import yaml
 import json
 import logging
 import logging.config
 import functools
+
+from ctypes import Union
+from typing import Any, Dict, List, Tuple
 
 from time import time
 from dotmap import DotMap
@@ -75,48 +78,20 @@ def save_config(config, config_file):
     with open(config_file, 'w') as cfile:
         json.dump(cnf, cfile)
 
-class Segmentor:
+class Segmentor(abc.ABC):
     def __init__(self,
         experiment : Experiment) -> None:
         self.experiment = experiment
 
-    def segment_noref(self, img):
-        pass
+    @abc.abstractmethod
+    def segment_noref(self, img,
+        log_img: bool = True,
+        log_metrics: bool = True):
+        return
 
-class Segmentor:
-    def __init__(self,
-        config : DotMap,
-        experiment : Experiment, 
-        model = None,
-        optimizer = None,
-        loss_fn = None,
-        use_cuda : bool = True) -> None:
-        """Segmentor base class
-
-        Args:
-            config (DotMap): configuration of the segmentor
-            experiment (Experiment, optional): the experiment instance.
-            model (_type_, optional): the model for segmentation. Defaults to None.
-            optimizer (_type_, optional): the optimizer for segmentation. Defaults to None.
-            loss_fn (_type_, optional): the loss function. Defaults to None.
-            use_cuda (bool, optional): use CUDA?. Defaults to True.
-        """
-        self.config = config
-        self.experiment = experiment
-        self.model = model
-        self.optimizer = optimizer
-        self.use_cuda = use_cuda
-        self.loss_fn = loss_fn
-    
-    def __call__(self, img) -> dict:
-        return self.segment(img)
-
-    def segment(self, input): #-> Union[Tuple[Any,Dict], Any]:
-        output, metrics = self._segment(input)
-        self.experiment.log_metrics(metrics, prefix='final_')
-        self.experiment.log_image(output,name='final_result')
-        return output, metrics
-
-    def _segment(self, input): #-> Union[Tuple[Any,Dict], Any]:
-        pass
+    def segment(self, img,
+        loop_metrics : Dict[str,Metric] = None,
+        log_img: bool = True,
+        log_metrics: bool = True):
+        return
 
