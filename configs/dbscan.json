@@ -1,0 +1,7 @@
+{
+    "segmentation": {
+        "eps" : 1.2,
+        "min_samples" : 70,
+        "leaf_size" : 30
+    }
+}

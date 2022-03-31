@@ -13,6 +13,7 @@ from .core import *
 from .kanezaki2018 import *
 from .wonjik2020 import *
 from .phm2022_autoencoder import *
+from .classics import *
 
 # Check CUDA Availability
 import torch, gc
