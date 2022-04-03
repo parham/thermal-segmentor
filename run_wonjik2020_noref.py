@@ -39,6 +39,6 @@ if img is None:
     logging.error(err_msg)
     raise ValueError(err_msg)
 
-engine.run([[img,np.zeros(img.shape)]])
+state = engine.run([[img,np.zeros(img.shape)]])
 
 experiment.end()
