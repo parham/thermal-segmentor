@@ -1,8 +1,13 @@
-r"""
-crf.py
----------
-Implements a Conditional Random Field (CRF) for image segmentation, using the `pydensecrf` library.
+
+""" 
+    @author        Parham Nooralishahi
+    @email         parham.nooralishahi@gmail.com
+    @professor     Professor Xavier Maldague
+    @organization  Laval University
+    @description Implements a Conditional Random Field (CRF) for image segmentation, using the `pydensecrf` library.
+                 adopted from https://github.com/fkodom/wnet-unsupervised-image-segmentation
 """
+
 
 import numpy as np
 from pydensecrf import densecrf as dcrf
