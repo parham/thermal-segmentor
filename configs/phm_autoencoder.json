@@ -25,5 +25,9 @@
         "learning_rate" : 0.1,
         "momentum" : 0.9,
         "min_classes" : 12
+    },
+    "general" : {
+        "log_image" : true,
+        "log_metrics" : true
     }
 }

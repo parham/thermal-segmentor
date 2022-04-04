@@ -346,6 +346,7 @@ class phmAutoencoder_Impl(Segmentor):
 
                 loss = self.loss_fn(output, target, img.shape)
                 loss.backward()
+                last_loss = loss
                 self.optimizer.step()
 
                 logging.info(
@@ -380,8 +381,7 @@ def create_noref_predict_phmAutoencoder__(
     config = load_config(config_file)
     # Initialize model
     model = phmAutoencoderModule(num_dim=3, 
-        num_channels=config.model.num_channels, 
-        num_convs=config.model.num_conv_layers,
+        num_channels=config.model.num_channels,
         part01_kernel_size = config.model.part01_kernel_size,
         part01_stride = config.model.part01_stride,
         part01_padding = config.model.part01_padding,
