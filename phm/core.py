@@ -83,7 +83,6 @@ class Segmentor(abc.ABC):
         experiment : Experiment = None) -> None:
         self.experiment = experiment
 
-    @abc.abstractmethod
     def segment_noref(self, img,
         log_img: bool = True,
         log_metrics: bool = True):
