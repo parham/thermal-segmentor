@@ -7,7 +7,8 @@ from PIL import Image
 from datetime import datetime
 from comet_ml import Experiment
 
-from phm.wonjik2020 import create_noref_predict_Wonjik2020__
+from phm.phm2022_autoencoder import create_noref_predict_phmAutoencoder__
+
 
 root_dir = 'datasets'
 sample_file = 'pipe_color_plate.jpg' # 'pipe_color_plate.jpg' # 'aerospace_defect_crop_enhanced.jpg' # 'pipe_color_plate.jpg'
@@ -24,7 +25,7 @@ experiment = Experiment(
 experiment.set_name('%s_%s_%s' % ('phmAutoencoder', now.strftime('%Y%m%d-%H%M'), sample_file.split('.')[0]))
 experiment.add_tag(sample_file.split('.')[0])
 
-engine = create_noref_predict_Wonjik2020__(
+engine = create_noref_predict_phmAutoencoder__(
     config_file='configs/phm_autoencoder.json',
     experiment=experiment,
     metrics=None

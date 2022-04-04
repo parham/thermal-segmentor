@@ -270,8 +270,8 @@ class phmAutoencoderLoss(nn.Module):
         lhpy = self.loss_hpy(HPy, self.HPy_target)
         lhpz = self.loss_hpz(HPz, self.HPz_target)
         # loss calculation
-        return self.segmentation.similarity_loss * self.loss_fn(output.view(-1, self.nChannel), target.view(-1)) + \
-            self.segmentation.continuity_loss * (lhpy + lhpz)
+        return self.similarity_loss * self.loss_fn(output.view(-1, self.nChannel), target.view(-1)) + \
+            self.continuity_loss * (lhpy + lhpz)
 
 class phmAutoencoder_Impl(Segmentor):
     
@@ -323,11 +323,10 @@ class phmAutoencoder_Impl(Segmentor):
                 img, name='original', step=0)
         # Convert image to tensor
         data = torch.from_numpy(img_data).to(self.device)
-        # Create an instance of the model and set it to learn
-        if torch.cuda.is_available():
-            self.model.cuda()
-        self.model.train()
 
+        self.loss_fn.set_ref(img)
+
+        self.model.train()
         with self.experiment.train():
             for step in range(self.iteration):
                 t = time.time()
@@ -345,7 +344,7 @@ class phmAutoencoder_Impl(Segmentor):
 
                 target = torch.from_numpy(im_target).to(self.device)
 
-                loss = self.calc_loss(img, output, target)
+                loss = self.loss_fn(output, target, img.shape)
                 loss.backward()
                 self.optimizer.step()
 
