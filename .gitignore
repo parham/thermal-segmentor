@@ -1,3 +1,4 @@
 
 phm/__pycache__/*
 .vscode/*
+*.log
