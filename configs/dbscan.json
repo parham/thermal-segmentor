@@ -3,5 +3,9 @@
         "eps" : 1.2,
         "min_samples" : 70,
         "leaf_size" : 30
+    },
+    "general" : {
+        "log_image" : true,
+        "log_metrics" : true
     }
 }

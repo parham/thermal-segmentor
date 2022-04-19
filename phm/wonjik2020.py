@@ -7,10 +7,10 @@
 """
 
 import functools
-import logging
-from typing import Dict, Tuple
+
+from typing import Dict
 from comet_ml import Experiment
-from dotmap import DotMap
+
 import torch
 import torch.nn as nn
 import torch.nn.init
@@ -20,10 +20,8 @@ import torch.nn.functional as F
 from torchmetrics import Metric
 from ignite.engine import Engine
 
-import time
-import numpy as np
-
-from phm.core import Segmentor, load_config
+from phm.core import load_config
+from phm.segment import KanezakiIterativeSegmentor, phmLoss
 
 
 class Wonjik2020Module (nn.Module):
@@ -73,8 +71,7 @@ class Wonjik2020Module (nn.Module):
         x = self.bn3(x)
         return x
 
-
-class Wonjik2020Loss(nn.Module):
+class Wonjik2020Loss(phmLoss):
     """ Loss function implemented based on the loss function defined in,
     @name           Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering   
     @journal        IEEE Transactions on Image Processing
@@ -95,13 +92,12 @@ class Wonjik2020Loss(nn.Module):
         self.HPy_target = None
         self.HPz_target = None
 
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu")
         self.similarity_loss = similarity_loss
         self.continuity_loss = continuity_loss
         self.nChannel = num_channel
 
-    def set_ref(self, ref):
+    def prepare_loss(self, **kwargs):
+        ref = kwargs['ref']
         self._ref = ref
         img_w = ref.shape[0]
         img_h = ref.shape[1]
@@ -110,7 +106,8 @@ class Wonjik2020Loss(nn.Module):
         self.HPz_target = torch.zeros(
             img_w, img_h - 1, self.nChannel).to(self.device)
 
-    def forward(self, output, target, img_size: Tuple[int, int, int]):
+    def forward(self, output, target, **kwargs):
+        img_size = kwargs['img_size']
         img_w = img_size[0]
         img_h = img_size[1]
 
@@ -122,113 +119,6 @@ class Wonjik2020Loss(nn.Module):
         # loss calculation
         return self.similarity_loss * self.loss_fn(output, target) + \
             self.continuity_loss * (lhpy + lhpz)
-
-
-class Wonjik2020_Impl(Segmentor):
-    """ Implementation of unsupervised segmentation method presented in,
-    @name           Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering   
-    @journal        IEEE Transactions on Image Processing
-    @year           2020
-    @repo           https://github.com/kanezaki/pytorch-unsupervised-segmentation-tip
-    @citation       Wonjik Kim*, Asako Kanezaki*, and Masayuki Tanaka. Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering. IEEE Transactions on Image Processing, accepted, 2020.
-    """
-
-    def __init__(self,
-                 model,
-                 optimizer,
-                 loss,
-                 num_channel: int = 100,
-                 iteration: int = 100,
-                 min_classes: int = 10,
-                 experiment: Experiment = None) -> None:
-
-        super().__init__(experiment)
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu")
-        self.model = model
-        self.model.to(self.device)
-        self.optimizer = optimizer
-        self.loss_fn = loss
-        # Number of channels
-        self.nChannel = num_channel
-        self.iteration = iteration
-        self.min_classes = min_classes
-        self.last_label_count = 0
-
-    def segment_noref_step__(self, engine, batch,
-        log_img: bool = True,
-        log_metrics: bool = True):
-        img = batch[0]
-        self.last_label_count = 0
-        return self.segment_noref(img, log_img = log_img, log_metrics = log_metrics)
-
-    def segment_noref(self, img,
-        log_img: bool = True,
-        log_metrics: bool = True):
-
-        last_loss = None
-        seg_result = None
-        seg_step_time = 0
-
-        img_w = img.shape[0]
-        img_h = img.shape[1]
-        # Convert image to numpy data
-        img_data = np.array([img.transpose((2, 0, 1)).astype('float32')/255.])
-
-        if log_img:
-            self.experiment.log_image(
-                img, name='original', step=0)
-        # Convert image to tensor
-        data = torch.from_numpy(img_data).to(self.device)
-
-        self.loss_fn.set_ref(img)
-
-        self.model.train()
-        with self.experiment.train():
-            for step in range(self.iteration):
-                t = time.time()
-                self.optimizer.zero_grad()
-                output = self.model(data)[0, :, 0:img_w, 0:img_h]
-
-                output_orig = output.permute(1, 2, 0).contiguous()
-                output = output_orig.view(-1, self.nChannel)
-
-                _, target = torch.max(output, 1)
-                im_target = target.data.cpu().numpy()
-                nLabels = len(np.unique(im_target))
-
-                seg_result = im_target.reshape(img.shape[0:2])
-
-                target = torch.from_numpy(im_target).to(self.device)
-
-                loss = self.loss_fn(output, target, img.shape)
-                loss.backward()
-                last_loss = loss
-                self.optimizer.step()
-
-                logging.info(
-                    f'{step} / {self.iteration} : {nLabels} , {loss.item()}')
-
-                step_time = time.time() - t
-                seg_step_time += step_time
-                self.last_label_count = nLabels
-
-                if log_metrics:
-                    self.experiment.log_metrics({
-                        'noref_step_time': step_time,
-                        'noref_class_count': nLabels,
-                        'noref_loss': loss
-                    }, step=step, epoch=1)
-                if log_img:
-                    self.experiment.log_image(
-                        seg_result, name='steps', step=step)
-
-                if nLabels <= self.min_classes:
-                    logging.info(
-                        f'Number of labels has reached {self.last_label_count}.')
-                    break
-
-        return last_loss.item(), seg_result
 
 def create_noref_predict_Wonjik2020__(
     config_file : str = 'configs/wonjik2020.json', 
@@ -255,7 +145,7 @@ def create_noref_predict_Wonjik2020__(
         experiment.log_parameters(config.model, prefix='model')
         experiment.log_parameters(config.segmentation, prefix='segmentation')
 
-    seg_obj = Wonjik2020_Impl(
+    seg_obj = KanezakiIterativeSegmentor(
         model=model, 
         optimizer=optimizer,
         loss=loss,
@@ -266,7 +156,7 @@ def create_noref_predict_Wonjik2020__(
     )
 
     pred_func = functools.partial(
-        seg_obj.segment_noref_step__,
+        seg_obj.segment_noref_ignite__,
         log_img=config.general.log_image,
         log_metrics=config.general.log_metrics    
     )

@@ -8,20 +8,14 @@
 """
 
 import os
-import abc
-from torchmetrics import Metric
 import yaml
 import json
 import logging
 import logging.config
 import functools
 
-from ctypes import Union
-from typing import Any, Dict, List, Tuple
-
 from time import time
 from dotmap import DotMap
-from comet_ml import Experiment
 
 def initialize_log():
     """Initialize the log configuration"""
@@ -78,19 +72,4 @@ def save_config(config, config_file):
     with open(config_file, 'w') as cfile:
         json.dump(cnf, cfile)
 
-class Segmentor(abc.ABC):
-    def __init__(self,
-        experiment : Experiment = None) -> None:
-        self.experiment = experiment
-
-    def segment_noref(self, img,
-        log_img: bool = True,
-        log_metrics: bool = True):
-        return
-
-    def segment(self, img,
-        loop_metrics : Dict[str,Metric] = None,
-        log_img: bool = True,
-        log_metrics: bool = True):
-        return
 

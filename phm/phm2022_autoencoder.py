@@ -23,7 +23,8 @@ import numpy as np
 from torchmetrics import Metric
 from comet_ml import Experiment
 
-from phm.core import Segmentor, load_config
+from phm.core import load_config
+from phm.segment import Segmentor, phmLoss
 
 class Classifier(nn.Module):
     def __init__(self,
@@ -233,7 +234,7 @@ class phmAutoencoderModule (nn.Module):
 
         return x
 
-class phmAutoencoderLoss(nn.Module):
+class phmAutoencoderLoss(phmLoss):
     def __init__(self,
         num_channel: int = 100,
         similarity_loss: float = 0.99,
@@ -291,7 +292,7 @@ class phmAutoencoder_Impl(Segmentor):
         self.model.to(self.device)
         self.optimizer = optimizer
         self.loss_fn = loss
-        self.experiment = experiment
+        
         # Number of channels
         self.nChannel = num_channel
         self.iteration = iteration
