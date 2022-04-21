@@ -1,15 +1,29 @@
 
-
 import abc
 import logging
 import time
-from turtle import forward
 import torch
 import numpy as np
-from typing import Dict
+from typing import Dict, List
 
 from comet_ml import Experiment
 from torchmetrics import Metric
+from ignite.engine import Engine
+
+from phm.core import load_config
+
+segmenter_handlers = {}
+def ignite_segmenter(name):
+    def __embed_func(func):
+        global segmenter_handlers
+        hname = name if isinstance(name, list) else [name]
+        for n in hname:
+            segmenter_handlers[n] = func
+
+    return __embed_func
+
+def list_segmenters() -> List[str]:
+    return list(segmenter_handlers.keys())
 
 class phmLoss(torch.nn.Module):
     def __init__(self) -> None:
@@ -91,7 +105,7 @@ class KanezakiIterativeSegmentor(Segmentor):
         img_size = kwargs['img_size']
         loss = self.loss_fn(output=output, target=target, img_size=img_size)
         return loss
-    
+
     def segment_noref(self, img,
         log_img: bool = True,
         log_metrics: bool = True):
@@ -158,3 +172,27 @@ class KanezakiIterativeSegmentor(Segmentor):
         img = batch[0]
         self.last_label_count = 0
         return self.segment_noref(img, log_img = log_img, log_metrics = log_metrics)
+
+def init_ignite__(
+    handler : str, 
+    config_file : str,
+    experiment : Experiment,
+    metrics : Dict[str,Metric] = None
+):
+    if not handler in segmenter_handlers:
+        raise ValueError(f'handler {handler} does not exist!')
+    
+    config = load_config(config_file)
+    seg_obj, pred_func = \
+        segmenter_handlers[handler](handler, config, experiment)
+    
+    engine = Engine(pred_func)
+    if metrics is not None:
+        for x in metrics.keys():
+            metrics[x].attach(engine, x)
+    
+    if experiment is not None:
+        experiment.log_parameters(config.model, prefix='model')
+        experiment.log_parameters(config.segmentation, prefix='segmentation')
+
+    return engine

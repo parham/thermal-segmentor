@@ -9,6 +9,7 @@
 import functools
 import logging
 from typing import Dict
+from dotmap import DotMap
 
 import torch
 import torch.nn as nn
@@ -19,13 +20,12 @@ from torchmetrics import Metric
 
 from ignite.engine import Engine, EventEnum
 
-import time
 import numpy as np
 from skimage import segmentation
 from comet_ml import Experiment
 
 from phm.core import load_config
-from phm.segment import KanezakiIterativeSegmentor, phmLoss
+from phm.segment import KanezakiIterativeSegmentor, ignite_segmenter, phmLoss
 
 class Kanezaki2018Events(EventEnum):
     INTERNAL_TRAIN_LOOP_COMPLETED = 'internal_train_loop_completed'
@@ -126,12 +126,12 @@ class Kanezaki2018Loss(phmLoss):
 
         return self.loss_fn(output, target)
 
-def create_noref_predict_Kanezaki2018__(
-    config_file : str = 'configs/kanezaki2018.json', 
-    experiment : Experiment = None,
-    metrics : Dict[str,Metric] = None):
+@ignite_segmenter('kanezaki2018')
+def generate_kanezaki2018_ignite__(
+    name : str,
+    config : DotMap,
+    experiment : Experiment):
 
-    config = load_config(config_file)
     # Initialize model
     model = Kanezaki2018Module(num_dim=3, 
         num_channels=config.model.num_channels, 
@@ -143,10 +143,6 @@ def create_noref_predict_Kanezaki2018__(
     optimizer = optim.SGD(model.parameters(), 
         lr=config.segmentation.learning_rate, 
         momentum=config.segmentation.momentum)
-
-    if experiment is not None:
-        experiment.log_parameters(config.model, prefix='model')
-        experiment.log_parameters(config.segmentation, prefix='segmentation')
 
     seg_obj = KanezakiIterativeSegmentor(
         model=model, 
@@ -163,10 +159,5 @@ def create_noref_predict_Kanezaki2018__(
         log_img=config.general.log_image,
         log_metrics=config.general.log_metrics    
     )
-    engine = Engine(pred_func)
-
-    if metrics is not None:
-        for x in metrics.keys():
-            metrics[x].attach(engine, x)
-
-    return engine
+    
+    return seg_obj, pred_func    

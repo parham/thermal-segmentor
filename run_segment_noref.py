@@ -1,20 +1,15 @@
 
-import argparse
-from datetime import datetime
-import functools
-import json
-import logging
 import os
 import sys
+import logging
+import argparse
+from datetime import datetime
 
 import numpy as np
 from PIL import Image
 from comet_ml import Experiment
-from phm.classics import create_noref_predict_classics__
 
-from phm.kanezaki2018 import create_noref_predict_Kanezaki2018__
-from phm.phm2022_autoencoder import create_noref_predict_phmAutoencoder__
-from phm.wonjik2020 import create_noref_predict_Wonjik2020__
+from phm.segment import init_ignite__, list_segmenters
 
 logging.basicConfig(
     level=logging.INFO,
@@ -26,21 +21,14 @@ parser = argparse.ArgumentParser(description="Unsupervised segmentation without 
 parser.add_argument('--fin', '-i', type=str, required=True, help="Input image filename.")
 parser.add_argument('--config', '-c', type=str, required=True, help="Configuration file.")
 parser.add_argument('--handler', required=True, default='kanezaki2018',
-    choices=[
-        'kanezaki2018',
-        'wonjik2020',
-        'phm2022_autoencoder',
-        'dbscan',
-        'kmeans',
-        'meanshift',
-        'graphcut'
-    ], help="Handler determination.")
+    choices=list_segmenters(), help="Handler determination.")
 
 def main():
 
     args = parser.parse_args()
     parser.print_help()
 
+    # Check the parameters
     fin = args.fin
     if fin is None or not os.path.isfile(fin):
         logging.error(f'{fin} is invalid!')
@@ -65,19 +53,10 @@ def main():
     experiment.add_tag(fname)
 
     try:
-        engine = {
-            'kanezaki2018' : create_noref_predict_Kanezaki2018__,
-            'wonjik2020' : create_noref_predict_Wonjik2020__,
-            'phm2022_autoencoder' : create_noref_predict_phmAutoencoder__,
-            'dbscan' : functools.partial(create_noref_predict_classics__, method_name = 'dbscan'),
-            'kmeans' : functools.partial(create_noref_predict_classics__, method_name = 'kmeans'),
-            'meanshift' : functools.partial(create_noref_predict_classics__, method_name = 'meanshift'),
-            'graphcut' : functools.partial(create_noref_predict_classics__, method_name = 'graphcut'),
-        }[args.handler](
-            config_file=args.config,
+        engine = init_ignite__(args.handler, 
             experiment=experiment,
-            metrics=None
-        )
+            config_file=args.config,
+            metrics=None)
 
         img = Image.open(fin)
         img = img.convert('RGB')

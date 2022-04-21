@@ -14,6 +14,7 @@ from .kanezaki2018 import *
 from .wonjik2020 import *
 from .phm2022_autoencoder import *
 from .classics import *
+from .segment import *
 
 # Check CUDA Availability
 import torch, gc

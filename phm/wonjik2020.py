@@ -10,6 +10,7 @@ import functools
 
 from typing import Dict
 from comet_ml import Experiment
+from dotmap import DotMap
 
 import torch
 import torch.nn as nn
@@ -21,7 +22,7 @@ from torchmetrics import Metric
 from ignite.engine import Engine
 
 from phm.core import load_config
-from phm.segment import KanezakiIterativeSegmentor, phmLoss
+from phm.segment import KanezakiIterativeSegmentor, ignite_segmenter, phmLoss
 
 
 class Wonjik2020Module (nn.Module):
@@ -120,12 +121,13 @@ class Wonjik2020Loss(phmLoss):
         return self.similarity_loss * self.loss_fn(output, target) + \
             self.continuity_loss * (lhpy + lhpz)
 
-def create_noref_predict_Wonjik2020__(
-    config_file : str = 'configs/wonjik2020.json', 
-    experiment : Experiment = None,
-    metrics : Dict[str,Metric] = None):
 
-    config = load_config(config_file)
+@ignite_segmenter('wonjik2020')
+def generate_wonjik2020_ignite__(
+    name : str,
+    config : DotMap,
+    experiment : Experiment):
+
     # Initialize model
     model = Wonjik2020Module(num_dim=3, 
         num_channels=config.model.num_channels, 
@@ -140,10 +142,6 @@ def create_noref_predict_Wonjik2020__(
     optimizer = optim.SGD(model.parameters(), 
         lr=config.segmentation.learning_rate, 
         momentum=config.segmentation.momentum)
-
-    if experiment is not None:
-        experiment.log_parameters(config.model, prefix='model')
-        experiment.log_parameters(config.segmentation, prefix='segmentation')
 
     seg_obj = KanezakiIterativeSegmentor(
         model=model, 
@@ -160,10 +158,6 @@ def create_noref_predict_Wonjik2020__(
         log_img=config.general.log_image,
         log_metrics=config.general.log_metrics    
     )
-    engine = Engine(pred_func)
 
-    if metrics is not None:
-        for x in metrics.keys():
-            metrics[x].attach(engine, x)
+    return seg_obj, pred_func
 
-    return engine
