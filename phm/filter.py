@@ -7,12 +7,6 @@
     @description Functions for smoothing/filtering 2D images adopted from https://github.com/fkodom/wnet-unsupervised-image-segmentation
 """
 
-r"""
-filter.py
------------
-
-"""
-
 import torch
 from torch import Tensor
 import torch.nn as nn

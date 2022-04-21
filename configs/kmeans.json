@@ -1,5 +1,9 @@
 {
     "segmentation": {
         "n_clusters" : 4
+    },
+    "general" : {
+        "log_image" : true,
+        "log_metrics" : true
     }
 }

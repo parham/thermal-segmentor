@@ -2,5 +2,9 @@
     "segmentation": {
         "n_segments" : 1.2,
         "compactness" : 70
+    },
+    "general" : {
+        "log_image" : true,
+        "log_metrics" : true
     }
 }
