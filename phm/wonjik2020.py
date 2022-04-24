@@ -7,7 +7,7 @@
 """
 
 import functools
-
+import logging
 from typing import Dict
 from comet_ml import Experiment
 from dotmap import DotMap
@@ -22,7 +22,7 @@ from torchmetrics import Metric
 from ignite.engine import Engine
 
 from phm.core import load_config
-from phm.segment import KanezakiIterativeSegmentor, ignite_segmenter, phmLoss
+from phm.segment import KanezakiIterativeSegmentor, ignite_segmenter, phmIterativeSegmentor, phmLoss
 
 
 class Wonjik2020Module (nn.Module):
@@ -154,10 +154,50 @@ def generate_wonjik2020_ignite__(
     )
 
     pred_func = functools.partial(
-        seg_obj.segment_noref_ignite__,
+        seg_obj.segment_ignite__,
         log_img=config.general.log_image,
         log_metrics=config.general.log_metrics    
     )
 
     return seg_obj, pred_func
 
+
+@ignite_segmenter('wonjik2020_phm')
+def generate_wonjik2020_ignite__(
+    name : str,
+    config : DotMap,
+    experiment : Experiment):
+
+    # Initialize model
+    model = Wonjik2020Module(num_dim=3, 
+        num_channels=config.model.num_channels, 
+        num_convs=config.model.num_conv_layers)
+    # Initialize loss
+    loss = Wonjik2020Loss(
+        num_channel = config.model.num_channels,
+        similarity_loss = config.segmentation.similarity_loss,
+        continuity_loss = config.segmentation.continuity_loss
+    )
+    # Initialize optimizer
+    optimizer = optim.SGD(model.parameters(), 
+        lr=config.segmentation.learning_rate, 
+        momentum=config.segmentation.momentum)
+
+    seg_obj = phmIterativeSegmentor(
+        model=model, 
+        optimizer=optimizer,
+        loss=loss,
+        num_channel=config.model.num_channels,
+        iteration=config.segmentation.iteration,
+        min_classes=config.segmentation.min_classes,
+        min_area=config.segmentation.min_area,
+        experiment=experiment
+    )
+
+    pred_func = functools.partial(
+        seg_obj.segment_ignite__,
+        log_img=config.general.log_image,
+        log_metrics=config.general.log_metrics    
+    )
+
+    return seg_obj, pred_func

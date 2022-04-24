@@ -66,7 +66,7 @@ def main():
             err_msg = f'{fin} is not valid file!'
             logging.error(err_msg)
 
-        engine.run([[img,np.zeros(img.shape)]])
+        engine.run([[img, None]]) # np.zeros(img.shape)
     except Exception as ex:
         logging.exception(ex)
     finally:

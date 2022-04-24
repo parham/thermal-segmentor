@@ -479,7 +479,7 @@ def create_noref_predict_phmAutoencoder__(
     )
 
     pred_func = functools.partial(
-        seg_obj.segment_noref_step__,
+        seg_obj.segment_ignite__,
         log_img=config.general.log_image,
         log_metrics=config.general.log_metrics    
     )
