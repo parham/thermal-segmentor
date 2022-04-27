@@ -8,7 +8,7 @@
 
 import functools
 import logging
-from typing import Dict
+from typing import Dict, List
 from comet_ml import Experiment
 from dotmap import DotMap
 
@@ -26,6 +26,7 @@ import numpy as np
 from skimage import segmentation
 
 from phm.core import load_config
+from phm.metrics import phm_Metric
 from phm.segment import KanezakiIterativeSegmentor, ignite_segmenter, phmIterativeSegmentor, phmLoss
 
 class Kanezaki2018Events(EventEnum):
@@ -130,7 +131,11 @@ class Kanezaki2018Loss(phmLoss):
 def generate_kanezaki2018_ignite__(
     name : str,
     config : DotMap,
-    experiment : Experiment):
+    experiment : Experiment,
+    metrics : List[phm_Metric] = None,
+    step_metrics : List[phm_Metric] = None,
+    category : Dict[str, int] = None,
+    **kwargs):
 
     # Initialize model
     model = Kanezaki2018Module(num_dim=3, 
@@ -153,7 +158,10 @@ def generate_kanezaki2018_ignite__(
         num_channel=config.model.num_channels,
         iteration=config.segmentation.iteration,
         min_classes=config.segmentation.min_classes,
-        experiment=experiment
+        experiment=experiment,
+        metrics=metrics,
+        step_metrics=step_metrics,
+        category=category
     )
 
     pred_func = functools.partial(
@@ -168,7 +176,11 @@ def generate_kanezaki2018_ignite__(
 def generate_kanezaki2018_ignite__(
     name : str,
     config : DotMap,
-    experiment : Experiment):
+    experiment : Experiment,
+    metrics : List[phm_Metric] = None,
+    step_metrics : List[phm_Metric] = None,
+    category : Dict[str, int] = None,
+    **kwargs):
 
     # Initialize model
     model = Kanezaki2018Module(num_dim=3, 
@@ -190,7 +202,10 @@ def generate_kanezaki2018_ignite__(
         iteration=config.segmentation.iteration,
         min_classes=config.segmentation.min_classes,
         min_area=config.segmentation.min_area,
-        experiment=experiment
+        experiment=experiment,
+        metrics=metrics,
+        step_metrics=step_metrics,
+        category=category
     )
 
     pred_func = functools.partial(

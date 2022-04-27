@@ -11,18 +11,20 @@ from skimage import morphology
 from scipy import ndimage as ndi
 from skimage.color import label2rgb
 from phm.eval import adapt_output
-from phm.metrics import phm_mIoU
+from phm.metrics import mIoU, mIoU_func
 
 import matplotlib as ml
 import matplotlib.pyplot as plt
 
 from phm.postprocessing import remove_small_regions
 
+iou_metric = mIoU(ignored_class=0)
+
 img_pred = Image.open('results/result_step_2.png').convert('L') # steps_step_199.png
 img = Image.open('results/target.png').convert('L') # target.png
 data = np.array(img_pred)
 
-miou, iou_map = phm_mIoU(np.array(img_pred), np.array(img), details=True)
+miou, iou_map, _, _, _, _ = mIoU_func(np.array(img_pred), np.array(img))
 print(f'mIoU : {miou}')
 np.savetxt("results/iou_map.csv", iou_map, delimiter=",")
 
@@ -30,8 +32,8 @@ new_img = remove_small_regions(data, min_area=50)
 result, _, coupled = adapt_output(new_img, np.array(img))
 
 for i in np.arange(0, 0.6, 0.05):
-    miou = phm_mIoU(np.array(img_pred), np.array(img), iou_thresh=i)
-    new_miou = phm_mIoU(np.array(new_img), np.array(img), iou_thresh=i)
+    miou = mIoU_func(np.array(img_pred), np.array(img), iou_thresh=i)
+    new_miou = mIoU_func(np.array(new_img), np.array(img), iou_thresh=i)
     print(f'before IoU: {miou} || after IoU: {new_miou}')
 
 fig, ax = plt.subplots(figsize=(4, 3))

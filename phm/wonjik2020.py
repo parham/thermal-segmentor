@@ -8,7 +8,7 @@
 
 import functools
 import logging
-from typing import Dict
+from typing import Dict, List
 from comet_ml import Experiment
 from dotmap import DotMap
 
@@ -22,6 +22,7 @@ from torchmetrics import Metric
 from ignite.engine import Engine
 
 from phm.core import load_config
+from phm.metrics import phm_Metric
 from phm.segment import KanezakiIterativeSegmentor, ignite_segmenter, phmIterativeSegmentor, phmLoss
 
 
@@ -82,10 +83,10 @@ class Wonjik2020Loss(phmLoss):
     """
 
     def __init__(self,
-                 num_channel: int = 100,
-                 similarity_loss: float = 1.0,
-                 continuity_loss: float = 0.5
-                 ) -> None:
+        num_channel: int = 100,
+        similarity_loss: float = 1.0,
+        continuity_loss: float = 0.5
+        ) -> None:
         super().__init__()
         self.loss_fn = torch.nn.CrossEntropyLoss()
         self.loss_hpy = torch.nn.L1Loss(size_average=True)
@@ -126,8 +127,12 @@ class Wonjik2020Loss(phmLoss):
 def generate_wonjik2020_ignite__(
     name : str,
     config : DotMap,
-    experiment : Experiment):
-
+    experiment : Experiment,
+    metrics : List[phm_Metric] = None,
+    step_metrics : List[phm_Metric] = None,
+    category : Dict[str, int] = None,
+    **kwargs):
+    
     # Initialize model
     model = Wonjik2020Module(num_dim=3, 
         num_channels=config.model.num_channels, 
@@ -150,7 +155,10 @@ def generate_wonjik2020_ignite__(
         num_channel=config.model.num_channels,
         iteration=config.segmentation.iteration,
         min_classes=config.segmentation.min_classes,
-        experiment=experiment
+        experiment=experiment,
+        metrics=metrics,
+        step_metrics=step_metrics,
+        category=category
     )
 
     pred_func = functools.partial(
@@ -166,7 +174,11 @@ def generate_wonjik2020_ignite__(
 def generate_wonjik2020_ignite__(
     name : str,
     config : DotMap,
-    experiment : Experiment):
+    experiment : Experiment,
+    metrics : List[phm_Metric] = None,
+    step_metrics : List[phm_Metric] = None,
+    category : Dict[str, int] = None,
+    **kwargs):
 
     # Initialize model
     model = Wonjik2020Module(num_dim=3, 
@@ -191,7 +203,10 @@ def generate_wonjik2020_ignite__(
         iteration=config.segmentation.iteration,
         min_classes=config.segmentation.min_classes,
         min_area=config.segmentation.min_area,
-        experiment=experiment
+        experiment=experiment,
+        metrics=metrics,
+        step_metrics=step_metrics,
+        category=category
     )
 
     pred_func = functools.partial(

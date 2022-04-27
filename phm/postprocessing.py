@@ -2,7 +2,7 @@
 from typing import List
 import numpy as np
 
-from phm.eval import extract_regions
+from phm.metrics import extract_regions
 
 
 def regions_to_image(regions : List[np.ndarray]) -> np.ndarray:
