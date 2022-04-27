@@ -103,8 +103,10 @@ class KanezakiIterativeSegmentor(Segmentor):
         img_w = img.shape[0]
         img_h = img.shape[1]
         # Convert image to numpy data
-        img_data = np.array([img.transpose((2, 0, 1)).astype('float32')/255.])
-        data = torch.from_numpy(img_data).to(self.device)
+        data = (img.transpose(0,2).transpose(1,2) / 255.0).to(self.device)
+        data = data.unsqueeze(dim=0)
+        # img_data = np.array([img.transpose((2, 0, 1)).astype('float32')/255.])
+        # data = torch.from_numpy(img_data).to(self.device)
         return img_w, img_h, data
 
     def helper_apply_model(self, **kwargs):
@@ -136,7 +138,7 @@ class KanezakiIterativeSegmentor(Segmentor):
         for name, value in engine.state.metrics.items():
             self.experiment.log_metric("{}_{}".format(title, name), value)
 
-    def segment(self, img, target = None,
+    def segment(self, img_data, target_data = None,
         epoch : int = 1,
         log_img: bool = True,
         log_metrics: bool = True) -> SegmentRecord:
@@ -144,6 +146,9 @@ class KanezakiIterativeSegmentor(Segmentor):
         last_loss = None
         result = None
         seg_step_time = 0
+
+        img = img_data.squeeze(dim=0)
+        target = target_data.squeeze(dim=0)
         # Image Preparation
         img_w, img_h, data = self.helper_prepare_image(img)
         # Logging the original image
@@ -180,10 +185,11 @@ class KanezakiIterativeSegmentor(Segmentor):
                 self.last_label_count = nLabels
 
                 result_tmp = result.cpu().numpy().astype(np.uint8)
+                target_tmp = target.cpu().numpy().astype(np.uint8)
                 if self.step_metrics is not None and \
                     target is not None:
                     for m in self.step_metrics:
-                        m.update((result_tmp, target))
+                        m.update((result_tmp, target_tmp))
                         m.compute(self.experiment if log_metrics else None,
                             prefix='step_',
                             step=step, epoch=epoch)
@@ -204,6 +210,7 @@ class KanezakiIterativeSegmentor(Segmentor):
                     break
 
         result_np = self.helper_postprocessing(result.cpu().numpy())
+        target_np = target.cpu().numpy() if target is not None else None
 
         if log_img:
             self.experiment.log_image(
@@ -212,11 +219,11 @@ class KanezakiIterativeSegmentor(Segmentor):
                 self.experiment.log_image(
                     target, name='target', step=1)
 
-        res = self.helper_prepare_result(img, result_np, target, last_loss)
+        res = self.helper_prepare_result(img, result_np, target_np, last_loss)
         if self.metrics is not None and \
             target is not None:
             for m in self.metrics:
-                m.update((res.output, target))
+                m.update((res.output, res.target))
                 m.compute(self.experiment if log_metrics else None,
                     step=step, epoch=epoch)
                 # m.reset()

@@ -57,7 +57,7 @@ def main():
         log_env_gpu = True,
         log_env_cpu = True,
         log_env_host = True,
-        disabled=False
+        disabled=True
     )
     experiment.set_name('%s_%s_%s' % (args.handler, now.strftime('%Y%m%d-%H%M'), fname))
     experiment.add_tag(fname)
@@ -95,12 +95,14 @@ def main():
         img = Image.open(fin)
         img = img.convert('RGB')
         img = np.asarray(img)
+        img = torch.from_numpy(img).unsqueeze(dim=0)
 
         target = None
         if args.target is not None:
             target = Image.open(args.target)
             target = target.convert('L')
             target = np.asarray(target)
+            target = torch.from_numpy(target).unsqueeze(dim=0)
 
         if img is None:
             err_msg = f'{fin} is not valid file!'
