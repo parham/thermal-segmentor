@@ -68,6 +68,7 @@ def main():
     time_tag = now.strftime('%Y%m%d-%H%M')
     experiment.set_name(f'{args.handler}_{dataset_name}_{time_tag}')
     experiment.add_tag(dataset_name)
+    
     # Initialize metrics
     metrics = [
         mIoU(ignored_class=0, iou_thresh=0.1),

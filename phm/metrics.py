@@ -7,7 +7,8 @@ import sklearn.metrics as skmetrics
 from skimage.metrics import structural_similarity
 import phasepack.phasecong as pc
 
-from typing import Any, Callable, Dict, List
+from scipy.spatial.distance import directed_hausdorff
+from typing import Callable, Dict, List
 from dataclasses import dataclass
 from comet_ml import Experiment
 
@@ -250,7 +251,7 @@ def iou_binary(prediction : np.ndarray, target : np.ndarray):
     iou = float(intersection) / float(union) if union != 0 else 0
     return iou
 
-def extract_regions(data : np.ndarray) -> List[Dict]:
+def extract_regions(data : np.ndarray, min_area : int = 0) -> List[Dict]:
     """Extract independent regions from segmented image
 
     Args:
@@ -263,27 +264,19 @@ def extract_regions(data : np.ndarray) -> List[Dict]:
     """
     
     # Determine the number of class labels
-    labels = np.unique(data.flatten()).tolist()
+    labels = np.unique(data).tolist()
     if len(labels) < 2:
-        return None
+        return [data]
 
     result = []
     for i in range(1, len(labels)):
         clss_id = labels[i]
-        mask = data == clss_id
-        class_layer = data * mask
-
+        class_layer = data * (data == clss_id)
         numLabels, area, _, _ = cv2.connectedComponentsWithStats(class_layer, 4)
         for j in range(1, numLabels):
-            mask = area == j
-            region = data * mask
-            if np.sum(region) > 0:
-                result.append({
-                    'class' : clss_id,
-                    'region' : region
-                })
-            else:
-                print('yee')
+            region = data * (area == j)
+            if np.sum(region) > min_area:
+                result.append(region)
 
     return result
 
@@ -305,19 +298,15 @@ def mIoU_func(
     """
     p_regs = extract_regions(output)
     t_regs = extract_regions(target)
-    p_regs = [p['region'] for p in p_regs]
-    t_regs = [t['region'] for t in t_regs]
     # b. Calculate the IoU map of prediction-region map
     # b.1. Create a matrix n_p x n_t (M) ... rows are predictions and columns are targets
     p_count = len(p_regs)
     t_count = len(t_regs)
     iou_map = np.zeros((p_count, t_count))
     for pid in range(p_count):
-        p = p_regs[pid]
-        p_bin = p > 0
+        p_bin = p_regs[pid] > 0
         for tid in range(t_count):
-            t = t_regs[tid]
-            t_bin = t > 0
+            t_bin = t_regs[tid] > 0
             iou_map[pid,tid] = iou_binary(p_bin, t_bin) 
     
     max_iou = np.amax(iou_map, axis=1)
@@ -345,7 +334,6 @@ def _assert_image_shapes_equal(org: np.ndarray, pred: np.ndarray, metric: str):
     )
 
     assert org.shape == pred.shape, msg
-
 
 def rmse(org: np.ndarray, pred: np.ndarray, max_p: int = 255) :
     """rmse : Root Mean Squared Error Calculated individually for all bands, then averaged
@@ -410,6 +398,10 @@ def _gradient_magnitude(img: np.ndarray, img_depth: int):
     scharry = cv2.Scharr(img, img_depth, 0, 1)
 
     return np.sqrt(scharrx ** 2 + scharry ** 2)
+
+def directed_hausdorff_distance(img: np.ndarray, target: np.ndarray):
+    hdvalue = max(directed_hausdorff(img, target)[0], directed_hausdorff(target, img)[0])
+    return {'directed_hausdorff' : hdvalue}
 
 def fsim(
     org: np.ndarray, 

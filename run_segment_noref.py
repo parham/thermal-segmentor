@@ -9,7 +9,7 @@ import torch
 import numpy as np
 from PIL import Image
 from comet_ml import Experiment
-from phm.metrics import ConfusionMatrix, Function_Metric, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim, uiq
+from phm.metrics import ConfusionMatrix, Function_Metric, directed_hausdorff_distance, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim, uiq
 
 from phm.segment import init_ignite__, list_segmenters
 
@@ -55,7 +55,7 @@ def main():
         log_env_gpu = True,
         log_env_cpu = True,
         log_env_host = True,
-        disabled=True
+        disabled=False
     )
     experiment.set_name('%s_%s_%s' % (args.handler, now.strftime('%Y%m%d-%H%M'), fname))
     experiment.add_tag(fname)
@@ -76,11 +76,13 @@ def main():
             Function_Metric(rmse, max_p = 255),
             Function_Metric(psnr, max_p = 255),
             Function_Metric(fsim, T1 = 0.85, T2 = 160),
-            Function_Metric(ssim, max_p = 255)
+            Function_Metric(ssim, max_p = 255),
+            Function_Metric(directed_hausdorff_distance)
         ]
 
         step_metrics = [
             mIoU(ignored_class=0, iou_thresh=0.1),
+            Function_Metric(directed_hausdorff_distance)
         ]
 
         engine = init_ignite__(args.handler, 

@@ -67,7 +67,6 @@ for c in coupled:
     ind += 1
 
 # ad_regions = extract_regions(new_img)
-# ad_regions = [x['region'] for x in ad_regions]
 # for r in ad_regions:
 #     fig, ax = plt.subplots(figsize=(4, 3))
 #     ax.imshow(r, cmap=plt.cm.gray, interpolation='nearest')
