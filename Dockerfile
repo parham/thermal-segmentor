@@ -27,7 +27,7 @@ RUN echo "" && \
     echo "-----------------------------------------"
 
 # Install Dependencies
-RUN pip install pytorch-ignite torchmetrics comet-ml opencv-python scikit-image scikit-learn dotmap
+RUN pip install pytorch-ignite torchmetrics comet-ml opencv-python scikit-image scikit-learn dotmap phasepack
 # RUN pip install pytorch-lightning comet-ml scikit-image opencv-python 
 
 RUN mkdir -p /phm

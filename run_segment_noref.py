@@ -11,7 +11,7 @@ import torch
 import numpy as np
 from PIL import Image
 from comet_ml import Experiment
-from phm.metrics import ConfusionMatrix, Function_Metric, mIoU, measure_accuracy_cm__, rmse
+from phm.metrics import ConfusionMatrix, Function_Metric, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim, uiq
 
 from phm.segment import init_ignite__, list_segmenters
 
@@ -75,16 +75,14 @@ def main():
                 category=category,
                 cm_based_metrics=[measure_accuracy_cm__]
             ),
-            Function_Metric(rmse, max_p = 255)
+            Function_Metric(rmse, max_p = 255),
+            Function_Metric(psnr, max_p = 255),
+            Function_Metric(fsim, T1 = 0.85, T2 = 160),
+            Function_Metric(ssim, max_p = 255)
         ]
 
         step_metrics = [
             mIoU(ignored_class=0, iou_thresh=0.1),
-            ConfusionMatrix(
-                category=category,
-                cm_based_metrics=[measure_accuracy_cm__]
-            ),
-            Function_Metric(rmse, max_p = 255)
         ]
 
         engine = init_ignite__(args.handler, 
