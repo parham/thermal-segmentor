@@ -1,11 +1,9 @@
 
-from codecs import ignore_errors
 import os
 import sys
 import logging
 import argparse
 from datetime import datetime
-from sklearn import metrics
 
 import torch
 import numpy as np
