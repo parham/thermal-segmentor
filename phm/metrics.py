@@ -7,6 +7,7 @@ import sklearn.metrics as skmetrics
 from skimage.metrics import structural_similarity
 import phasepack.phasecong as pc
 
+from scipy.signal import medfilt2d
 from scipy.spatial.distance import directed_hausdorff
 from typing import Callable, Dict, List
 from dataclasses import dataclass
@@ -73,7 +74,6 @@ class Function_Metric(phm_Metric):
             experiment.log_metrics(self.__last_ret, prefix=prefix, step=step, epoch=epoch)
         
         return self.__last_ret
-
 
 def measure_accuracy_cm__(
     cmatrix : np.ndarray, 
@@ -200,7 +200,9 @@ class ConfusionMatrix(phm_Metric):
 
 @segment_metric('mIoU')
 class mIoU(phm_Metric):
-    def __init__(self, ignored_class, iou_thresh : float = 0.1) -> None:
+    def __init__(self, ignored_class, 
+        iou_thresh : float = 0.1
+    ) -> None:
         super().__init__()
         self.ignore_class = ignored_class
         self.iou_thresh = iou_thresh
@@ -251,7 +253,7 @@ def iou_binary(prediction : np.ndarray, target : np.ndarray):
     iou = float(intersection) / float(union) if union != 0 else 0
     return iou
 
-def extract_regions(data : np.ndarray, min_area : int = 0) -> List[Dict]:
+def extract_regions(data : np.ndarray, min_size : int = 0) -> List[Dict]:
     """Extract independent regions from segmented image
 
     Args:
@@ -272,10 +274,10 @@ def extract_regions(data : np.ndarray, min_area : int = 0) -> List[Dict]:
     for i in range(1, len(labels)):
         clss_id = labels[i]
         class_layer = data * (data == clss_id)
-        numLabels, area, _, _ = cv2.connectedComponentsWithStats(class_layer, 4)
+        numLabels, area, _, _ = cv2.connectedComponentsWithStats(class_layer, 8)
         for j in range(1, numLabels):
             region = data * (area == j)
-            if np.sum(region) > min_area:
+            if np.count_nonzero(region) > min_size:
                 result.append(region)
 
     return result
@@ -296,7 +298,7 @@ def mIoU_func(
         float: mean IoU
         numpy.ndarray : the table containing the IoU values for each region in target and prediction.
     """
-    p_regs = extract_regions(output)
+    p_regs = extract_regions(output, min_size=10)
     t_regs = extract_regions(target)
     # b. Calculate the IoU map of prediction-region map
     # b.1. Create a matrix n_p x n_t (M) ... rows are predictions and columns are targets
@@ -394,10 +396,14 @@ def _gradient_magnitude(img: np.ndarray, img_depth: int):
     """
     Calculate gradient magnitude based on Scharr operator.
     """
-    scharrx = cv2.Scharr(img, img_depth, 1, 0)
-    scharry = cv2.Scharr(img, img_depth, 0, 1)
-
-    return np.sqrt(scharrx ** 2 + scharry ** 2)
+    res = 0
+    try:
+        scharrx = cv2.Scharr(img, img_depth, 1, 0)
+        scharry = cv2.Scharr(img, img_depth, 0, 1)
+        res = np.sqrt(scharrx ** 2 + scharry ** 2)
+    except Exception:
+        res = 0
+    return res
 
 def directed_hausdorff_distance(img: np.ndarray, target: np.ndarray):
     hdvalue = max(directed_hausdorff(img, target)[0], directed_hausdorff(target, img)[0])

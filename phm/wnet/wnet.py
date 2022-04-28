@@ -21,8 +21,8 @@ from torch import Tensor
 import torch.nn as nn
 import torch.optim as optim
 from torchmetrics import Metric
-from phm.core import Segmentor, load_config
 
+from phm.core import load_config
 from phm.wnet.loss import NCutLoss2D, OpeningLoss2D
 
 
@@ -55,7 +55,6 @@ class ConvPoolBlock(nn.Module):
         """
         return self.layers(x)
 
-
 class DeconvBlock(nn.Module):
     """
     Performs multiple 2D transposed convolutions, with a stride of 2 on the last layer.  Many of these are contained
@@ -84,7 +83,6 @@ class DeconvBlock(nn.Module):
         """
         return self.layers(x)
 
-
 class OutputBlock(nn.Module):
     """
     Performs multiple 2D convolutions, without any pooling or strided operations.
@@ -112,7 +110,6 @@ class OutputBlock(nn.Module):
         :return: Module outputs
         """
         return self.layers(x)
-
 
 class UNetEncoder(nn.Module):
     """
@@ -151,7 +148,6 @@ class UNetEncoder(nn.Module):
 
         return x
 
-
 class UNetDecoder(nn.Module):
     """
     The second half (decoder) of the W-Net architecture.  
@@ -189,7 +185,6 @@ class UNetDecoder(nn.Module):
 
         return x
 
-
 class WNet(nn.Module):
     """
     Implements a W-Net CNN model for learning unsupervised image segmentations.  First encodes image data into
@@ -216,27 +211,8 @@ class WNet(nn.Module):
 
         return self.encoder(x)
 
-class WNetLoss(nn.Module):
-    def __init__(self, 
-        alpha = 1e-3, 
-        beta = 1, 
-        gamma = 1e-1
-    ) -> None:
-        super().__init__()
-        self.alpha = alpha
-        self.beta = beta
-        self.gamma = gamma
-
-    def forward(self, output, target, input, mask): # labels > target
-        input, label, output = input.contiguous(), target.contiguous(), output.contiguous()
-        # Weights for NCutLoss2D, MSELoss, and OpeningLoss2D, respectively
-        ncut_loss = self.alpha * NCutLoss2D()(mask, input)
-        mse_loss = self.beta * nn.MSELoss()(output, input.detach())
-        smooth_loss = self.gamma * OpeningLoss2D()(mask)
-        loss = ncut_loss + mse_loss + smooth_loss
 
         return loss
-
 
 class WNet(nn.Module):
     """
@@ -291,6 +267,24 @@ class WNet(nn.Module):
 
         return mask, reconstructed
 
+class WNetLoss(nn.Module):
+    def __init__(self, 
+        alpha = 1e-3, 
+        beta = 1, 
+        gamma = 1e-1
+    ) -> None:
+        super().__init__()
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+
+    def forward(self, output, target, input, mask): # labels > target
+        input, label, output = input.contiguous(), target.contiguous(), output.contiguous()
+        # Weights for NCutLoss2D, MSELoss, and OpeningLoss2D, respectively
+        ncut_loss = self.alpha * NCutLoss2D()(mask, input)
+        mse_loss = self.beta * nn.MSELoss()(output, input.detach())
+        smooth_loss = self.gamma * OpeningLoss2D()(mask)
+        loss = ncut_loss + mse_loss + smooth_loss
 
 class WNet_Impl:
 

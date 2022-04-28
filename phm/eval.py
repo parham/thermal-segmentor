@@ -17,7 +17,8 @@ def adapt_output(
         output, target, iou_thresh=iou_thresh)
 
     labels = np.unique(target).tolist()
-    null_class = choice([i for i in range(np.max(labels)) if i not in labels])
+    
+    null_class = choice([i for i in range(np.max(labels)+10) if i not in labels])
     maxv = np.amax(iou_map, axis=1).tolist()
     selected_index = np.argmax(iou_map, axis=1).tolist()
     result = np.zeros(output.shape, dtype=np.uint8)

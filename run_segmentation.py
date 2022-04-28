@@ -15,7 +15,7 @@ from gimp_labeling_converter.dataset import XCFDataset
 
 from phm.core import load_config
 from phm.metrics import ConfusionMatrix, Function_Metric, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim
-from phm.segment import init_ignite__, list_segmenters
+from phm.segment import GrayToRGB, init_ignite__, list_segmenters
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,7 +41,7 @@ def main():
     # Dataset Configuration
     dsconfig_file = os.path.join(dir_in, 'dataset.json')
     if not os.path.isfile(dsconfig_file):
-        msg = 'dataset.json does not found!'
+        msg = f'{dsconfig_file} does not found!'
         logging.error(msg)
         raise InvalidFileException(msg)
     ds_config = load_config(dsconfig_file, dotflag=False)
@@ -63,7 +63,7 @@ def main():
         log_env_gpu = True,
         log_env_cpu = True,
         log_env_host = True,
-        disabled=True
+        disabled=False
     )
     time_tag = now.strftime('%Y%m%d-%H%M')
     experiment.set_name(f'{args.handler}_{dataset_name}_{time_tag}')
@@ -93,12 +93,13 @@ def main():
         step_metrics=step_metrics,
         category=category)
     # Create dataset
-    # transform = torch.nn.Sequential(
-    #     lambda x: np.average(x, axis=2)
-    # )
+    transform = torch.nn.Sequential(
+        GrayToRGB()
+    )
 
     dataset = XCFDataset(dir_in, 
-        category=ds_config['category'])
+        category=ds_config['category'],
+        transform=transform)
     
     dl = DataLoader(dataset, batch_size=1, shuffle=True)
     state = engine.run(dl)
