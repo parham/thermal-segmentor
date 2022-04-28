@@ -10,35 +10,68 @@ from skimage import morphology
 
 from scipy import ndimage as ndi
 from skimage.color import label2rgb
-from phm.metrics import extract_regions, phm_mIoU
+from phm.eval import adapt_output
+from phm.metrics import mIoU, mIoU_func
 
 import matplotlib as ml
 import matplotlib.pyplot as plt
 
-img_pred = Image.open('results/steps_step_199.png').convert('L')
-img = Image.open('results/target.png').convert('L')
-data = np.array(img)
+from phm.postprocessing import remove_small_regions
 
-miou, iou_map = phm_mIoU(np.array(img_pred), np.array(img), details=True)
+iou_metric = mIoU(ignored_class=0)
+
+img_pred = Image.open('results/result_step_2.png').convert('L') # steps_step_199.png
+img = Image.open('results/target.png').convert('L') # target.png
+data = np.array(img_pred)
+
+miou, iou_map, _, _, _, _ = mIoU_func(np.array(img_pred), np.array(img))
 print(f'mIoU : {miou}')
 np.savetxt("results/iou_map.csv", iou_map, delimiter=",")
 
+new_img = remove_small_regions(data, min_area=50)
+result, _, coupled = adapt_output(new_img, np.array(img))
+
 for i in np.arange(0, 0.6, 0.05):
-    miou = phm_mIoU(np.array(img_pred), np.array(img), iou_thresh=i)
-    print(miou)
+    miou = mIoU_func(np.array(img_pred), np.array(img), iou_thresh=i)
+    new_miou = mIoU_func(np.array(new_img), np.array(img), iou_thresh=i)
+    print(f'before IoU: {miou} || after IoU: {new_miou}')
 
+fig, ax = plt.subplots(figsize=(4, 3))
+ax.imshow(img, cmap=plt.cm.gray, interpolation='nearest')
+ax.axis('off')
+ax.set_title(f'Target Image')
+print(f'Target Image')
 
-# regions = extract_regions(data)
+fig, ax = plt.subplots(figsize=(4, 3))
+ax.imshow(img_pred, cmap=plt.cm.gray, interpolation='nearest')
+ax.axis('off')
+ax.set_title(f'Orig. Predicted Image')
 
-# for r in regions:
-#     clss_id = r['class']
-#     region = r['region']
+fig, ax = plt.subplots(figsize=(4, 3))
+ax.imshow(new_img, cmap=plt.cm.gray, interpolation='nearest')
+ax.axis('off')
+ax.set_title(f'Remove Small Regions')
+print(f'Remove Small Regions')
 
+fig, ax = plt.subplots(figsize=(4, 3))
+ax.imshow(result, cmap=plt.cm.gray, interpolation='nearest')
+ax.axis('off')
+ax.set_title(f'Adapted Image')
+
+ind = 1
+for c in coupled:
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig.suptitle(f'Coupled {ind}')
+    ax1.imshow(c[0], cmap=plt.cm.gray, interpolation='nearest')
+    ax2.imshow(c[1], cmap=plt.cm.gray, interpolation='nearest')
+    ind += 1
+
+# ad_regions = extract_regions(new_img)
+# for r in ad_regions:
 #     fig, ax = plt.subplots(figsize=(4, 3))
-#     ax.imshow(region, cmap=plt.cm.gray, interpolation='nearest')
+#     ax.imshow(r, cmap=plt.cm.gray, interpolation='nearest')
 #     ax.axis('off')
-#     ax.set_title(f'Layer {clss_id}')
-#     print(f'Layer {clss_id}')
+#     ax.set_title('ad_region')
 
 # elevation_map = sobel(data)
 

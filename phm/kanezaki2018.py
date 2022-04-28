@@ -8,7 +8,8 @@
 
 import functools
 import logging
-from typing import Dict
+from typing import Dict, List
+from comet_ml import Experiment
 from dotmap import DotMap
 
 import torch
@@ -16,16 +17,17 @@ import torch.nn as nn
 import torch.nn.init
 import torch.optim as optim
 import torch.nn.functional as F
-from torchmetrics import Metric
 
+from torchmetrics import Metric
 from ignite.engine import Engine, EventEnum
+
 
 import numpy as np
 from skimage import segmentation
-from comet_ml import Experiment
 
 from phm.core import load_config
-from phm.segment import KanezakiIterativeSegmentor, ignite_segmenter, phmLoss
+from phm.metrics import phm_Metric
+from phm.segment import KanezakiIterativeSegmentor, ignite_segmenter, phmIterativeSegmentor, phmLoss
 
 class Kanezaki2018Events(EventEnum):
     INTERNAL_TRAIN_LOOP_COMPLETED = 'internal_train_loop_completed'
@@ -81,9 +83,8 @@ class Kanezaki2018Loss(phmLoss):
     """
 
     def __init__(self,
-                 compactness: int = 100,
-                 superpixel_regions: int = 30
-                 ) -> None:
+        compactness: int = 100,
+        superpixel_regions: int = 30) -> None:
         super().__init__()
         self.compactness = compactness
         self.superpixel_regions = superpixel_regions
@@ -130,7 +131,56 @@ class Kanezaki2018Loss(phmLoss):
 def generate_kanezaki2018_ignite__(
     name : str,
     config : DotMap,
-    experiment : Experiment):
+    experiment : Experiment,
+    metrics : List[phm_Metric] = None,
+    step_metrics : List[phm_Metric] = None,
+    category : Dict[str, int] = None,
+    **kwargs):
+
+    # Initialize model
+    model = Kanezaki2018Module(num_dim=3, 
+        num_channels=config.model.num_channels, 
+        num_convs=config.model.num_conv_layers)
+    # Initialize loss
+    loss = Kanezaki2018Loss(
+        config.segmentation.compactness,
+        config.segmentation.superpixel_regions
+    )
+    # Initialize optimizer
+    optimizer = optim.SGD(model.parameters(), 
+        lr=config.segmentation.learning_rate, 
+        momentum=config.segmentation.momentum)
+
+    seg_obj = KanezakiIterativeSegmentor(
+        model=model, 
+        optimizer=optimizer,
+        loss=loss,
+        num_channel=config.model.num_channels,
+        iteration=config.segmentation.iteration,
+        min_classes=config.segmentation.min_classes,
+        experiment=experiment,
+        metrics=metrics,
+        step_metrics=step_metrics,
+        category=category
+    )
+
+    pred_func = functools.partial(
+        seg_obj.segment_ignite__,
+        log_img=config.general.log_image,
+        log_metrics=config.general.log_metrics    
+    )
+    
+    return seg_obj, pred_func
+
+@ignite_segmenter('kanezaki2018_phm')
+def generate_kanezaki2018_ignite__(
+    name : str,
+    config : DotMap,
+    experiment : Experiment,
+    metrics : List[phm_Metric] = None,
+    step_metrics : List[phm_Metric] = None,
+    category : Dict[str, int] = None,
+    **kwargs):
 
     # Initialize model
     model = Kanezaki2018Module(num_dim=3, 
@@ -144,20 +194,24 @@ def generate_kanezaki2018_ignite__(
         lr=config.segmentation.learning_rate, 
         momentum=config.segmentation.momentum)
 
-    seg_obj = KanezakiIterativeSegmentor(
+    seg_obj = phmIterativeSegmentor(
         model=model, 
         optimizer=optimizer,
         loss=loss,
         num_channel=config.model.num_channels,
         iteration=config.segmentation.iteration,
         min_classes=config.segmentation.min_classes,
-        experiment=experiment
+        min_area=config.segmentation.min_area,
+        experiment=experiment,
+        metrics=metrics,
+        step_metrics=step_metrics,
+        category=category
     )
 
     pred_func = functools.partial(
-        seg_obj.segment_noref_ignite__,
+        seg_obj.segment_ignite__,
         log_img=config.general.log_image,
         log_metrics=config.general.log_metrics    
     )
     
-    return seg_obj, pred_func    
+    return seg_obj, pred_func

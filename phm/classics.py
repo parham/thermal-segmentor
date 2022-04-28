@@ -1,6 +1,6 @@
 
 import functools
-from typing import Dict
+from typing import Dict, List
 from dotmap import DotMap
 import numpy as np
 
@@ -15,42 +15,47 @@ from skimage.future import graph
 from ignite.engine import Engine
 
 from phm.core import load_config
+from phm.metrics import phm_Metric
 from phm.segment import ignite_segmenter
 
 class ClassicSegmentor(Segmentor):
-    def __init__(self, experiment: Experiment = None) -> None:
-        super().__init__(experiment)
+    def __init__(self, 
+        experiment: Experiment = None,
+        metrics : List[phm_Metric] = None
+    ) -> None:
+        super().__init__(experiment, metrics=metrics)
 
-    def segment_noref(self, img,
+    def segment(self, img, target = None,
         log_img: bool = True,
         log_metrics: bool = True):
-        pass
+        return
 
-    def segment_noref_ignite__(self, engine, batch,
+    def segment_ignite__(self, engine, batch,
         log_img: bool = True,
         log_metrics: bool = True):
         img = batch[0]
-        return self.segment_noref(img, log_img = log_img, log_metrics = log_metrics)
-
+        target = batch[1] if len(batch) > 1 else None
+        return self.segment(img, target, log_img = log_img, log_metrics = log_metrics)
 
 class DBSCAN_Impl(ClassicSegmentor):
     """ Implementation of DBSCAN inspired by https://github.com/charmichokshi/Unsupervised-Image-Segmentation-Algorithms
     """
 
     def __init__(self,
-                 eps: float = 0.5,
-                 min_samples: int = 5,
-                 leaf_size: int = 30,
-                 experiment: Experiment = None
-                 ) -> None:
-        super().__init__(experiment)
+        eps: float = 0.5,
+        min_samples: int = 5,
+        leaf_size: int = 30,
+        experiment: Experiment = None,
+        metrics : List[phm_Metric] = None
+    ) -> None:
+        super().__init__(experiment, metrics=metrics)
         self.eps = eps
         self.min_samples = min_samples
         self.leaf_size = leaf_size
 
-    def segment_noref(self, img,
-                      log_img: bool = True,
-                      log_metrics: bool = True):
+    def segment(self, img, target = None,
+        log_img: bool = True,
+        log_metrics: bool = True):
 
         if log_img:
             self.experiment.log_image(
@@ -63,9 +68,20 @@ class DBSCAN_Impl(ClassicSegmentor):
             leaf_size=self.leaf_size
         ).fit(data[:, :2])
         seg_result = np.uint8(db.labels_.reshape(img.shape[:2]))
+        
         if log_img:
             self.experiment.log_image(
                 seg_result, name='steps', step=0)
+        stats = {}
+        if log_metrics and \
+            self.metrics is not None and \
+            target is not None:
+                for m in self.metrics:
+                    m.update((seg_result, target))
+                    stats['step_' + m.get_name()] = m.compute()
+                    m.reset()
+                self.experiment.log_metrics({**stats}, step=1, epoch=1)
+
         return 0.000001, seg_result
 
 class KMeans_Impl(ClassicSegmentor):
@@ -73,15 +89,16 @@ class KMeans_Impl(ClassicSegmentor):
     """
 
     def __init__(self,
-                 dominant_colors: int = 4,
-                 experiment: Experiment = None
-                 ) -> None:
-        super().__init__(experiment)
+        dominant_colors: int = 4,
+        experiment: Experiment = None,
+        metrics : List[phm_Metric] = None
+    ) -> None:
+        super().__init__(experiment, metrics=metrics)
         self.n_clusters = dominant_colors
 
-    def segment_noref(self, img,
-                      log_img: bool = True,
-                      log_metrics: bool = True):
+    def segment(self, img, target = None,
+        log_img: bool = True,
+        log_metrics: bool = True):
 
         if log_img:
             self.experiment.log_image(
@@ -94,6 +111,15 @@ class KMeans_Impl(ClassicSegmentor):
         if log_img:
             self.experiment.log_image(
                 seg_result, name='steps', step=0)
+        stats = {}
+        if log_metrics and \
+            self.metrics is not None and \
+            target is not None:
+                for m in self.metrics:
+                    m.update((seg_result, target))
+                    stats['step_' + m.get_name()] = m.compute()
+                    m.reset()
+                self.experiment.log_metrics({**stats}, step=1, epoch=1)
         return 0.000001, seg_result
 
 class MeanShift_Impl(ClassicSegmentor):
@@ -101,17 +127,18 @@ class MeanShift_Impl(ClassicSegmentor):
     """
 
     def __init__(self,
-                 quantile: float = 0.2,
-                 n_samples: int = 500,
-                 experiment: Experiment = None
-                 ) -> None:
-        super().__init__(experiment)
+        quantile: float = 0.2,
+        n_samples: int = 500,
+        experiment: Experiment = None,
+        metrics : List[phm_Metric] = None
+    ) -> None:
+        super().__init__(experiment, metrics=metrics)
         self.quantile = quantile
         self.n_samples = n_samples
 
-    def segment_noref(self, img,
-                      log_img: bool = True,
-                      log_metrics: bool = True):
+    def segment(self, img, target = None,
+        log_img: bool = True,
+        log_metrics: bool = True):
 
         if log_img:
             self.experiment.log_image(
@@ -126,6 +153,16 @@ class MeanShift_Impl(ClassicSegmentor):
         if log_img:
             self.experiment.log_image(
                 seg_result, name='steps', step=0)
+        stats = {}
+        if log_metrics and \
+            self.metrics is not None and \
+            target is not None:
+                for m in self.metrics:
+                    m.update((seg_result, target))
+                    stats['step_' + m.get_name()] = m.compute()
+                    m.reset()
+                self.experiment.log_metrics({**stats}, step=1, epoch=1)
+
         return 0.000001, seg_result
 
 class GraphCut_Impl(ClassicSegmentor):
@@ -133,17 +170,18 @@ class GraphCut_Impl(ClassicSegmentor):
     """
 
     def __init__(self,
-                 compactness: int = 30,
-                 n_segments: int = 20000,
-                 experiment: Experiment = None
-                 ) -> None:
-        super().__init__(experiment)
+        compactness: int = 30,
+        n_segments: int = 20000,
+        experiment: Experiment = None,
+        metrics : List[phm_Metric] = None
+    ) -> None:
+        super().__init__(experiment, metrics=metrics)
         self.compactness = compactness
         self.n_segments = n_segments
 
-    def segment_noref(self, img,
-                      log_img: bool = True,
-                      log_metrics: bool = True):
+    def segment(self, img, target = None,
+        log_img: bool = True,
+        log_metrics: bool = True):
 
         if log_img:
             self.experiment.log_image(
@@ -160,59 +198,26 @@ class GraphCut_Impl(ClassicSegmentor):
         if log_img:
             self.experiment.log_image(
                 seg_result, name='steps', step=0)
+        stats = {}
+        if log_metrics and \
+            self.metrics is not None and \
+            target is not None:
+                for m in self.metrics:
+                    m.update((seg_result, target))
+                    stats['step_' + m.get_name()] = m.compute()
+                    m.reset()
+                self.experiment.log_metrics({**stats}, step=1, epoch=1)
+
         return 0.000001, seg_result
-
-def create_noref_predict_classics__(
-    method_name : str,
-    config_file : str, 
-    experiment : Experiment = None,
-    metrics : Dict[str,Metric] = None):
-
-    config = load_config(config_file)
-
-    obj = None
-    if method_name == 'dbscan':
-        obj = DBSCAN_Impl(
-            eps=config.segmentation.eps,
-            min_samples=config.segmentation.min_samples,
-            leaf_size=config.segmentation.leaf_size,
-            experiment=experiment)
-    elif method_name == 'kmeans':
-        obj = KMeans_Impl(
-            dominant_colors=config.segmentation.n_clusters,
-            experiment=experiment)
-    elif method_name == 'meanshift':
-        obj = MeanShift_Impl(
-            quantile=config.segmentation.quantile,
-            n_samples=config.segmentation.n_samples,
-            experiment=experiment)
-    elif method_name == 'graphcut':
-        obj = GraphCut_Impl(
-            compactness = config.segmentation.compactness,
-            n_segments = config.segmentation.n_segments,
-            experiment=experiment)
-
-    if experiment is not None:
-        experiment.log_parameters(config.segmentation, prefix='segmentation')
-
-    pred_func = functools.partial(
-        obj.segment_noref_ignite__,
-        log_img=config.general.log_image,
-        log_metrics=config.general.log_metrics 
-    )
-    engine = Engine(pred_func)
-
-    if metrics is not None:
-        for x in metrics.keys():
-            metrics[x].attach(engine, x)
-
-    return engine
 
 @ignite_segmenter(['dbscan', 'kmeans', 'meanshift', 'graphcut'])
 def generate_classics_ignite__(
     name : str,
     config : DotMap,
-    experiment : Experiment):
+    experiment : Experiment,
+    metrics : List[phm_Metric] = None,
+    step_metrics : List[phm_Metric] = None,
+    **kwargs):
 
     seg_obj = None
     if name == 'dbscan':
@@ -220,24 +225,28 @@ def generate_classics_ignite__(
             eps=config.segmentation.eps,
             min_samples=config.segmentation.min_samples,
             leaf_size=config.segmentation.leaf_size,
-            experiment=experiment)
+            experiment=experiment,
+            metrics=metrics)
     elif name == 'kmeans':
         seg_obj = KMeans_Impl(
             dominant_colors=config.segmentation.n_clusters,
-            experiment=experiment)
+            experiment=experiment,
+            metrics=metrics)
     elif name == 'meanshift':
         seg_obj = MeanShift_Impl(
             quantile=config.segmentation.quantile,
             n_samples=config.segmentation.n_samples,
-            experiment=experiment)
+            experiment=experiment,
+            metrics=metrics)
     elif name == 'graphcut':
         seg_obj = GraphCut_Impl(
             compactness = config.segmentation.compactness,
             n_segments = config.segmentation.n_segments,
-            experiment=experiment)
+            experiment=experiment,
+            metrics=metrics)
 
     pred_func = functools.partial(
-        seg_obj.segment_noref_ignite__,
+        seg_obj.segment_ignite__,
         log_img=config.general.log_image,
         log_metrics=config.general.log_metrics 
     )
