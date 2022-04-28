@@ -10,9 +10,20 @@
 
   <br/>
   <br/>
-
   </p>
 </p>
+
+## TODO
+- [ ] Thermal Data Labeling
+- [x] Implement the project structure
+- [x] Implement metrics
+- [x] Implement kanezaki2018 + segmentor
+- [x] Implement wonjik2020 + segmentor
+- [x] Implement WNet
+- [ ] Implement WNet + Unsupervised process
+- [ ] Implement the training process
+- [ ] Integerate SSIM as loss function
+- [ ] Propose a new loss + model
 
 <!-- TABLE OF CONTENTS -->
 ## Table of Contents
