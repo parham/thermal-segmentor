@@ -9,6 +9,7 @@ import numpy as np
 from typing import Any, Dict, List
 
 from comet_ml import Experiment
+
 from torchmetrics import Metric
 from ignite.engine import Engine
 from ignite.engine.events import Events
@@ -30,18 +31,6 @@ def ignite_segmenter(name):
 
 def list_segmenters() -> List[str]:
     return list(segmenter_handlers.keys())
-
-class phmLoss(torch.nn.Module):
-    def __init__(self) -> None:
-        super().__init__()
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu")
-    
-    def prepare_loss(self, **kwargs):
-        return
-
-    def forward(self, output, target, **kwargs):
-        super().forward(output, target, **kwargs)
 
 class GrayToRGB(torch.nn.Module):
     def forward(self, sample) -> Any:

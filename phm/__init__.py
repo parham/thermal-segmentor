@@ -15,6 +15,7 @@ from .wonjik2020 import *
 from .phm2022_autoencoder import *
 from .classics import *
 from .segment import *
+from .loss import *
 
 # Check CUDA Availability
 import torch, gc

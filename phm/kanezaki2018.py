@@ -7,27 +7,22 @@
 """
 
 import functools
-import logging
 from typing import Dict, List
 from comet_ml import Experiment
 from dotmap import DotMap
 
-import torch
 import torch.nn as nn
 import torch.nn.init
 import torch.optim as optim
 import torch.nn.functional as F
+from phm.loss import UnsupervisedLoss_SuperResolusion
 
 from torchmetrics import Metric
 from ignite.engine import Engine, EventEnum
 
-
-import numpy as np
-from skimage import segmentation
-
 from phm.core import load_config
 from phm.metrics import phm_Metric
-from phm.segment import KanezakiIterativeSegmentor, ignite_segmenter, phmIterativeSegmentor, phmLoss
+from phm.segment import KanezakiIterativeSegmentor, ignite_segmenter, phmIterativeSegmentor
 
 class Kanezaki2018Events(EventEnum):
     INTERNAL_TRAIN_LOOP_COMPLETED = 'internal_train_loop_completed'
@@ -73,60 +68,6 @@ class Kanezaki2018Module(nn.Module):
         x = self.bn3(x)
         return x
 
-class Kanezaki2018Loss(phmLoss):
-    """Loss function implemented based on the loss function defined in,
-    @name           Unsupervised Image Segmentation by Backpropagation
-    @journal        IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)
-    @year           2018
-    @repo           https://github.com/kanezaki/pytorch-unsupervised-segmentation
-    @citation       Asako Kanezaki. Unsupervised Image Segmentation by Backpropagation. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018.
-    """
-
-    def __init__(self,
-        compactness: int = 100,
-        superpixel_regions: int = 30) -> None:
-        super().__init__()
-        self.compactness = compactness
-        self.superpixel_regions = superpixel_regions
-        self.l_inds = None
-        self.loss_fn = torch.nn.CrossEntropyLoss()
-
-    def prepare_loss(self, **kwargs):
-        """Set the reference image for SLIC algorithm duing initialization.
-
-        Args:
-            ref (Image): Reference image
-        """
-        ref = kwargs['ref']
-        self._ref = ref
-        img_w = ref.shape[0]
-        img_h = ref.shape[1]
-        # SLIC : segment the image using SLIC algorithm
-        labels = segmentation.slic(ref,
-            compactness=self.compactness,
-            n_segments=self.superpixel_regions)
-        # Flatten the resulted segmentation using SLIC
-        labels = labels.reshape(img_w * img_h)
-        # Extract the unique label
-        u_labels = np.unique(labels)
-        # Form the label indexes
-        self.l_inds = []
-        for i in range(len(u_labels)):
-            self.l_inds.append(np.where(labels == u_labels[i])[0])
-
-    def forward(self, output, target, **kwargs):
-        # Superpixel Refinement
-        im_target = target.data.cpu().numpy()
-        for i in range(len(self.l_inds)):
-            labels_per_sp = im_target[self.l_inds[i]]
-            u_labels_per_sp = np.unique(labels_per_sp)
-            hist = np.zeros(len(u_labels_per_sp))
-            for j in range(len(hist)):
-                hist[j] = len(np.where(labels_per_sp == u_labels_per_sp[j])[0])
-            im_target[self.l_inds[i]] = u_labels_per_sp[np.argmax(hist)]
-
-        return self.loss_fn(output, target)
-
 @ignite_segmenter('kanezaki2018')
 def generate_kanezaki2018_ignite__(
     name : str,
@@ -142,7 +83,7 @@ def generate_kanezaki2018_ignite__(
         num_channels=config.model.num_channels, 
         num_convs=config.model.num_conv_layers)
     # Initialize loss
-    loss = Kanezaki2018Loss(
+    loss = UnsupervisedLoss_SuperResolusion(
         config.segmentation.compactness,
         config.segmentation.superpixel_regions
     )
@@ -187,7 +128,7 @@ def generate_kanezaki2018_ignite__(
         num_channels=config.model.num_channels, 
         num_convs=config.model.num_conv_layers)
     # Initialize loss
-    loss = Kanezaki2018Loss(config.segmentation.compactness,
+    loss = UnsupervisedLoss_SuperResolusion(config.segmentation.compactness,
         config.segmentation.superpixel_regions)
     # Initialize optimizer
     optimizer = optim.SGD(model.parameters(), 
