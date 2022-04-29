@@ -7,7 +7,6 @@
 """
 
 import functools
-import logging
 from typing import Dict, List
 from comet_ml import Experiment
 from dotmap import DotMap
@@ -18,10 +17,6 @@ import torch.nn.init
 import torch.optim as optim
 import torch.nn.functional as F
 
-from torchmetrics import Metric
-from ignite.engine import Engine
-
-from phm.core import load_config
 from phm.metrics import phm_Metric
 from phm.segment import KanezakiIterativeSegmentor, ignite_segmenter, phmIterativeSegmentor, phmLoss
 
@@ -122,7 +117,6 @@ class Wonjik2020Loss(phmLoss):
         return self.similarity_loss * self.loss_fn(output, target) + \
             self.continuity_loss * (lhpy + lhpz)
 
-
 @ignite_segmenter('wonjik2020')
 def generate_wonjik2020_ignite__(
     name : str,
@@ -168,7 +162,6 @@ def generate_wonjik2020_ignite__(
     )
 
     return seg_obj, pred_func
-
 
 @ignite_segmenter('wonjik2020_phm')
 def generate_wonjik2020_ignite__(
