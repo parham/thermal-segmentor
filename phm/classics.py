@@ -6,7 +6,6 @@ import numpy as np
 
 from comet_ml import Experiment
 from torchmetrics import Metric
-from phm import Segmentor
 
 from sklearn.cluster import DBSCAN, KMeans, MeanShift, estimate_bandwidth
 from skimage import segmentation, color
@@ -16,7 +15,7 @@ from ignite.engine import Engine
 
 from phm.core import load_config
 from phm.metrics import phm_Metric
-from phm.segment import ignite_segmenter
+from phm.segment import Segmentor, ignite_segmenter
 
 class ClassicSegmentor(Segmentor):
     def __init__(self, 

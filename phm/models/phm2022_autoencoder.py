@@ -6,28 +6,10 @@
     @organization: Laval University
 """
 
-import functools
-import logging
-from typing import Dict, List, Tuple
-from dotmap import DotMap
-
 import torch
 import torch.nn as nn
 import torch.nn.init
-import torch.optim as optim
 import torch.nn.functional as F
-
-from ignite.engine import Engine
-
-import time
-import numpy as np
-from torchmetrics import Metric
-from comet_ml import Experiment
-
-from phm.core import load_config
-from phm.metrics import phm_Metric
-from phm.segment import Segmentor, ignite_segmenter, phmIterativeSegmentor
-
 
 class Classifier(nn.Module):
     def __init__(self,
@@ -240,63 +222,3 @@ class phmAutoencoderModule (nn.Module):
 
         return x
 
-@ignite_segmenter('phm_autoencoder')
-def generate_phm_autoencoder_ignite__(
-        name: str,
-        config: DotMap,
-        experiment: Experiment,
-        metrics: List[phm_Metric] = None,
-        step_metrics: List[phm_Metric] = None,
-        category: Dict[str, int] = None,
-        **kwargs):
-
-    # Initialize model
-    model = phmAutoencoderModule(num_dim=3,
-                                 num_channels=config.model.num_channels,
-                                 part01_kernel_size=config.model.part01_kernel_size,
-                                 part01_stride=config.model.part01_stride,
-                                 part01_padding=config.model.part01_padding,
-                                 part02_num_layer=config.model.part02_num_layer,
-                                 part02_kernel_size=config.model.part02_kernel_size,
-                                 part02_stride=config.model.part02_stride,
-                                 part02_padding=config.model.part02_padding,
-                                 part02_output_padding=config.model.part02_output_padding,
-                                 part03_kernel_size=config.model.part03_kernel_size,
-                                 part03_stride=config.model.part03_stride,
-                                 part03_padding=config.model.part03_padding,
-                                 part04_kernel_size=config.model.part04_kernel_size,
-                                 part04_stride=config.model.part04_stride,
-                                 part04_padding=config.model.part04_padding,
-                                 num_conv_layers=config.model.num_conv_layers
-                                 )
-    # Initialize loss
-    loss = phmAutoencoderLoss(
-        num_channel=config.model.num_channels,
-        similarity_loss=config.segmentation.similarity_loss,
-        continuity_loss=config.segmentation.continuity_loss)
-    # Initialize optimizer
-    optimizer = optim.SGD(model.parameters(),
-                          lr=config.segmentation.learning_rate,
-                          momentum=config.segmentation.momentum)
-
-    seg_obj = phmIterativeSegmentor(
-        model=model,
-        optimizer=optimizer,
-        loss=loss,
-        num_channel=config.model.num_channels,
-        iteration=config.segmentation.iteration,
-        min_classes=config.segmentation.min_classes,
-        min_area=config.segmentation.min_area,
-        experiment=experiment,
-        metrics=metrics,
-        step_metrics=step_metrics,
-        category=category
-    )
-
-    pred_func = functools.partial(
-        seg_obj.segment_ignite__,
-        log_img=config.general.log_image,
-        log_metrics=config.general.log_metrics
-    )
-
-    return seg_obj, pred_func

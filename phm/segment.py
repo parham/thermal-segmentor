@@ -16,6 +16,7 @@ from ignite.engine.events import Events
 
 from phm.core import load_config
 from phm.eval import adapt_output
+from phm.loss import phmLoss
 from phm.metrics import phm_Metric
 from phm.postprocessing import remove_small_regions
 

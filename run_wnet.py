@@ -6,7 +6,7 @@ from PIL import Image
 from datetime import datetime
 from comet_ml import Experiment
 
-from phm.wnet.wnet import create_noref_predict_wnet__
+from phm.models.wnet import create_noref_predict_wnet__
 
 root_dir = 'datasets'
 sample_file = 'pipe_color_plate.jpg' # 'pipe_color_plate.jpg' # 'aerospace_defect_crop_enhanced.jpg' # 'pipe_color_plate.jpg'
