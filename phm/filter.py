@@ -7,12 +7,54 @@
     @description Functions for smoothing/filtering 2D images adopted from https://github.com/fkodom/wnet-unsupervised-image-segmentation
 """
 
+import numpy as np
+from scipy.stats import norm
+
+from pydensecrf import densecrf as dcrf
+from pydensecrf.utils import unary_from_softmax, create_pairwise_bilateral
+
 import torch
 from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from scipy.stats import norm
+
+def crf_fit_predict(softmax: np.ndarray, image: np.ndarray, niter: int = 150):
+    """
+    Fits a Conditional Random Field (CRF) for image segmentation, given a mask of class probabilities (softmax)
+    from the WNet CNN and the raw image (image).
+    adopted from https://github.com/fkodom/wnet-unsupervised-image-segmentation
+
+    :param softmax: Softmax outputs from a CNN segmentation model.  Shape: (nchan, nrow, ncol)
+    :param image: Raw image, containing any number of channels.  Shape: (nchan, nrow, ncol)
+    :param niter: Number of iterations during CRF optimization
+    :return: Segmented class probabilities -- take argmax to get discrete class labels.
+    """
+    unary = unary_from_softmax(softmax).reshape(softmax.shape[0], -1)
+    bilateral = create_pairwise_bilateral(sdims=(25, 25), schan=(0.05, 0.05), img=image, chdim=0)
+
+    crf = dcrf.DenseCRF2D(image.shape[2], image.shape[1], softmax.shape[0])
+    crf.setUnaryEnergy(unary)
+    crf.addPairwiseEnergy(bilateral, compat=100)
+    pred = crf.inference(niter)
+
+    return np.array(pred).reshape((-1, image.shape[1], image.shape[2]))
+
+
+def crf_batch_fit_predict(probabilities: np.ndarray, images: np.ndarray, niter: int = 150):
+    """
+    Fits a Conditional Random Field (CRF) for image segmentation, given a mask of class probabilities (softmax)
+    from the WNet CNN and the raw image (image).
+    adopted from https://github.com/fkodom/wnet-unsupervised-image-segmentation
+
+    :param probabilities: Softmax outputs from a CNN segmentation model.  Shape: (batch, nchan, nrow, ncol)
+    :param images: Raw image, containing any number of channels.  Shape: (batch, nchan, nrow, ncol)
+    :param niter: Number of iterations during CRF optimization
+    :return: Segmented class probabilities -- take argmax to get discrete class labels.
+    """
+    return np.stack([crf_fit_predict(p, x, niter) for p, x in zip(probabilities, images)], 0)
+
+
 
 def gaussian_kernel(radius: int = 3, sigma: float = 4, device='cpu'):
     x_2 = np.linspace(-radius, radius, 2*radius+1) ** 2

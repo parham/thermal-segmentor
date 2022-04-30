@@ -23,7 +23,7 @@ import torch.optim as optim
 from torchmetrics import Metric
 
 from phm.core import load_config
-from phm.wnet.loss import NCutLoss2D, OpeningLoss2D
+from phm.loss import NCutLoss2D, OpeningLoss2D
 
 
 class ConvPoolBlock(nn.Module):
