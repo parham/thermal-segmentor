@@ -1,4 +1,12 @@
 
+""" 
+    @name helper_run.py   
+    @info   helper_run.py provides functions for initialization of segmentation process
+    @organization: Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
 
 import functools
 from typing import Dict, List

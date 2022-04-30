@@ -5,7 +5,6 @@ import sys
 import torch
 import logging
 import argparse
-import numpy as np
 
 from torch.utils.data import DataLoader
 from datetime import datetime
@@ -14,8 +13,8 @@ from comet_ml import Experiment
 from gimp_labeling_converter.dataset import XCFDataset
 
 from phm.core import load_config
-from phm.metrics import ConfusionMatrix, Function_Metric, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim
 from phm.segment import GrayToRGB, init_ignite__, list_segmenters
+from phm.metrics import ConfusionMatrix, Function_Metric, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim
 
 logging.basicConfig(
     level=logging.INFO,

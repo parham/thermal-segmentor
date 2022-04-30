@@ -1,4 +1,11 @@
 
+""" 
+    @organization: Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
+
 import abc
 from dataclasses import dataclass
 from enum import Enum
@@ -10,7 +17,6 @@ from typing import Any, Dict, List
 
 from comet_ml import Experiment
 
-from torchmetrics import Metric
 from ignite.engine import Engine
 from ignite.engine.events import Events
 

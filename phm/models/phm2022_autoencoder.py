@@ -1,9 +1,10 @@
 
 """ 
+    @name phm2022_autoencoder.py   
+    @organization: Laval University
+    @professor  Professor Xavier Maldague
     @author     Parham Nooralishahi
     @email      parham.nooralishahi@gmail.com
-    @professor  Professor Xavier Maldague
-    @organization: Laval University
 """
 
 import torch

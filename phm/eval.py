@@ -1,4 +1,13 @@
 
+""" 
+    @name eval.py   
+    @info   eval.py provides components related to evaluation process
+    @organization: Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
+
 import cv2
 import numpy as np
 from random import choice

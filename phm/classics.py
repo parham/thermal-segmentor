@@ -1,4 +1,13 @@
 
+""" 
+    @name classics.py   
+    @info   classics.py provides classical segmentation algorithm
+    @organization: Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
+
 import functools
 from typing import Dict, List
 from dotmap import DotMap

@@ -17,7 +17,6 @@ import torch.nn.functional as F
 
 from phm.filter import gaussian_kernel
 
-
 class phmLoss(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()

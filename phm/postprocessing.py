@@ -1,6 +1,13 @@
 
-from typing import List
+""" 
+    @organization: Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
+
 import numpy as np
+from typing import List
 
 from phm.metrics import extract_regions
 

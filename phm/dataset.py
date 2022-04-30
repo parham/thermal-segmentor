@@ -1,4 +1,13 @@
 
+""" 
+    @name dataset.py   
+    @info   dataset.py provides customizable dataset
+    @organization: Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
+
 import os
 import glob
 import ntpath

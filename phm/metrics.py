@@ -1,4 +1,12 @@
 
+""" 
+    @name metrics.py   
+    @info   metrics.py provides metrics for evaluation of prediction or training
+    @organization: Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
 
 import math
 import cv2
