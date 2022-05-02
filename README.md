@@ -20,6 +20,7 @@
 - [x] Implement kanezaki2018 + segmentor
 - [x] Implement wonjik2020 + segmentor
 - [x] Implement WNet
+- [ ] Develop the non-iterational approach for the unsupervised segmentation
 - [ ] Implement WNet + Unsupervised process
 - [ ] Implement the training process
 - [ ] Integerate SSIM as loss function
