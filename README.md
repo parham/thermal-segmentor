@@ -25,6 +25,7 @@
 - [ ] Implement the training process
 - [ ] Integerate SSIM as loss function
 - [ ] Propose a new loss + model
+- [X] Implement CRF Layer
 
 <!-- TABLE OF CONTENTS -->
 ## Table of Contents
