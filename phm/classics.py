@@ -20,7 +20,6 @@ from skimage import segmentation, color
 from skimage.future import graph
 
 from phm.metrics import phm_Metric
-from phm.segment import Segmentor
 
 class ClassicSegmentor(Segmentor):
     def __init__(self, 
@@ -42,7 +41,8 @@ class ClassicSegmentor(Segmentor):
         return self.segment(img, target, log_img = log_img, log_metrics = log_metrics)
 
 class DBSCAN_Impl(ClassicSegmentor):
-    """ Implementation of DBSCAN inspired by https://github.com/charmichokshi/Unsupervised-Image-Segmentation-Algorithms
+    """ 
+        Implementation of DBSCAN inspired by https://github.com/charmichokshi/Unsupervised-Image-Segmentation-Algorithms
     """
 
     def __init__(self,

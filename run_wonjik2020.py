@@ -15,7 +15,6 @@ from datetime import datetime
 from comet_ml import Experiment
 from phm.core import load_config
 from phm.dataset import FileRepeaterDataset
-from phm.eval import adapt_output
 from phm.loss import UnsupervisedLoss_TwoFactors
 
 from ignite.engine import Engine
@@ -26,7 +25,7 @@ from phm.metrics import ConfusionMatrix, Function_Metric, directed_hausdorff_dis
 from phm.models.wonjik2020 import Wonjik2020Module
 from phm.segment import GrayToRGB, SegmentRecord
 from phm.core import generate_random_str
-from phm.postprocessing import remove_small_regions
+from phm.postprocessing import remove_small_regions, adapt_output
 
 logging.basicConfig(
     level=logging.INFO,
@@ -35,7 +34,6 @@ logging.basicConfig(
 )
 
 label_colors_1ch8bits = np.random.randint(10,255,size=(100,1))
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def main():
@@ -103,7 +101,6 @@ def main():
     experiment.log_parameters(config.general)
     experiment.set_model_graph(str(model), overwrite=True)
 
-    gray_transform = GrayToRGB()
     # Load Data
     transform = torch.nn.Sequential(
         GrayToRGB()
@@ -114,13 +111,6 @@ def main():
         transform=transform)
 
     dl = DataLoader(dataset, batch_size=1, shuffle=True)
-
-    pred_func = functools.partial(
-        segment_ignite__,
-        model=model,
-        loss=loss,
-        optimizer=optimizer
-    )
 
     def __train_step(engine, batch):
         # Log the image and target
@@ -282,6 +272,7 @@ def segment_ignite__(
     loss = calc_loss_func(engine, loss_fn, output=output, target=target_out, img_size=img.shape)
     loss.backward()
     engine.state.last_loss = loss.item()
+    
     optimizer.step()
 
     result = torch.reshape(target_out, (img_w, img_h))

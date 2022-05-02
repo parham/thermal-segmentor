@@ -1,7 +1,9 @@
 {
     "segmentation": {
         "n_segments" : 1.2,
-        "compactness" : 70
+        "compactness" : 70,
+        "min_area" : 0,
+        "iou_thresh" : 0.1
     },
     "general" : {
         "log_image" : true,

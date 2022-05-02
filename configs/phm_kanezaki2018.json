@@ -6,13 +6,14 @@
     "segmentation": {
         "image_size_w" : 250,
         "image_size_h" : 250,
-        "iteration" : 200,
+        "iteration_max" : 25,
         "min_classes" : 10,
         "learning_rate" : 0.1,
         "momentum" : 0.9,
         "superpixel_regions" : 30,
         "compactness" : 10,
-        "min_area" : 0
+        "min_area" : 0,
+        "iou_thresh" : 0.1
     },
     "general" : {
         "log_image" : true,
