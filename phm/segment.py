@@ -7,15 +7,14 @@
 """
 
 import abc
-from dataclasses import dataclass
-from enum import Enum
 import logging
 import time
 import torch
 import numpy as np
-from typing import Any, Dict, List
 
 from comet_ml import Experiment
+from dataclasses import dataclass
+from typing import Any, Dict, List
 
 from ignite.engine import Engine
 from ignite.engine.events import Events
@@ -52,6 +51,8 @@ class SegmentRecord:
     loss : float
     output : Any
     target : Any = None
+    output_ready : Any = None
+    internal_metrics : Dict = None
 
 class Segmentor(abc.ABC):
     def __init__(self,
@@ -66,10 +67,14 @@ class Segmentor(abc.ABC):
 
     def segment(self, 
         img, target = None,
+        step : int = 1,
         epoch : int = 1,
         log_img: bool = True,
         log_metrics: bool = True) -> SegmentRecord:
 
+        return
+
+    def register_handlers(engine : Engine):
         return
 
 class KanezakiIterativeSegmentor(Segmentor):
@@ -96,7 +101,6 @@ class KanezakiIterativeSegmentor(Segmentor):
         self.last_label_count = 0
         # Store all the extra variables
         self.min_classes = min_classes
-        self.metrics = metrics
         self.step_metrics = step_metrics
         self.__dict__.update(kwargs)
 
@@ -142,7 +146,9 @@ class KanezakiIterativeSegmentor(Segmentor):
         for name, value in engine.state.metrics.items():
             self.experiment.log_metric("{}_{}".format(title, name), value)
 
-    def segment(self, img_data, target_data = None,
+    def segment(self, 
+        img_data, target_data = None,
+        step : int = 1,
         epoch : int = 1,
         log_img: bool = True,
         log_metrics: bool = True) -> SegmentRecord:

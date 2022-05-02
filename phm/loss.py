@@ -151,8 +151,8 @@ class UnsupervisedLoss_SuperResolusion(phmLoss):
         img_h = ref.shape[1]
         # SLIC : segment the image using SLIC algorithm
         labels = segmentation.slic(ref,
-                                   compactness=self.compactness,
-                                   n_segments=self.superpixel_regions)
+            compactness=self.compactness,
+            n_segments=self.superpixel_regions)
         # Flatten the resulted segmentation using SLIC
         labels = labels.reshape(img_w * img_h)
         # Extract the unique label

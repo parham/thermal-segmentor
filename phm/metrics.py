@@ -22,6 +22,8 @@ from dataclasses import dataclass
 from comet_ml import Experiment
 
 from ignite.exceptions import NotComputableError
+from ignite.metrics import Metric
+
 
 def segment_metric(name):
     def __embed_func(clss):

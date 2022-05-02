@@ -14,6 +14,7 @@ from dotmap import DotMap
 from comet_ml import Experiment
 
 import torch.optim as optim
+from phm.classics import DBSCAN_Impl, GraphCut_Impl, KMeans_Impl, MeanShift_Impl
 
 from phm.metrics import phm_Metric
 from phm.loss import UnsupervisedLoss_SuperResolusion, UnsupervisedLoss_TwoFactors
@@ -64,6 +65,50 @@ from phm.segment import KanezakiIterativeSegmentor, ignite_segmenter, phmIterati
 #     engine = Engine(pred_func)
 
 #     return engine
+
+
+@ignite_segmenter(['dbscan', 'kmeans', 'meanshift', 'graphcut'])
+def generate_classics_ignite__(
+    name : str,
+    config : DotMap,
+    experiment : Experiment,
+    metrics : List[phm_Metric] = None,
+    step_metrics : List[phm_Metric] = None,
+    **kwargs):
+
+    seg_obj = None
+    if name == 'dbscan':
+        seg_obj = DBSCAN_Impl(
+            eps=config.segmentation.eps,
+            min_samples=config.segmentation.min_samples,
+            leaf_size=config.segmentation.leaf_size,
+            experiment=experiment,
+            metrics=metrics)
+    elif name == 'kmeans':
+        seg_obj = KMeans_Impl(
+            dominant_colors=config.segmentation.n_clusters,
+            experiment=experiment,
+            metrics=metrics)
+    elif name == 'meanshift':
+        seg_obj = MeanShift_Impl(
+            quantile=config.segmentation.quantile,
+            n_samples=config.segmentation.n_samples,
+            experiment=experiment,
+            metrics=metrics)
+    elif name == 'graphcut':
+        seg_obj = GraphCut_Impl(
+            compactness = config.segmentation.compactness,
+            n_segments = config.segmentation.n_segments,
+            experiment=experiment,
+            metrics=metrics)
+
+    pred_func = functools.partial(
+        seg_obj.segment_ignite__,
+        log_img=config.general.log_image,
+        log_metrics=config.general.log_metrics 
+    )
+
+    return seg_obj, pred_func
 
 @ignite_segmenter('phm_autoencoder')
 def generate_phm_autoencoder_ignite__(
@@ -220,7 +265,6 @@ def generate_wonjik2020_ignite__(
     )
 
     return seg_obj, pred_func
-
 
 @ignite_segmenter('kanezaki2018')
 def generate_kanezaki2018_ignite__(

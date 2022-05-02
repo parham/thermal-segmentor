@@ -8,6 +8,8 @@
 """
 
 import os
+import random
+import string
 import yaml
 import json
 import logging
@@ -16,6 +18,8 @@ import functools
 
 from time import time
 from dotmap import DotMap
+
+generate_random_str = lambda x: ''.join(random.choice(string.ascii_lowercase) for i in range(x))
 
 def initialize_log():
     """Initialize the log configuration"""

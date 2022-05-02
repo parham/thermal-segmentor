@@ -14,17 +14,13 @@ from dotmap import DotMap
 import numpy as np
 
 from comet_ml import Experiment
-from torchmetrics import Metric
 
 from sklearn.cluster import DBSCAN, KMeans, MeanShift, estimate_bandwidth
 from skimage import segmentation, color
 from skimage.future import graph
 
-from ignite.engine import Engine
-
-from phm.core import load_config
 from phm.metrics import phm_Metric
-from phm.segment import Segmentor, ignite_segmenter
+from phm.segment import Segmentor
 
 class ClassicSegmentor(Segmentor):
     def __init__(self, 
@@ -217,46 +213,3 @@ class GraphCut_Impl(ClassicSegmentor):
                 self.experiment.log_metrics({**stats}, step=1, epoch=1)
 
         return 0.000001, seg_result
-
-@ignite_segmenter(['dbscan', 'kmeans', 'meanshift', 'graphcut'])
-def generate_classics_ignite__(
-    name : str,
-    config : DotMap,
-    experiment : Experiment,
-    metrics : List[phm_Metric] = None,
-    step_metrics : List[phm_Metric] = None,
-    **kwargs):
-
-    seg_obj = None
-    if name == 'dbscan':
-        seg_obj = DBSCAN_Impl(
-            eps=config.segmentation.eps,
-            min_samples=config.segmentation.min_samples,
-            leaf_size=config.segmentation.leaf_size,
-            experiment=experiment,
-            metrics=metrics)
-    elif name == 'kmeans':
-        seg_obj = KMeans_Impl(
-            dominant_colors=config.segmentation.n_clusters,
-            experiment=experiment,
-            metrics=metrics)
-    elif name == 'meanshift':
-        seg_obj = MeanShift_Impl(
-            quantile=config.segmentation.quantile,
-            n_samples=config.segmentation.n_samples,
-            experiment=experiment,
-            metrics=metrics)
-    elif name == 'graphcut':
-        seg_obj = GraphCut_Impl(
-            compactness = config.segmentation.compactness,
-            n_segments = config.segmentation.n_segments,
-            experiment=experiment,
-            metrics=metrics)
-
-    pred_func = functools.partial(
-        seg_obj.segment_ignite__,
-        log_img=config.general.log_image,
-        log_metrics=config.general.log_metrics 
-    )
-
-    return seg_obj, pred_func
