@@ -4,12 +4,14 @@
         "num_conv_layers" : 3
     },
     "segmentation": {
-        "iteration" : 25,
-        "similarity_loss" : 1,
-        "continuity_loss" : 0.5,
+        "image_size_w" : 250,
+        "image_size_h" : 250,
+        "iteration_max" : 25,
+        "min_classes" : 10,
         "learning_rate" : 0.1,
         "momentum" : 0.9,
-        "min_classes" : 3,
+        "superpixel_regions" : 30,
+        "compactness" : 10,
         "min_area" : 0,
         "iou_thresh" : 0.1
     },

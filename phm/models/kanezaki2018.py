@@ -1,9 +1,11 @@
 
 """ 
-    @author        Parham Nooralishahi
-    @email         parham.nooralishahi@gmail.com
-    @professor     Professor Xavier Maldague
+    @name kanezaki2018.py   
+    @info   kanezaki2018.py provides the model for Kanezaki2018 unsupervised segmentation
     @organization: Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
 """
 
 import torch.nn as nn

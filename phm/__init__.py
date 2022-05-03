@@ -10,10 +10,9 @@
 """
 
 from .core import *
-from .classics import *
-from .segment import *
 from .loss import *
-from .classics import *
+from .models import *
+from .segmentation import *
 
 # Check CUDA Availability
 import torch, gc

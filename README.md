@@ -20,10 +20,16 @@
 - [x] Implement kanezaki2018 + segmentor
 - [x] Implement wonjik2020 + segmentor
 - [x] Implement WNet
+- [ ] Develop the non-iterational approach for the unsupervised segmentation
 - [ ] Implement WNet + Unsupervised process
 - [ ] Implement the training process
 - [ ] Integerate SSIM as loss function
 - [ ] Propose a new loss + model
+- [X] Implement CRF Layer
+
+## Experiment
+- [ ] Apply the segmentation methods on the collected dataset.
+- [ ] Compare network with CRF layer and without CRF layer
 
 <!-- TABLE OF CONTENTS -->
 ## Table of Contents

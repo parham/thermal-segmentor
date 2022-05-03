@@ -1,9 +1,9 @@
 
 """ 
-    @author        Parham Nooralishahi
-    @email         parham.nooralishahi@gmail.com
-    @professor     Professor Xavier Maldague
     @organization: Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
 """
 
 import torch.nn as nn

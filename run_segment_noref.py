@@ -9,8 +9,10 @@ import torch
 import numpy as np
 from PIL import Image
 from comet_ml import Experiment
-from phm.metrics import ConfusionMatrix, Function_Metric, directed_hausdorff_distance, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim, uiq
 
+from ignite.engine.events import Events
+
+from phm.metrics import ConfusionMatrix, Function_Metric, directed_hausdorff_distance, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim, uiq
 from phm.segment import init_ignite__, list_segmenters
 
 logging.basicConfig(
@@ -55,7 +57,7 @@ def main():
         log_env_gpu = True,
         log_env_cpu = True,
         log_env_host = True,
-        disabled=False
+        disabled=True
     )
     experiment.set_name('%s_%s_%s' % (args.handler, now.strftime('%Y%m%d-%H%M'), fname))
     experiment.add_tag(fname)
@@ -91,6 +93,10 @@ def main():
             metrics=metrics,
             step_metrics=step_metrics,
             category=category)
+
+        @engine.on(Events.ITERATION_STARTED)
+        def _iteration_started(engine):
+            print(f'=====> {engine.state.iteration}')
 
         img = Image.open(fin)
         img = img.convert('RGB')

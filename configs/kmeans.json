@@ -1,6 +1,8 @@
 {
     "segmentation": {
-        "n_clusters" : 4
+        "n_clusters" : 4,
+        "min_area" : 0,
+        "iou_thresh" : 0.1
     },
     "general" : {
         "log_image" : true,
