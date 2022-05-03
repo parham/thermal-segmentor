@@ -10,6 +10,7 @@ from datetime import datetime
 
 from phm.core import load_config
 from phm.dataset import FileRepeaterDataset, RepetitiveDatasetWrapper
+from phm.metrics import ConfusionMatrix, Function_Metric, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim
 from phm.segmentation import list_segmenter_methods, GrayToRGB, segment_loader
 
 from ignite.utils import setup_logger
@@ -24,7 +25,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("system.log"), logging.StreamHandler(sys.stdout)],
 )
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else  "cpu")
 
 parser = argparse.ArgumentParser(description="Unsupervised segmentation without any reference")
 parser.add_argument('--input', '-i', type=str, required=True, help="Dataset directory/File input.")
@@ -73,7 +74,7 @@ def main():
         log_env_gpu = True,
         log_env_cpu = True,
         log_env_host = True,
-        disabled=False
+        disabled=True
     )
     experiment.set_name('%s_%s_%s' % (handler, now.strftime('%Y%m%d-%H%M'), dataset_name))
     experiment.add_tag(dataset_name)
@@ -95,12 +96,25 @@ def main():
 
     data_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
+    metrics = [
+        mIoU(ignored_class=0, iou_thresh=0.1),
+        ConfusionMatrix(
+            category=category,
+            cm_based_metrics=[measure_accuracy_cm__]
+        ),
+        Function_Metric(rmse, max_p = 255),
+        Function_Metric(psnr, max_p = 255),
+        Function_Metric(fsim, T1 = 0.85, T2 = 160),
+        Function_Metric(ssim, max_p = 255)
+    ]
+
     engine = segment_loader(handler, 
         data_loader=data_loader,
         category=category,
         experiment=experiment,
         config=config,
-        device=device)
+        device=device,
+        metrics=metrics)
     engine.logger = setup_logger('trainer')
 
     @engine.on(Events.STARTED)
@@ -116,8 +130,9 @@ def main():
     @engine.on(Events.ITERATION_STARTED)
     def __train_iteration_started(engine):
         logging.info(f'{engine.state.iteration} / {engine.state.iteration_max} : {engine.state.class_count} , {engine.state.last_loss}')
-    
+
     state = engine.run(data_loader)
+
     return 0
 
 if __name__ == "__main__":

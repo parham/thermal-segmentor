@@ -40,7 +40,6 @@ def crf_fit_predict(softmax: np.ndarray, image: np.ndarray, niter: int = 150):
 
     return np.array(pred).reshape((-1, image.shape[1], image.shape[2]))
 
-
 def crf_batch_fit_predict(probabilities: np.ndarray, images: np.ndarray, niter: int = 150):
     """
     Fits a Conditional Random Field (CRF) for image segmentation, given a mask of class probabilities (softmax)
@@ -54,8 +53,6 @@ def crf_batch_fit_predict(probabilities: np.ndarray, images: np.ndarray, niter: 
     """
     return np.stack([crf_fit_predict(p, x, niter) for p, x in zip(probabilities, images)], 0)
 
-
-
 def gaussian_kernel(radius: int = 3, sigma: float = 4, device='cpu'):
     x_2 = np.linspace(-radius, radius, 2*radius+1) ** 2
     dist = np.sqrt(x_2.reshape(-1, 1) + x_2.reshape(1, -1)) / sigma
@@ -67,7 +64,6 @@ def gaussian_kernel(radius: int = 3, sigma: float = 4, device='cpu'):
         kernel = kernel.cuda()
 
     return kernel
-
 
 class GaussianBlur2D(nn.Module):
 
@@ -84,7 +80,6 @@ class GaussianBlur2D(nn.Module):
             x[:, c:c+1] = F.conv2d(x[:, c:c+1], kernel, padding=self.radius)
 
         return x
-
 
 class CRFSmooth2D(nn.Module):
 

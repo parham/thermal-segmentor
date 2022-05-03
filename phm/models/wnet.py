@@ -138,6 +138,7 @@ class UNetEncoder(nn.Module):
         :param x: Input values
         :return: Network outputs
         """
+        
         c1 = self.conv1(x)
         c2 = self.conv2(c1)
         x = self.conv3(c2)
@@ -184,35 +185,6 @@ class UNetDecoder(nn.Module):
         x = self.output(x)
 
         return x
-
-class WNet(nn.Module):
-    """
-    Implements a W-Net CNN model for learning unsupervised image segmentations.  First encodes image data into
-    class probabilities using UNet, and then decodes the labels into a reconstruction of the original image using a
-    second UNet.
-    """
-
-    def __init__(self, num_channels: int = 3, num_classes: int = 20):
-        """
-        :param num_channels: Number of channels in the raw image data
-        :param num_classes: Number of classes in the output class probabilities
-        """
-        super(WNet, self).__init__()
-        self.encoder = UNetEncoder(num_channels=num_channels, num_classes=num_classes)
-        self.decoder = UNetDecoder(num_channels=num_channels, num_classes=num_classes)
-
-    def forward_encode_(self, x: Tensor) -> Tensor:
-        """
-        Pushes a set of inputs (x) through only the encoder network.
-
-        :param x: Input values
-        :return: Class probabilities
-        """
-
-        return self.encoder(x)
-
-
-        return loss
 
 class WNet(nn.Module):
     """
@@ -265,78 +237,5 @@ class WNet(nn.Module):
         mask = nn.Softmax(-1)(encoded).transpose(-1, 1)
         reconstructed = self.forward_reconstruct_(mask)
 
-        return mask, reconstructed
-
-class WNetLoss(nn.Module):
-    def __init__(self, 
-        alpha = 1e-3, 
-        beta = 1, 
-        gamma = 1e-1
-    ) -> None:
-        super().__init__()
-        self.alpha = alpha
-        self.beta = beta
-        self.gamma = gamma
-
-    def forward(self, output, target, input, mask): # labels > target
-        input, label, output = input.contiguous(), target.contiguous(), output.contiguous()
-        # Weights for NCutLoss2D, MSELoss, and OpeningLoss2D, respectively
-        ncut_loss = self.alpha * NCutLoss2D()(mask, input)
-        mse_loss = self.beta * nn.MSELoss()(output, input.detach())
-        smooth_loss = self.gamma * OpeningLoss2D()(mask)
-        loss = ncut_loss + mse_loss + smooth_loss
-
-class WNet_Impl:
-
-    def __init__(self, 
-        model,
-        optimizer,
-        loss,
-        experiment: Experiment = None
-    ) -> None:
-        super().__init__(experiment)
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu")
-        self.model = model
-        self.model.to(self.device)
-        self.optimizer = optimizer
-        self.loss_fn = loss
-
-    def fit_step__(self, engine, batch, 
-        log_img : bool = True, 
-        log_metrics : bool = True):
-        return self.fit(batch[0], batch[0], batch[1], 
-            log_img = log_img, 
-            log_metrics = log_metrics)
-
-    def fit(self, img, target,
-        log_img : bool = True, 
-        log_metrics : bool = True):
-
-        if log_img:
-            self.experiment.log_image(
-                img, name='original', step=0)
-
-        t = time.time()
-        self.model.train()
-        self.optimizer.zero_grad()
-        mask, output = self.forward(img)
-        loss = self.loss_fn(output, target, img, mask)
-        loss.backward()
-        self.optimizer.step()
-        step_time = time.time() - t
-
-        _, target_ = torch.max(output, 1)
-        im_target = target_.data.cpu().numpy()
-        nLabels = len(np.unique(im_target))
-        seg_result = im_target.reshape(img.shape[0:2])
-
-        if log_metrics:
-            self.experiment.log_metrics({
-                'noref_step_time': step_time,
-                'noref_class_count': nLabels,
-                'noref_loss': loss
-            }, step=1, epoch=1)
-        if log_img:
-            self.experiment.log_image(
-                seg_result, name='steps', step=1)
+        # return mask, reconstructed
+        return reconstructed

@@ -5,54 +5,78 @@ import time
 import numpy as np
 
 import torch
+import torch.nn as nn
 import torch.optim as optim
 
-from typing import Callable, Dict
+from typing import Callable, Dict, List
 from comet_ml import Experiment
+from crfseg import CRF
 
 from ignite.engine import Engine
 from ignite.engine.events import Events
+from phm.filter import CRFSmooth2D
+from phm.metrics import phm_Metric
+from phm.models.wnet import WNet
 
 from phm.segmentation.core import SegmentRecord, segmenter_method, label_colors_1ch8bits, simplify_train_step
 from phm.loss import UnsupervisedLoss_SuperResolusion, UnsupervisedLoss_TwoFactors
 from phm.models import Kanezaki2018Module, Wonjik2020Module
 from phm.postprocessing import remove_small_regions, adapt_output
 
-@segmenter_method(['phm_kanezaki2018', 'phm_wonjik2020'])
+@segmenter_method(['phm_kanezaki2018', 'phm_wonjik2020', 'phm_wnet'])
 def iterative_segment(
     handler : str,
     category : Dict,
     experiment : Experiment,
     config = None,
-    device : str = None
+    device : str = None,
+    metrics : List[phm_Metric] = None
 ) -> Engine:
     # Initialize model
-    model = {
-        'phm_wonjik2020' : Wonjik2020Module(
+    model = None
+    loss = None
+    if handler == 'phm_wonjik2020':
+        model = Wonjik2020Module(
             num_dim=3,
             num_channels=config.model.num_channels,
             num_convs=config.model.num_conv_layers
-        ),
-        'phm_kanezaki2018' : Kanezaki2018Module(num_dim=3,
-            num_channels=config.model.num_channels,
-            num_convs=config.model.num_conv_layers
         )
-    }[handler] 
-    model.to(device)
-    # Logging the model
-    experiment.set_model_graph(str(model), overwrite=True)
-    # Initialize loss
-    loss = {
-        'phm_wonjik2020' : UnsupervisedLoss_TwoFactors(
+        loss = UnsupervisedLoss_TwoFactors(
             num_channel=config.model.num_channels,
             similarity_loss=config.segmentation.similarity_loss,
             continuity_loss=config.segmentation.continuity_loss
-        ),
-        'phm_kanezaki2018' : UnsupervisedLoss_SuperResolusion(
+        )
+    elif handler == 'phm_kanezaki2018':
+        model = Kanezaki2018Module(
+            num_dim=3,
+            num_channels=config.model.num_channels,
+            num_convs=config.model.num_conv_layers
+        )
+        loss = UnsupervisedLoss_SuperResolusion(
             config.segmentation.compactness,
             config.segmentation.superpixel_regions
         )
-    }[handler]
+    elif handler == 'phm_wnet':
+        model = WNet(
+            num_channels=config.model.num_channels,
+            num_classes=len(category.keys())
+        )
+        loss = UnsupervisedLoss_TwoFactors(
+            num_channel=config.model.num_channels,
+            similarity_loss=config.segmentation.similarity_loss,
+            continuity_loss=config.segmentation.continuity_loss
+        )
+    else:
+        raise ValueError(f'{handler} is not supported!')
+    
+    if config.segmentation.use_crf_layer:
+        model = nn.Sequential(
+            model,
+            CRF(n_spatial_dims=2)
+        )
+    model.to(device)
+    # Logging the model
+    experiment.set_model_graph(str(model), overwrite=True)
     # Initialize optimizer
     optimizer = optim.SGD(model.parameters(),
         lr=config.segmentation.learning_rate,
@@ -68,7 +92,7 @@ def iterative_segment(
         experiment=experiment
     )
 
-    train_step = simplify_train_step(experiment, seg_func)
+    train_step = simplify_train_step(experiment, seg_func, metrics=metrics)
 
     def __init_state(config):
         # Add configurations to the engine state
@@ -121,11 +145,12 @@ def __helper_loss(engine, loss_fn, **kwargs):
     loss = loss_fn(output=output, target=target, img_size=img_size)
     return loss
 
-def __helper_postprocessing(engine, img):
+def __helper_postprocessing(engine, img, target):
         # Coloring regions
     im_color = np.array([label_colors_1ch8bits[ c % 255 ] for c in img]).reshape(img.shape).astype(np.uint8)
     # Small regions
-    return remove_small_regions(im_color, min_area=engine.state.min_area)
+    res = remove_small_regions(im_color, min_area=engine.state.min_area)
+    return res
 
 def __helper_prepare_result(engine, input, output, target, internal_metrics : Dict = {}):
     output_res = adapt_output(output, target, iou_thresh=engine.state.iou_thresh)
@@ -180,7 +205,7 @@ def segment_ignite__(
     result = torch.reshape(target_out, (img_w, img_h))
     engine.state.step_time = time.time() - t
 
-    result_np = postprocessing_func(engine, result.cpu().numpy())
+    result_np = postprocessing_func(engine, result.cpu().numpy(), target)
     target_np = target.cpu().numpy() if target is not None else None
 
     return prepare_result_func(engine, img, result_np, target_np, internal_metrics={

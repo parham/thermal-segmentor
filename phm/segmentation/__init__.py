@@ -10,3 +10,7 @@
 from .core import *
 from .iterative_seg import *
 from .classics import *
+
+from .classics import *
+from .core import *
+from .iterative_seg import *

@@ -29,6 +29,26 @@ class phmLoss(torch.nn.Module):
     def forward(self, output, target, **kwargs):
         super().forward(output, target, **kwargs)
 
+class WNetLoss(phmLoss):
+    def __init__(self, 
+        alpha = 1e-3, 
+        beta = 1, 
+        gamma = 1e-1
+    ) -> None:
+        super().__init__()
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+
+    def forward(self, output, target, input, mask): # labels > target
+        input, label, output = input.contiguous(), target.contiguous(), output.contiguous()
+        # Weights for NCutLoss2D, MSELoss, and OpeningLoss2D, respectively
+        ncut_loss = self.alpha * NCutLoss2D()(mask, input)
+        mse_loss = self.beta * nn.MSELoss()(output, input.detach())
+        smooth_loss = self.gamma * OpeningLoss2D()(mask)
+        loss = ncut_loss + mse_loss + smooth_loss
+        return loss
+
 class NCutLoss2D(phmLoss):
     """
         Implementation of the continuous N-Cut loss, as in:

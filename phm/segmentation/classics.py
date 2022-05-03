@@ -2,9 +2,10 @@
 import time
 import numpy as np
 
-from typing import Dict
+from typing import Dict, List
 from comet_ml import Experiment
 import torch
+from phm.metrics import phm_Metric
 from phm.segmentation.core import SegmentRecord, segmenter_method
 from ignite.engine import Engine
 
@@ -16,12 +17,13 @@ from phm.segmentation.core import SegmentRecord, segmenter_method, label_colors_
 from phm.postprocessing import remove_small_regions, adapt_output
 
 @segmenter_method(['dbscan', 'kmeans', 'meanshift', 'graphcut'])
-def iterative_segment(
+def classical_segment(
     handler : str,
     category : Dict,
     experiment : Experiment,
     config = None,
-    device : str = None
+    device : str = None,
+    metrics : List[phm_Metric] = None
 ) -> Engine:
     
     def __train_step(engine, batch):
@@ -79,8 +81,6 @@ def iterative_segment(
             'graphcut' : __graph_cut
         }[handler](img, target)
 
-
-
         engine.state.step_time = time.time() - t
 
         result = __helper_postprocessing(engine, result)
@@ -106,7 +106,7 @@ def iterative_segment(
         engine.state_dict_user_keys.append('last_loss')
         engine.state.last_loss = 0
     
-    train_step = simplify_train_step(experiment, __train_step)
+    train_step = simplify_train_step(experiment, __train_step, metrics=metrics)
 
     engine = Engine(train_step)
     __init_state(config)

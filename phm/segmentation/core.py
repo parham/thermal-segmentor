@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from comet_ml import Experiment
 from ignite.engine import Engine
 
+from phm.metrics import phm_Metric
+
 label_colors_1ch8bits = np.random.randint(10,255,size=(100,1))
 
 __segmenter_handler = {}
@@ -31,10 +33,12 @@ def segment_loader(
     category : Dict,
     experiment : Experiment,
     config = None,
-    device : str = None
+    device : str = None,
+    metrics : List[phm_Metric] = None
 ) -> Engine:
     device_non = device if device is not None else \
         torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
     if not handler in __segmenter_handler.keys():
         msg = f'{handler} handler is not supported!'
         logging.error(msg)
@@ -49,12 +53,14 @@ def segment_loader(
         category=category,
         experiment=experiment,
         config=config,
-        device=device_non
+        device=device_non,
+        metrics=metrics
     )
 
 def simplify_train_step(
     experiment : Experiment,
-    call_segment_func : Callable
+    call_segment_func : Callable,
+    metrics : List[phm_Metric] = None
 ):
     def __train_step(engine, batch):
         # Log the image and target
@@ -81,6 +87,11 @@ def simplify_train_step(
             if res.internal_metrics is not None and res.internal_metrics:
                 experiment.log_metrics(res.internal_metrics, prefix='loop_',
                     step=engine.state.iteration, epoch=engine.state.epoch)
+            if metrics is not None and metrics:
+                for m in metrics:
+                    m.update((res.output, res.target))
+                    m.compute(experiment, prefix='step_',
+                        step=engine.state.iteration, epoch=engine.state.epoch)
 
         if engine.state.log_image:
             experiment.log_image(res.output, 
