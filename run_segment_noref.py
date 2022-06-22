@@ -13,7 +13,7 @@ from comet_ml import Experiment
 from ignite.engine.events import Events
 
 from phm.metrics import ConfusionMatrix, Function_Metric, directed_hausdorff_distance, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim, uiq
-from phm.segment import init_ignite__, list_segmenters
+from phm.segmentation import init_ignite__, list_segmenters
 
 logging.basicConfig(
     level=logging.INFO,

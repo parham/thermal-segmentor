@@ -12,7 +12,7 @@ from comet_ml import Experiment
 from gimp_labeling_converter.dataset import XCFDataset
 
 from phm.core import load_config
-from phm.segment import GrayToRGB, init_ignite__, list_segmenters
+from phm.segmentation import GrayToRGB, init_ignite__, list_segmenters
 from phm.metrics import ConfusionMatrix, Function_Metric, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim
 
 logging.basicConfig(

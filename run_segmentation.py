@@ -33,6 +33,7 @@ parser.add_argument('--dtype', '-d', required=True, choices=['file', 'dataset'],
 parser.add_argument('--dconfig', type=str, help="File configuration file.")
 parser.add_argument('--config', '-c', type=str, required=True, help="Configuration file.")
 parser.add_argument('--handler', required=True, choices=list_segmenter_methods(), help="Handler determination.")
+parser.add_argument('--nologging', dest='dlogging', default=False, action='store_true')
 
 def main():
     args = parser.parse_args()
@@ -53,7 +54,7 @@ def main():
         logging.error(msg)
         raise ValueError(msg)
     ds_config = load_config(dsconfig_file, dotflag=False)
-
+    # Categories
     category = ds_config['category']
     dataset_name = ds_config['name'] if args.dtype == 'dataset' else os.path.basename(in_path).split('.')[0]
     # Configuration file
@@ -62,10 +63,9 @@ def main():
         msg = f'{fconfig} is invalid!'
         logging.error(msg)
         raise ValueError(msg)
-
     config = load_config(fconfig)
+    # Experiment Initialization
     now = datetime.now()
-
     experiment = Experiment(
         api_key="8CuCMLyaa23fZDEY2uTxm5THf",
         project_name="thermal-segmentor",
@@ -74,16 +74,17 @@ def main():
         log_env_gpu = True,
         log_env_cpu = True,
         log_env_host = True,
-        disabled=True
+        disabled=args.dlogging
     )
     experiment.set_name('%s_%s_%s' % (handler, now.strftime('%Y%m%d-%H%M'), dataset_name))
     experiment.add_tag(dataset_name)
 
     dataset = None
+    # Initialize Transformation
     transform = torch.nn.Sequential(
         GrayToRGB()
     )
-
+    # Initialize Dataset
     iteration_max = config.segmentation.iteration_max if config.segmentation.iteration_max else 1
     if args.dtype == 'file':
         dataset = FileRepeaterDataset(in_path, category=category,
@@ -93,9 +94,9 @@ def main():
         dataset = RepetitiveDatasetWrapper(XCFDataset(in_path, 
             category=category, transform=transform), 
             iteration=iteration_max)
-
+    # Initialize Data Loader
     data_loader = DataLoader(dataset, batch_size=1, shuffle=True)
-
+    # Initialize Metrics
     metrics = [
         mIoU(ignored_class=0, iou_thresh=0.1),
         ConfusionMatrix(
@@ -107,7 +108,7 @@ def main():
         Function_Metric(fsim, T1 = 0.85, T2 = 160),
         Function_Metric(ssim, max_p = 255)
     ]
-
+    # Initialize Segmentation
     engine = segment_loader(handler, 
         data_loader=data_loader,
         category=category,
@@ -116,7 +117,7 @@ def main():
         device=device,
         metrics=metrics)
     engine.logger = setup_logger('trainer')
-
+    # Define Training Events
     @engine.on(Events.STARTED)
     def __train_process_started(engine):
         experiment.train()
@@ -130,9 +131,8 @@ def main():
     @engine.on(Events.ITERATION_STARTED)
     def __train_iteration_started(engine):
         logging.info(f'{engine.state.iteration} / {engine.state.iteration_max} : {engine.state.class_count} , {engine.state.last_loss}')
-
+    # Run the pipeline
     state = engine.run(data_loader)
-
     return 0
 
 if __name__ == "__main__":

@@ -11,15 +11,14 @@
 import math
 import cv2
 import numpy as np
-import sklearn.metrics as skmetrics
-from skimage.metrics import structural_similarity
 import phasepack.phasecong as pc
 
-from scipy.signal import medfilt2d
-from scipy.spatial.distance import directed_hausdorff
-from typing import Callable, Dict, List
-from dataclasses import dataclass
 from comet_ml import Experiment
+from dataclasses import dataclass
+from scipy.signal import medfilt2d
+from typing import Callable, Dict, List
+from skimage.metrics import structural_similarity
+from scipy.spatial.distance import directed_hausdorff
 
 from ignite.exceptions import NotComputableError
 from ignite.metrics import Metric
