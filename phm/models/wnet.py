@@ -146,7 +146,6 @@ class UNetEncoder(nn.Module):
         x = self.deconv2(torch.cat((c2, x), dim=1))
         x = self.deconv3(torch.cat((c1, x), dim=1))
         x = self.output(x)
-
         return x
 
 class UNetDecoder(nn.Module):

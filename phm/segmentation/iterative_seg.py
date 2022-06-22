@@ -1,6 +1,7 @@
 
 
 import functools
+import os
 import time
 import numpy as np
 
@@ -14,6 +15,7 @@ from crfseg import CRF
 
 from ignite.engine import Engine
 from ignite.engine.events import Events
+
 from phm.filter import CRFSmooth2D
 from phm.metrics import phm_Metric
 from phm.models.wnet import WNet
@@ -74,6 +76,7 @@ def iterative_segment(
             model,
             CRF(n_spatial_dims=2)
         )
+
     model.to(device)
     # Logging the model
     experiment.set_model_graph(str(model), overwrite=True)
@@ -94,6 +97,8 @@ def iterative_segment(
 
     train_step = simplify_train_step(experiment, seg_func, metrics=metrics)
 
+    engine = Engine(train_step)
+
     def __init_state(config):
         # Add configurations to the engine state
         for sec in config.keys():
@@ -106,7 +111,6 @@ def iterative_segment(
         engine.state_dict_user_keys.append('last_loss')
         engine.state.last_loss = 0
 
-    engine = Engine(train_step)
     __init_state(config)
 
     # Event Handlers

@@ -28,7 +28,7 @@ RUN echo "" && \
 
 # Install Dependencies
 RUN pip install pytorch-ignite torchmetrics torchvision comet-ml opencv-python scikit-image scikit-learn dotmap phasepack cython pyyaml matplotlib
-RUN pip install crfseg tqdm pydensecrf
+RUN pip install crfseg tqdm pydensecrf pyfftw
 RUN pip install git+https://github.com/waspinator/coco.git@2.1.0
 RUN pip install git+https://github.com/waspinator/pycococreator.git@0.2.0
 RUN pip install gimp-labeling-converter

@@ -48,7 +48,7 @@ class FileRepeaterDataset(Dataset):
             img = self.transform(self.image)
         if self.target_transform is not None:
             target = self.target_transform(self.target)
-        return self.image, self.target
+        return img, target
 
 class RepetitiveDatasetWrapper(Dataset):
     def __init__(self, ds : Dataset, iteration : int  = 1) -> None:
