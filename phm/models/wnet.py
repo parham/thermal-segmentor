@@ -17,14 +17,28 @@ from comet_ml import Experiment
 from ignite.engine import Engine
 
 import torch
-from torch import Tensor
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
+
 from torchmetrics import Metric
 
 from phm.core import load_config
 from phm.loss import NCutLoss2D, OpeningLoss2D
 
+def make_same_size(src, ref):
+    pt = np.array(ref.shape) - np.array(src.shape)
+    pt[pt < 0] = 0
+    pad = list()
+    for p in pt:
+        if p > 0:
+            pad.insert(0,int(p // 2))
+            pad.insert(0,int((p // 2) + 1))
+        else:
+            pad.insert(0,0)
+            pad.insert(0,0)
+
+    return F.pad(src, pad, mode='constant')
 
 class ConvPoolBlock(nn.Module):
     """Performs multiple 2D convolutions, followed by a 2D max-pool operation.  Many of these are contained within
@@ -46,7 +60,7 @@ class ConvPoolBlock(nn.Module):
             nn.MaxPool2d(2)
         )
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Pushes a set of inputs (x) through the network.
 
@@ -74,7 +88,7 @@ class DeconvBlock(nn.Module):
             nn.LeakyReLU(0.1)
         )
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Pushes a set of inputs (x) through the network.
 
@@ -102,7 +116,7 @@ class OutputBlock(nn.Module):
             nn.Conv2d(out_features, out_features, 1)
         )
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Pushes a set of inputs (x) through the network.
 
@@ -131,7 +145,7 @@ class UNetEncoder(nn.Module):
         self.deconv3 = DeconvBlock(64, 32)
         self.output = OutputBlock(32, num_classes)
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Pushes a set of inputs (x) through the network.
 
@@ -143,7 +157,9 @@ class UNetEncoder(nn.Module):
         c2 = self.conv2(c1)
         x = self.conv3(c2)
         x = self.deconv1(x)
+        x = make_same_size(x, c2)
         x = self.deconv2(torch.cat((c2, x), dim=1))
+        x = make_same_size(x, c1)
         x = self.deconv3(torch.cat((c1, x), dim=1))
         x = self.output(x)
         return x
@@ -168,7 +184,7 @@ class UNetDecoder(nn.Module):
         self.deconv3 = DeconvBlock(64, 32)
         self.output = OutputBlock(32, num_channels)
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Pushes a set of inputs (x) through the network.
 
@@ -179,7 +195,9 @@ class UNetDecoder(nn.Module):
         c2 = self.conv2(c1)
         x = self.conv3(c2)
         x = self.deconv1(x)
+        x = make_same_size(x, c2)
         x = self.deconv2(torch.cat((c2, x), dim=1))
+        x = make_same_size(x, c1)
         x = self.deconv3(torch.cat((c1, x), dim=1))
         x = self.output(x)
 
@@ -201,7 +219,7 @@ class WNet(nn.Module):
         self.encoder = UNetEncoder(num_channels=num_channels, num_classes=num_classes)
         self.decoder = UNetDecoder(num_channels=num_channels, num_classes=num_classes)
 
-    def forward_encode_(self, x: Tensor) -> Tensor:
+    def forward_encode_(self, x: torch.Tensor) -> torch.Tensor:
         """
         Pushes a set of inputs (x) through only the encoder network.
 
@@ -211,7 +229,7 @@ class WNet(nn.Module):
 
         return self.encoder(x)
 
-    def forward_reconstruct_(self, mask: Tensor) -> Tensor:
+    def forward_reconstruct_(self, mask: torch.Tensor) -> torch.Tensor:
         """
         Pushes a set of class probabilities (mask) through only the decoder network.
 
@@ -224,7 +242,7 @@ class WNet(nn.Module):
 
         return outputs
 
-    def forward(self, x: Tensor) -> Tuple[Tensor, Tensor]:
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Pushes a set of inputs (x) through the network.
 

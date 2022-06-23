@@ -97,7 +97,10 @@ def measure_accuracy_cm__(
     accuracy = np.nan_to_num(np.diag(cmatrix) / cmatrix.sum())
     precision = np.nan_to_num(tp / (tp + fp))
     recall = np.nan_to_num(tp / (tp + fn))
-    fscore = np.nan_to_num((2 * precision * recall) / (precision + recall))
+
+    tmp1 = 2 * precision * recall
+    tmp2 = precision + recall
+    fscore = np.divide(tmp1, tmp2, out=np.zeros_like(tmp1), where=tmp2 != 0)
     # Calculate weights
     weights = cmatrix.sum(axis=0)
     weights = weights / weights.sum()
