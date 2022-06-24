@@ -16,20 +16,42 @@
 ## TODO
 - [ ] Thermal Data Labeling
 - [x] Implement the project structure
-- [x] Implement metrics
-- [x] Implement kanezaki2018 + segmentor
-- [x] Implement wonjik2020 + segmentor
-- [x] Implement WNet
-- [ ] Develop the non-iterational approach for the unsupervised segmentation
-- [ ] Implement WNet + Unsupervised process
-- [ ] Implement the training process
-- [ ] Integerate SSIM as loss function
-- [ ] Propose a new loss + model
-- [X] Implement CRF Layer
+- Implement metrics:
+  - [x] Confusion Matrix
+  - [x] mIoU
+  - [x] RMSE
+  - [x] PSNR
+  - [x] Directed Hausdorff Distance
+  - [x] FSSIM
+  - [x] SSIM
+  - [x] ISSM
+  - [x] UIQ
+  - [x] SAM
+  - [x] SRE
+- Models:
+  - Deep Learning Methods:
+    - [x] Kanezaki2018
+    - [x] Wonjik2020
+    - [x] WNet
+    - [ ] DFR
+    - [ ] AutoEncoder with SSIM loss (https://github.com/plutoyuxie/AutoEncoder-SSIM-for-unsupervised-anomaly-detection-)
+    - [ ] Unsupervised Semantic Segmentation by Contrasting Object Mask Proposals
+  - Classical Methods:
+    - [ ] Normalized Cut
+    - [x] DBSCAN 
+    - [x] K-Mean
+    - [x] Mean Shift 
+    - [x] Graph Cut
+    - [ ] Spectral clustering (https://scikit-learn.org/stable/auto_examples/cluster/plot_segmentation_toy.html#sphx-glr-auto-examples-cluster-plot-segmentation-toy-py)
+- Segmentor
+  - [x] Iterative Segmentor
+  - [ ] Non-Iterative Segmentor
+- Additional Layers
+  - [x] CRF Layer
 
 ## Experiment
 - [ ] Apply the segmentation methods on the collected dataset.
-- [ ] Compare network with CRF layer and without CRF layer
+- [ ] Compare network with CRF layer and without CRF layer.
 
 <!-- TABLE OF CONTENTS -->
 ## Table of Contents
