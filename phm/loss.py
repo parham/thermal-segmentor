@@ -1,3 +1,4 @@
+
 """ 
     @author        Parham Nooralishahi
     @email         parham.nooralishahi@gmail.com
@@ -11,9 +12,9 @@ from skimage import segmentation
 from scipy.ndimage import grey_opening
 
 import torch
-from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
+from torch import Tensor
 
 from phm.filter import gaussian_kernel
 
