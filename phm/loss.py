@@ -1,3 +1,4 @@
+
 """ 
     @author        Parham Nooralishahi
     @email         parham.nooralishahi@gmail.com
@@ -14,7 +15,11 @@ from scipy.ndimage import grey_opening
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+<<<<<<< HEAD
 from torch.autograd import Variable
+=======
+from torch import Tensor
+>>>>>>> 0c5645374919eaff1fcd9d13f7f440aab71fded6
 
 from phm.filter import gaussian_kernel
 
