@@ -49,6 +49,7 @@
 - Additional Layers
   - [x] CRF Layer
 
+
 ## Experiment
 - [ ] Apply the segmentation methods on the collected dataset.
 - [ ] Compare network with CRF layer and without CRF layer.
