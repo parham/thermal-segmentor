@@ -25,7 +25,7 @@ from phm.loss import UnsupervisedLoss_SuperResolusion, UnsupervisedLoss_ThreeFac
 from phm.models import Kanezaki2018Module, Wonjik2020Module
 from phm.postprocessing import remove_small_regions, adapt_output
 
-@segmenter_method(['phm_kanezaki2018', 'phm_wonjik2020', 'phm_wnet'])
+@segmenter_method(['phm_kanezaki2018', 'phm_wonjik2020']) # 'phm_wnet'
 def iterative_segment(
     handler : str,
     category : Dict,

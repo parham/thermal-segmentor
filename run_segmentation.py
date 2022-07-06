@@ -26,6 +26,7 @@ logging.basicConfig(
 )
 
 device = torch.device("cuda" if torch.cuda.is_available() else  "cpu")
+torch.cuda.set_device(1)
 
 parser = argparse.ArgumentParser(description="Unsupervised segmentation without any reference")
 parser.add_argument('--input', '-i', type=str, required=True, help="Dataset directory/File input.")
@@ -130,7 +131,8 @@ def main():
     
     @engine.on(Events.ITERATION_STARTED)
     def __train_iteration_started(engine):
-        logging.info(f'{engine.state.iteration} / {engine.state.iteration_max} : {engine.state.class_count} , {engine.state.last_loss}')
+        step_time = engine.state.step_time if hasattr(engine.state,'step_time') else 0
+        logging.info(f'[ {step_time} ] {engine.state.iteration} / {engine.state.iteration_max} : {engine.state.class_count} , {engine.state.last_loss}')
     # Run the pipeline
     state = engine.run(data_loader)
     return 0
