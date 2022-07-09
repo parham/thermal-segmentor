@@ -29,6 +29,7 @@ def list_segmenter_methods() -> List[str]:
 
 def segment_loader(
     handler : str,
+    data_name : str,
     data_loader,
     category : Dict,
     experiment : Experiment,
@@ -50,6 +51,7 @@ def segment_loader(
 
     return __segmenter_handler[handler](
         handler=handler,
+        data_name=data_name,
         category=category,
         experiment=experiment,
         config=config,

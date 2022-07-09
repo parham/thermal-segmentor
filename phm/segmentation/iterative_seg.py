@@ -28,6 +28,7 @@ from phm.postprocessing import remove_small_regions, adapt_output
 @segmenter_method(['phm_kanezaki2018', 'phm_wonjik2020']) # 'phm_wnet'
 def iterative_segment(
     handler : str,
+    data_name : str,
     category : Dict,
     experiment : Experiment,
     config = None,
@@ -99,6 +100,11 @@ def iterative_segment(
 
     engine = Engine(train_step)
 
+    # checkpoint_dir = os.path.join('./models', handler, data_name)
+    # checkpoint_saver = ModelCheckpoint(checkpoint_dir, 'training', 
+    #     atomic=True, create_dir=True)
+    # engine.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_saver, {'model' : model})
+
     def __init_state(config):
         # Add configurations to the engine state
         for sec in config.keys():
@@ -119,7 +125,12 @@ def iterative_segment(
         if engine.state.class_count <= engine.state.min_classes:
             engine.terminate()
 
-    return engine
+    # return engine, model, loss, optimizer
+    return {
+        'engine' : engine,
+        'model' : model,
+        'optimizer' : optimizer
+    }
 
 def __helper_prepare_image(engine, img, device):
     img_w = img.shape[0]
