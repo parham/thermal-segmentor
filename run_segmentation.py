@@ -120,6 +120,7 @@ def main():
         config=config,
         device=device,
         metrics=metrics)
+
     engine = settings['engine']
     engine.logger = setup_logger('trainer')
 

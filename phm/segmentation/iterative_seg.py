@@ -99,12 +99,7 @@ def iterative_segment(
     train_step = simplify_train_step(experiment, seg_func, metrics=metrics)
 
     engine = Engine(train_step)
-
-    # checkpoint_dir = os.path.join('./models', handler, data_name)
-    # checkpoint_saver = ModelCheckpoint(checkpoint_dir, 'training', 
-    #     atomic=True, create_dir=True)
-    # engine.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_saver, {'model' : model})
-
+    
     def __init_state(config):
         # Add configurations to the engine state
         for sec in config.keys():
