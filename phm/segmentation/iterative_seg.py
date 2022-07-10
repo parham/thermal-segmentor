@@ -1,7 +1,6 @@
 
 
 import functools
-import os
 import time
 import numpy as np
 
@@ -16,12 +15,11 @@ from crfseg import CRF
 from ignite.engine import Engine
 from ignite.engine.events import Events
 
-from phm.filter import CRFSmooth2D
 from phm.metrics import phm_Metric
 from phm.models.wnet import WNet
 
 from phm.segmentation.core import SegmentRecord, segmenter_method, label_colors_1ch8bits, simplify_train_step
-from phm.loss import UnsupervisedLoss_SuperResolusion, UnsupervisedLoss_ThreeFactors, UnsupervisedLoss_TwoFactors
+from phm.loss import UnsupervisedLoss_SuperResolusion, UnsupervisedLoss_TwoFactors
 from phm.models import Kanezaki2018Module, Wonjik2020Module
 from phm.postprocessing import remove_small_regions, adapt_output
 

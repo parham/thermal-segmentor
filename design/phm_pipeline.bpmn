@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bpsim="http://www.bpsim.org/schemas/1.0" xmlns:drools="http://www.jboss.org/drools" xmlns:xsi="xsi" id="_ypuzgOIvEDqW3_md7fTy2w" targetNamespace="http://www.omg.org/bpmn20" exporter="jBPM Process Modeler" exporterVersion="2.0">
+  <bpmn2:collaboration id="_75E3A297-193F-49DD-8D3D-B383B4E4B809" name="Default Collaboration">
+    <bpmn2:participant id="_CD33550B-8EC4-46DE-AF21-BD321FA0EF4C" name="Pool Participant" processRef="phm_pipeline" />
+  </bpmn2:collaboration>
+  <bpmn2:process id="phm_pipeline" name="phm_pipeline" processType="Public" isExecutable="true" drools:packageName="com.example" drools:version="1.0" drools:adHoc="false">
+    <bpmn2:startEvent id="_0668B3C7-276C-40A4-B690-8820EC2EB553" name="Receive a data">
+      <bpmn2:extensionElements>
+        <drools:metaData name="elementname">
+          <drools:metaValue>Receive a data</drools:metaValue>
+        </drools:metaData>
+      </bpmn2:extensionElements>
+      <bpmn2:outgoing>Flow_0qe89yy</bpmn2:outgoing>
+    </bpmn2:startEvent>
+    <bpmn2:sequenceFlow id="Flow_0qe89yy" sourceRef="_0668B3C7-276C-40A4-B690-8820EC2EB553" targetRef="Activity_0vvvs98" />
+    <bpmn2:sequenceFlow id="Flow_1gucpka" sourceRef="Activity_0vvvs98" targetRef="Activity_0bmzz3y" />
+    <bpmn2:exclusiveGateway id="Gateway_0mhm2uj" name="Is it labelled?">
+      <bpmn2:incoming>Flow_1w3vsqh</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_0fn08yc</bpmn2:outgoing>
+      <bpmn2:outgoing>Flow_127lb7w</bpmn2:outgoing>
+    </bpmn2:exclusiveGateway>
+    <bpmn2:sequenceFlow id="Flow_1w3vsqh" sourceRef="Activity_0bmzz3y" targetRef="Gateway_0mhm2uj" />
+    <bpmn2:task id="Activity_1befm4j" name="Calculate loss &#38; Supervised Learning">
+      <bpmn2:incoming>Flow_0fn08yc</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_1ej3m34</bpmn2:outgoing>
+    </bpmn2:task>
+    <bpmn2:sequenceFlow id="Flow_0fn08yc" name="Yes" sourceRef="Gateway_0mhm2uj" targetRef="Activity_1befm4j" />
+    <bpmn2:task id="Activity_01o5wqw" name="Predict the target">
+      <bpmn2:incoming>Flow_127lb7w</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_1mukjha</bpmn2:outgoing>
+    </bpmn2:task>
+    <bpmn2:sequenceFlow id="Flow_127lb7w" name="No" sourceRef="Gateway_0mhm2uj" targetRef="Activity_01o5wqw" />
+    <bpmn2:scriptTask id="Activity_0vvvs98" name="Preprocessing">
+      <bpmn2:incoming>Flow_0qe89yy</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_1gucpka</bpmn2:outgoing>
+    </bpmn2:scriptTask>
+    <bpmn2:serviceTask id="Activity_0bmzz3y" name="Apply Model">
+      <bpmn2:incoming>Flow_1gucpka</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_1w3vsqh</bpmn2:outgoing>
+    </bpmn2:serviceTask>
+    <bpmn2:task id="Activity_1itxxvb" name="Calcuate loss&#38; Unsupervised learning">
+      <bpmn2:incoming>Flow_1gg5y63</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_1bzjxfz</bpmn2:outgoing>
+    </bpmn2:task>
+    <bpmn2:task id="Activity_1x4aijz" name="Postprocess the estimation to be aligned with the target">
+      <bpmn2:incoming>Flow_1mukjha</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_1gg5y63</bpmn2:outgoing>
+    </bpmn2:task>
+    <bpmn2:sequenceFlow id="Flow_1mukjha" sourceRef="Activity_01o5wqw" targetRef="Activity_1x4aijz" />
+    <bpmn2:sequenceFlow id="Flow_1gg5y63" sourceRef="Activity_1x4aijz" targetRef="Activity_1itxxvb" />
+    <bpmn2:task id="Activity_1oqli4u" name="Measure the metrics">
+      <bpmn2:incoming>Flow_1ej3m34</bpmn2:incoming>
+      <bpmn2:incoming>Flow_1bzjxfz</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_15j0gen</bpmn2:outgoing>
+      <bpmn2:dataOutputAssociation id="DataOutputAssociation_0r2qen5">
+        <bpmn2:targetRef>DataStoreReference_0pb72cz</bpmn2:targetRef>
+      </bpmn2:dataOutputAssociation>
+    </bpmn2:task>
+    <bpmn2:sequenceFlow id="Flow_1ej3m34" sourceRef="Activity_1befm4j" targetRef="Activity_1oqli4u" />
+    <bpmn2:sequenceFlow id="Flow_1bzjxfz" sourceRef="Activity_1itxxvb" targetRef="Activity_1oqli4u" />
+    <bpmn2:dataStoreReference id="DataStoreReference_0pb72cz" />
+    <bpmn2:endEvent id="Event_0lx9fgh">
+      <bpmn2:incoming>Flow_15j0gen</bpmn2:incoming>
+    </bpmn2:endEvent>
+    <bpmn2:sequenceFlow id="Flow_15j0gen" sourceRef="Activity_1oqli4u" targetRef="Event_0lx9fgh" />
+    <bpmn2:group id="Group_0zeiw2s" categoryValueRef="CategoryValue_11wh7xy" />
+  </bpmn2:process>
+  <bpmn2:category id="Category_02wztyr">
+    <bpmn2:categoryValue id="CategoryValue_11wh7xy" />
+  </bpmn2:category>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane bpmnElement="phm_pipeline">
+      <bpmndi:BPMNEdge id="Flow_0qe89yy_di" bpmnElement="Flow_0qe89yy">
+        <di:waypoint x="208" y="210" />
+        <di:waypoint x="240" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1gucpka_di" bpmnElement="Flow_1gucpka">
+        <di:waypoint x="290" y="250" />
+        <di:waypoint x="290" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1w3vsqh_di" bpmnElement="Flow_1w3vsqh">
+        <di:waypoint x="334" y="281" />
+        <di:waypoint x="398" y="223" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0fn08yc_di" bpmnElement="Flow_0fn08yc">
+        <di:waypoint x="435" y="210" />
+        <di:waypoint x="480" y="210" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="446" y="192" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_127lb7w_di" bpmnElement="Flow_127lb7w">
+        <di:waypoint x="410" y="235" />
+        <di:waypoint x="410" y="320" />
+        <di:waypoint x="480" y="320" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="418" y="275" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1mukjha_di" bpmnElement="Flow_1mukjha">
+        <di:waypoint x="580" y="320" />
+        <di:waypoint x="610" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1gg5y63_di" bpmnElement="Flow_1gg5y63">
+        <di:waypoint x="710" y="320" />
+        <di:waypoint x="740" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ej3m34_di" bpmnElement="Flow_1ej3m34">
+        <di:waypoint x="580" y="210" />
+        <di:waypoint x="740" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1bzjxfz_di" bpmnElement="Flow_1bzjxfz">
+        <di:waypoint x="790" y="280" />
+        <di:waypoint x="790" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15j0gen_di" bpmnElement="Flow_15j0gen">
+        <di:waypoint x="840" y="210" />
+        <di:waypoint x="872" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="shape__0668B3C7-276C-40A4-B690-8820EC2EB553" bpmnElement="_0668B3C7-276C-40A4-B690-8820EC2EB553">
+        <dc:Bounds x="152" y="182" width="56" height="56" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="143" y="238" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0mhm2uj_di" bpmnElement="Gateway_0mhm2uj" isMarkerVisible="true">
+        <dc:Bounds x="385" y="185" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="377" y="163" width="65" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_10ysbvn_di" bpmnElement="Activity_0vvvs98">
+        <dc:Bounds x="240" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1ihgw6n_di" bpmnElement="Activity_0bmzz3y">
+        <dc:Bounds x="240" y="280" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1befm4j_di" bpmnElement="Activity_1befm4j">
+        <dc:Bounds x="480" y="170" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_01o5wqw_di" bpmnElement="Activity_01o5wqw">
+        <dc:Bounds x="480" y="280" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1x4aijz_di" bpmnElement="Activity_1x4aijz">
+        <dc:Bounds x="610" y="280" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1itxxvb_di" bpmnElement="Activity_1itxxvb">
+        <dc:Bounds x="740" y="280" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1oqli4u_di" bpmnElement="Activity_1oqli4u">
+        <dc:Bounds x="740" y="170" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_0pb72cz_di" bpmnElement="DataStoreReference_0pb72cz">
+        <dc:Bounds x="765" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0lx9fgh_di" bpmnElement="Event_0lx9fgh">
+        <dc:Bounds x="872" y="192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0r2qen5_di" bpmnElement="DataOutputAssociation_0r2qen5">
+        <di:waypoint x="792" y="170" />
+        <di:waypoint x="794" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Group_0zeiw2s_di" bpmnElement="Group_0zeiw2s">
+        <dc:Bounds x="460" y="268" width="400" height="106" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmn2:relationship type="BPSimData">
+    <bpmn2:extensionElements>
+      <bpsim:BPSimData>
+        <bpsim:Scenario id="default" name="Simulationscenario">
+          <bpsim:ScenarioParameters />
+          <bpsim:ElementParameters elementRef="_0668B3C7-276C-40A4-B690-8820EC2EB553">
+            <bpsim:TimeParameters>
+              <bpsim:ProcessingTime>
+                <bpsim:NormalDistribution mean="0" standardDeviation="0" />
+              </bpsim:ProcessingTime>
+            </bpsim:TimeParameters>
+          </bpsim:ElementParameters>
+          <bpsim:ElementParameters elementRef="_9A11CEBB-40AE-4BD2-A0D5-AFD778802524">
+            <bpsim:TimeParameters>
+              <bpsim:ProcessingTime>
+                <bpsim:NormalDistribution mean="0" standardDeviation="0" />
+              </bpsim:ProcessingTime>
+            </bpsim:TimeParameters>
+            <bpsim:ResourceParameters>
+              <bpsim:Availability>
+                <bpsim:FloatingParameter value="0" />
+              </bpsim:Availability>
+              <bpsim:Quantity>
+                <bpsim:FloatingParameter value="0" />
+              </bpsim:Quantity>
+            </bpsim:ResourceParameters>
+            <bpsim:CostParameters>
+              <bpsim:UnitCost>
+                <bpsim:FloatingParameter value="0" />
+              </bpsim:UnitCost>
+            </bpsim:CostParameters>
+          </bpsim:ElementParameters>
+        </bpsim:Scenario>
+      </bpsim:BPSimData>
+    </bpmn2:extensionElements>
+    <bpmn2:source>_ypuzgOIvEDqW3_md7fTy2w</bpmn2:source>
+    <bpmn2:target>_ypuzgOIvEDqW3_md7fTy2w</bpmn2:target>
+  </bpmn2:relationship>
+</bpmn2:definitions>
