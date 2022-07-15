@@ -1,18 +1,15 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Segmentation CLI",
+            "name": "(BIA-LOWPROFILE) Segmentation CLI",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args" : [
-                "--input", "/home/phm/GoogleDrive/Personal/Datasets/my-dataset/thermal-segmentor/Samples/labeled_img",
+                "--input", "/home/phm/SSH_Drive/BIA-LOWPROFILE/Dataset/thermal-segmentor/Samples/labeled_img",
                 "--dtype", "dataset",
                 "--config", "configs/phm_wonjik2020.json",
                 "--handler", "phm_wonjik2020",

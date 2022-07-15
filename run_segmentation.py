@@ -26,8 +26,10 @@ logging.basicConfig(
     handlers=[logging.FileHandler("system.log"), logging.StreamHandler(sys.stdout)],
 )
 
-device = torch.device("cuda" if torch.cuda.is_available() else  "cpu")
-torch.cuda.set_device(0)
+# device = torch.device("cuda" if torch.cuda.is_available() else  "cpu")
+# torch.cuda.set_device(0)
+
+device = torch.device("cpu")
 
 parser = argparse.ArgumentParser(description="Unsupervised segmentation without any reference")
 parser.add_argument('--input', '-i', type=str, required=True, help="Dataset directory/File input.")
