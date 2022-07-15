@@ -1,7 +1,6 @@
 
 
 import functools
-import os
 import time
 import numpy as np
 
@@ -16,18 +15,18 @@ from crfseg import CRF
 from ignite.engine import Engine
 from ignite.engine.events import Events
 
-from phm.filter import CRFSmooth2D
 from phm.metrics import phm_Metric
 from phm.models.wnet import WNet
 
 from phm.segmentation.core import SegmentRecord, segmenter_method, label_colors_1ch8bits, simplify_train_step
-from phm.loss import UnsupervisedLoss_SuperResolusion, UnsupervisedLoss_ThreeFactors, UnsupervisedLoss_TwoFactors
+from phm.loss import UnsupervisedLoss_SuperResolusion, UnsupervisedLoss_TwoFactors
 from phm.models import Kanezaki2018Module, Wonjik2020Module
 from phm.postprocessing import remove_small_regions, adapt_output
 
-@segmenter_method(['phm_kanezaki2018', 'phm_wonjik2020', 'phm_wnet'])
+@segmenter_method(['phm_kanezaki2018', 'phm_wonjik2020']) # 'phm_wnet'
 def iterative_segment(
     handler : str,
+    data_name : str,
     category : Dict,
     experiment : Experiment,
     config = None,
@@ -98,7 +97,7 @@ def iterative_segment(
     train_step = simplify_train_step(experiment, seg_func, metrics=metrics)
 
     engine = Engine(train_step)
-
+    
     def __init_state(config):
         # Add configurations to the engine state
         for sec in config.keys():
@@ -119,7 +118,12 @@ def iterative_segment(
         if engine.state.class_count <= engine.state.min_classes:
             engine.terminate()
 
-    return engine
+    # return engine, model, loss, optimizer
+    return {
+        'engine' : engine,
+        'model' : model,
+        'optimizer' : optimizer
+    }
 
 def __helper_prepare_image(engine, img, device):
     img_w = img.shape[0]

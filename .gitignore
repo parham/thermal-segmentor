@@ -1,6 +1,8 @@
 
-phm/__pycache__/*
 .vscode/*
 results/*
-phm/models/__pycache__/*
+phm/__pycache__/*
 phm/segmentation/__pycache__/*
+phm/models/__pycache__/*
+models/*
+models/*/*/*

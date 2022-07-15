@@ -23,7 +23,6 @@ from scipy.spatial.distance import directed_hausdorff
 from ignite.exceptions import NotComputableError
 from ignite.metrics import Metric
 
-
 def segment_metric(name):
     def __embed_func(clss):
         if not issubclass(clss,phm_Metric):

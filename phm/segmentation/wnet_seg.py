@@ -7,7 +7,7 @@ import time
 from typing import Dict, List
 
 from comet_ml import Experiment
-from phm.loss import UnsupervisedLoss_TwoFactors
+from phm.loss import UnsupervisedLoss_TwoFactors, WNetLoss
 from phm.metrics import phm_Metric
 from phm.models.wnet import WNet
 from phm.postprocessing import adapt_output
@@ -20,9 +20,10 @@ import torch.optim as optim
 from ignite.engine import Engine
 from ignite.engine.events import Events
 
-# @segmenter_method(['phm_wnet'])
+@segmenter_method(['phm_wnet'])
 def wnet_segment(
     handler : str,
+    data_name : str,
     category : Dict,
     experiment : Experiment,
     config = None,
@@ -35,11 +36,7 @@ def wnet_segment(
         num_classes=len(category.keys())
     )
     model.to(device)
-    loss = UnsupervisedLoss_TwoFactors(
-        num_channel=config.model.num_channels,
-        similarity_loss=config.segmentation.similarity_loss,
-        continuity_loss=config.segmentation.continuity_loss
-    )
+    loss = WNetLoss()
 
     # Logging the model
     experiment.set_model_graph(str(model), overwrite=True)
@@ -82,7 +79,12 @@ def wnet_segment(
         if engine.state.class_count <= engine.state.min_classes:
             engine.terminate()
     
-    return engine
+    # return engine
+    return {
+        'engine' : engine,
+        'model' : model,
+        'optimizer' : optimizer
+    }
 
 def segment_ignite__(
     engine, batch,

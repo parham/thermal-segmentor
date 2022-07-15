@@ -15,6 +15,7 @@ from phm.segmentation import list_segmenter_methods, GrayToRGB, segment_loader
 
 from ignite.utils import setup_logger
 from ignite.engine.events import Events
+from ignite.handlers import ModelCheckpoint, global_step_from_engine
 
 from torch.utils.data import DataLoader
 from gimp_labeling_converter.dataset import XCFDataset
@@ -26,6 +27,7 @@ logging.basicConfig(
 )
 
 device = torch.device("cuda" if torch.cuda.is_available() else  "cpu")
+torch.cuda.set_device(0)
 
 parser = argparse.ArgumentParser(description="Unsupervised segmentation without any reference")
 parser.add_argument('--input', '-i', type=str, required=True, help="Dataset directory/File input.")
@@ -34,6 +36,7 @@ parser.add_argument('--dconfig', type=str, help="File configuration file.")
 parser.add_argument('--config', '-c', type=str, required=True, help="Configuration file.")
 parser.add_argument('--handler', required=True, choices=list_segmenter_methods(), help="Handler determination.")
 parser.add_argument('--nologging', dest='dlogging', default=False, action='store_true')
+parser.add_argument('--checkpoint', '-l', type=str, required=False, help='Load the specificed checkpoint')
 
 def main():
     args = parser.parse_args()
@@ -109,14 +112,25 @@ def main():
         Function_Metric(ssim, max_p = 255)
     ]
     # Initialize Segmentation
-    engine = segment_loader(handler, 
+    settings = segment_loader(handler, 
+        data_name=dataset_name,
         data_loader=data_loader,
         category=category,
         experiment=experiment,
         config=config,
         device=device,
         metrics=metrics)
+
+    engine = settings['engine']
     engine.logger = setup_logger('trainer')
+
+    if 'model' in settings:
+        checkpoint_dir = os.path.join('./models', handler, dataset_name)
+        checkpoint_saver = ModelCheckpoint(checkpoint_dir, 'training',
+            require_empty=False, create_dir=True,
+            n_saved=1, global_step_transform=global_step_from_engine(engine))
+        engine.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_saver, {**settings})
+
     # Define Training Events
     @engine.on(Events.STARTED)
     def __train_process_started(engine):
@@ -130,7 +144,17 @@ def main():
     
     @engine.on(Events.ITERATION_STARTED)
     def __train_iteration_started(engine):
-        logging.info(f'{engine.state.iteration} / {engine.state.iteration_max} : {engine.state.class_count} , {engine.state.last_loss}')
+        step_time = engine.state.step_time if hasattr(engine.state,'step_time') else 0
+        logging.info(f'[ {step_time} ] {engine.state.iteration} / {engine.state.iteration_max} : {engine.state.class_count} , {engine.state.last_loss}')
+    
+    # Load the model from checkpoint
+    if args.checkpoint is not None:
+        checkpoint_file = os.path.join('./models', handler, dataset_name, args.checkpoint)
+        if not os.path.isfile(checkpoint_file):
+            raise ValueError('Checkpoint file path is invalid!')
+        checkpoint_obj = torch.load(checkpoint_file, map_location=device)
+        ModelCheckpoint.load_objects(to_load=settings, checkpoint=checkpoint_obj) 
+    
     # Run the pipeline
     state = engine.run(data_loader)
     return 0

@@ -18,6 +18,7 @@ from phm.postprocessing import remove_small_regions, adapt_output
 
 @segmenter_method(['dbscan', 'kmeans', 'meanshift', 'graphcut'])
 def classical_segment(
+    data_name : str,
     handler : str,
     category : Dict,
     experiment : Experiment,
@@ -111,7 +112,10 @@ def classical_segment(
     engine = Engine(train_step)
     __init_state(config)
 
-    return engine
+    # return engine
+    return {
+        'engine' : engine
+    }
 
 def __helper_postprocessing(engine, img):
         # Coloring regions
