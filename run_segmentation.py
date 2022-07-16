@@ -26,10 +26,10 @@ logging.basicConfig(
     handlers=[logging.FileHandler("system.log"), logging.StreamHandler(sys.stdout)],
 )
 
-# device = torch.device("cuda" if torch.cuda.is_available() else  "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else  "cpu")
 # torch.cuda.set_device(0)
 
-device = torch.device("cpu")
+# device = torch.device("cpu")
 
 parser = argparse.ArgumentParser(description="Unsupervised segmentation without any reference")
 parser.add_argument('--input', '-i', type=str, required=True, help="Dataset directory/File input.")
@@ -152,10 +152,9 @@ def main():
     # Load the model from checkpoint
     if args.checkpoint is not None:
         checkpoint_file = os.path.join('./models', handler, dataset_name, args.checkpoint)
-        if not os.path.isfile(checkpoint_file):
-            raise ValueError('Checkpoint file path is invalid!')
-        checkpoint_obj = torch.load(checkpoint_file, map_location=device)
-        ModelCheckpoint.load_objects(to_load=settings, checkpoint=checkpoint_obj) 
+        if os.path.isfile(checkpoint_file):
+            checkpoint_obj = torch.load(checkpoint_file, map_location=device)
+            ModelCheckpoint.load_objects(to_load=settings, checkpoint=checkpoint_obj) 
     
     # Run the pipeline
     state = engine.run(data_loader)
