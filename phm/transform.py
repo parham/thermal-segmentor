@@ -1,9 +1,20 @@
 
-import numpy as np
-from PIL import Image
-
 import torch
+import numpy as np
+
+from typing import Any, Dict, List
+from PIL import Image
+from skimage import color
+
 from torchvision.transforms.functional import InterpolationMode, resize
+
+class GrayToRGB(torch.nn.Module):
+    def forward(self, sample) -> Any:
+        res = sample
+        if len(sample.shape) < 3:
+            res = np.expand_dims(res, axis=2)
+            res = np.concatenate((res,res,res), axis=2)
+        return res
 
 class ClassMapToMultiLayers(torch.nn.Module):
     def __init__(self) -> None:
@@ -12,7 +23,6 @@ class ClassMapToMultiLayers(torch.nn.Module):
     def forward(self, img):
         print(img)
         return img
-
 
 class ImageResize(torch.nn.Module):
     def __init__(self, size, interpolation=InterpolationMode.BILINEAR, max_size=None, antialias=None):
@@ -42,4 +52,36 @@ class ImageResizeByCoefficient(torch.nn.Module):
 
         img_pil = Image.fromarray(np.uint8(img))
         res = resize(img_pil, img_size[:2], self.interpolation, self.max_size, self.antialias)
-        return np.moveaxis(np.asarray(res), -1, 0)
+        return np.asarray(res)
+
+class PrepareDimensionsCHW(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, img):
+        return np.moveaxis(img, -1, 0) if len(img.shape) > 2 else img
+
+class ToGrayscale(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def forward(self, img):
+        return color.rgb2gray(img)
+
+class ClassMapToMDTarget(torch.nn.Module):
+    def __init__(self, categories : List, background_classid : int = 0) -> None:
+        super().__init__()
+        self.categories = categories
+        self.background_classid = background_classid
+
+    def forward(self, img):
+        print(img)
+        gt = np.zeros(img.shape)
+        tt = np.ones(img.shape)
+        # layers = ((np.ones(img.shape) * self.background_classid), *[np.where(img == i, img, gt) for i in self.categories])
+        layers = []
+        for i in self.categories:
+            tmp = np.where(img == i, tt, gt)
+            layers.append(tmp)
+        layers = ((np.ones(img.shape) * self.background_classid), *layers)
+        return np.stack(layers)

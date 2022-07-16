@@ -10,14 +10,15 @@ from datetime import datetime
 
 from phm.core import load_config
 from phm.dataset import FileRepeaterDataset, RepetitiveDatasetWrapper
-from phm.transform import ClassMapToMultiLayers, ImageResizeByCoefficient
+from phm.transform import ClassMapToMDTarget, ClassMapToMultiLayers, GrayToRGB, ImageResizeByCoefficient, PrepareDimensionsCHW
 from phm.metrics import ConfusionMatrix, Function_Metric, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim
-from phm.segmentation import list_segmenter_methods, GrayToRGB, segment_loader
+from phm.segmentation import list_segmenter_methods, segment_loader
 
 from ignite.utils import setup_logger
 from ignite.engine.events import Events
 from ignite.handlers import ModelCheckpoint, global_step_from_engine
 
+from torchvision.transforms.functional import InterpolationMode
 from torch.utils.data import DataLoader
 from gimp_labeling_converter.dataset import XCFDataset
 
@@ -92,20 +93,25 @@ def main():
     # Initialize Transformation
     transform = torch.nn.Sequential(
         GrayToRGB(),
-        ImageResizeByCoefficient(32)
+        ImageResizeByCoefficient(32),
+        PrepareDimensionsCHW()
     )
     target_transform = torch.nn.Sequential(
-        ClassMapToMultiLayers()
+        ClassMapToMultiLayers(),
+        ImageResizeByCoefficient(32, interpolation=InterpolationMode.NEAREST),
+        ClassMapToMDTarget(categories=category.values()),
     )
     # Initialize Dataset
     iteration_max = config.segmentation.iteration_max if config.segmentation.iteration_max else 1
     if args.dtype == 'file':
         dataset = FileRepeaterDataset(in_path, category=category,
             iteration=iteration_max,
-            transform=transform)
+            transform=transform, 
+            target_transform=target_transform)
     elif args.dtype == 'dataset':
         dataset = RepetitiveDatasetWrapper(XCFDataset(in_path, 
-            category=category, transform=transform), 
+            category=category, transform=transform, 
+            target_transform=target_transform), 
             iteration=iteration_max)
     # Initialize Data Loader
     data_loader = DataLoader(dataset, batch_size=1, shuffle=True)

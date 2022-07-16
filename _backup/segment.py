@@ -37,14 +37,6 @@ def ignite_segmenter(name : Union[str, List[str]]):
 def list_segmenters() -> List[str]:
     return list(segmenter_handlers.keys())
 
-class GrayToRGB(torch.nn.Module):
-    def forward(self, sample) -> Any:
-        res = sample
-        if len(sample.shape) < 3:
-            res = np.expand_dims(res, axis=2)
-            res = np.concatenate((res,res,res), axis=2)
-        return res
-
 @dataclass
 class SegmentRecord:
     loss : float

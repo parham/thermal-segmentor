@@ -103,7 +103,7 @@ def simplify_train_step(
             experiment.log_image(out, 
                 name=f'adapted_result', 
                 step=engine.state.iteration)
-            experiment.log_image(res.output_ready, 
+            experiment.log_image(out_ready, 
                 name=f'result', 
                 step=engine.state.iteration)
     
@@ -116,11 +116,3 @@ class SegmentRecord:
     target : Any = None
     output_ready : Any = None
     internal_metrics : Dict = None
-
-class GrayToRGB(torch.nn.Module):
-    def forward(self, sample) -> Any:
-        res = sample
-        if len(sample.shape) < 3:
-            res = np.expand_dims(res, axis=2)
-            res = np.concatenate((res,res,res), axis=2)
-        return res
