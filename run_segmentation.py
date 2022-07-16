@@ -10,6 +10,7 @@ from datetime import datetime
 
 from phm.core import load_config
 from phm.dataset import FileRepeaterDataset, RepetitiveDatasetWrapper
+from phm.transform import ClassMapToMultiLayers, ImageResizeByCoefficient
 from phm.metrics import ConfusionMatrix, Function_Metric, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim
 from phm.segmentation import list_segmenter_methods, GrayToRGB, segment_loader
 
@@ -26,11 +27,6 @@ logging.basicConfig(
     handlers=[logging.FileHandler("system.log"), logging.StreamHandler(sys.stdout)],
 )
 
-device = torch.device("cuda" if torch.cuda.is_available() else  "cpu")
-# torch.cuda.set_device(0)
-
-# device = torch.device("cpu")
-
 parser = argparse.ArgumentParser(description="Unsupervised segmentation without any reference")
 parser.add_argument('--input', '-i', type=str, required=True, help="Dataset directory/File input.")
 parser.add_argument('--dtype', '-d', required=True, choices=['file', 'dataset'], help="Type of input data")
@@ -39,12 +35,20 @@ parser.add_argument('--config', '-c', type=str, required=True, help="Configurati
 parser.add_argument('--handler', required=True, choices=list_segmenter_methods(), help="Handler determination.")
 parser.add_argument('--nologging', dest='dlogging', default=False, action='store_true')
 parser.add_argument('--checkpoint', '-l', type=str, required=False, help='Load the specificed checkpoint')
+parser.add_argument('--device', type=str, required=False, default='cuda', choices=['cuda','cpu'], help='Select the device')
+parser.add_argument('--cuda_index', type=int, required=False, default=0, help='Select the index of employed device')
 
 def main():
     args = parser.parse_args()
     parser.print_help()
 
     handler = args.handler
+    # Device selection
+    device = torch.device("cuda" if args.device == 'cuda' and torch.cuda.is_available() else  "cpu")
+    if args.device == 'cuda':
+        torch.cuda.set_device(args.cuda_index)
+    # torch.cuda.set_device(0)
+    # device = torch.device("cpu")
     # Input Data
     in_path = args.input
     if in_path is None:
@@ -87,7 +91,11 @@ def main():
     dataset = None
     # Initialize Transformation
     transform = torch.nn.Sequential(
-        GrayToRGB()
+        GrayToRGB(),
+        ImageResizeByCoefficient(32)
+    )
+    target_transform = torch.nn.Sequential(
+        ClassMapToMultiLayers()
     )
     # Initialize Dataset
     iteration_max = config.segmentation.iteration_max if config.segmentation.iteration_max else 1
@@ -121,7 +129,8 @@ def main():
         experiment=experiment,
         config=config,
         device=device,
-        metrics=metrics)
+        metrics=metrics
+    )
 
     engine = settings['engine']
     engine.logger = setup_logger('trainer')

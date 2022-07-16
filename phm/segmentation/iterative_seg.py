@@ -1,7 +1,7 @@
 
 
-import functools
 import time
+import functools
 import numpy as np
 
 import torch
@@ -23,7 +23,10 @@ from phm.loss import UnsupervisedLoss_SuperResolusion, UnsupervisedLoss_TwoFacto
 from phm.models import Kanezaki2018Module, Wonjik2020Module
 from phm.postprocessing import remove_small_regions, adapt_output
 
-@segmenter_method(['phm_kanezaki2018', 'phm_wonjik2020']) # 'phm_wnet'
+__phm_kanezaki2018__ = 'phm_kanezaki2018'
+__phm_wonjik2020__ = 'phm_wonjik2020'
+
+@segmenter_method([__phm_kanezaki2018__, __phm_wonjik2020__]) # 'phm_wnet'
 def iterative_segment(
     handler : str,
     data_name : str,
@@ -36,7 +39,7 @@ def iterative_segment(
     # Initialize model
     model = None
     loss = None
-    if handler == 'phm_wonjik2020':
+    if handler == __phm_wonjik2020__:
         model = Wonjik2020Module(
             num_dim=3,
             num_channels=config.model.num_channels,
@@ -47,7 +50,7 @@ def iterative_segment(
             similarity_loss=config.segmentation.similarity_loss,
             continuity_loss=config.segmentation.continuity_loss
         )
-    elif handler == 'phm_kanezaki2018':
+    elif handler == __phm_kanezaki2018__:
         model = Kanezaki2018Module(
             num_dim=3,
             num_channels=config.model.num_channels,
@@ -56,16 +59,6 @@ def iterative_segment(
         loss = UnsupervisedLoss_SuperResolusion(
             config.segmentation.compactness,
             config.segmentation.superpixel_regions
-        )
-    elif handler == 'phm_wnet':
-        model = WNet(
-            num_channels=config.model.num_channels,
-            num_classes=len(category.keys())
-        )
-        loss = UnsupervisedLoss_TwoFactors(
-            num_channel=config.model.num_channels,
-            similarity_loss=config.segmentation.similarity_loss,
-            continuity_loss=config.segmentation.continuity_loss
         )
     else:
         raise ValueError(f'{handler} is not supported!')
@@ -95,7 +88,6 @@ def iterative_segment(
     )
 
     train_step = simplify_train_step(experiment, seg_func, metrics=metrics)
-
     engine = Engine(train_step)
     
     def __init_state(config):

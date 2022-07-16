@@ -32,6 +32,7 @@ RUN pip install crfseg tqdm pyfftw
 RUN pip install git+https://github.com/waspinator/coco.git@2.1.0
 RUN pip install git+https://github.com/waspinator/pycococreator.git@0.2.0
 RUN pip install gimp-labeling-converter
+RUN pip install segmentation-models-pytorch
 
 # RUN pip install pytorch-lightning comet-ml scikit-image opencv-python 
 

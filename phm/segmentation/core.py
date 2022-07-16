@@ -85,18 +85,22 @@ def simplify_train_step(
         # Recall the step
         res = call_segment_func(engine, batch)
 
+        out = res.output.cpu().detach().numpy() if isinstance(res.output, torch.Tensor) else res.output
+        out_ready = res.output_ready.cpu().detach().numpy() if isinstance(res.output_ready, torch.Tensor) else res.output_ready
+
         if engine.state.log_metrics:
             if res.internal_metrics is not None and res.internal_metrics:
                 experiment.log_metrics(res.internal_metrics, prefix='loop_',
                     step=engine.state.iteration, epoch=engine.state.epoch)
             if metrics is not None and metrics:
+                targ = res.target.cpu().detach().numpy() if isinstance(res.target, torch.Tensor) else res.target
                 for m in metrics:
-                    m.update((res.output, res.target))
+                    m.update((out, targ))
                     m.compute(experiment, prefix='step_',
                         step=engine.state.iteration, epoch=engine.state.epoch)
 
         if engine.state.log_image:
-            experiment.log_image(res.output, 
+            experiment.log_image(out, 
                 name=f'adapted_result', 
                 step=engine.state.iteration)
             experiment.log_image(res.output_ready, 
