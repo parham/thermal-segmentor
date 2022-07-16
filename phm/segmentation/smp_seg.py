@@ -110,9 +110,10 @@ def segment_ignite__(
 
     loss = loss_fn(output, target)
     loss.backward()
-    engine.state.last_loss = loss.item()
 
     optimizer.step()
+    
+    engine.state.last_loss = loss.item()
     engine.state.step_time = time.time() - t
 
     return SegmentRecord(

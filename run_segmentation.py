@@ -10,7 +10,7 @@ from datetime import datetime
 
 from phm.core import load_config
 from phm.dataset import FileRepeaterDataset, RepetitiveDatasetWrapper
-from phm.transform import ClassMapToMDTarget, ClassMapToMultiLayers, GrayToRGB, ImageResizeByCoefficient, PrepareDimensionsCHW
+from phm.transform import ClassMapToMDTarget, GrayToRGB, ImageResizeByCoefficient, PrepareDimensionsCHW, ToGrayscale
 from phm.metrics import ConfusionMatrix, Function_Metric, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim
 from phm.segmentation import list_segmenter_methods, segment_loader
 
@@ -93,13 +93,14 @@ def main():
     # Initialize Transformation
     transform = torch.nn.Sequential(
         GrayToRGB(),
+        # ToGrayscale(),
         ImageResizeByCoefficient(32),
         PrepareDimensionsCHW()
     )
     target_transform = torch.nn.Sequential(
-        ClassMapToMultiLayers(),
+        GrayToRGB(),
         ImageResizeByCoefficient(32, interpolation=InterpolationMode.NEAREST),
-        ClassMapToMDTarget(categories=category.values()),
+        # ClassMapToMDTarget(categories=category.values()),
     )
     # Initialize Dataset
     iteration_max = config.segmentation.iteration_max if config.segmentation.iteration_max else 1

@@ -16,14 +16,6 @@ class GrayToRGB(torch.nn.Module):
             res = np.concatenate((res,res,res), axis=2)
         return res
 
-class ClassMapToMultiLayers(torch.nn.Module):
-    def __init__(self) -> None:
-        super().__init__()
-    
-    def forward(self, img):
-        print(img)
-        return img
-
 class ImageResize(torch.nn.Module):
     def __init__(self, size, interpolation=InterpolationMode.BILINEAR, max_size=None, antialias=None):
         super().__init__()
@@ -66,7 +58,7 @@ class ToGrayscale(torch.nn.Module):
         super().__init__()
     
     def forward(self, img):
-        return color.rgb2gray(img)
+        return color.rgb2gray(img) if len(img.shape) > 2 else img
 
 class ClassMapToMDTarget(torch.nn.Module):
     def __init__(self, categories : List, background_classid : int = 0) -> None:
