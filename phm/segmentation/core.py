@@ -76,7 +76,6 @@ def simplify_train_step(
             target = np.asarray(transform(torch.squeeze(batch[1])))
             img = np.asarray(transform(torch.squeeze(batch[0])))
 
-            
             experiment.log_image(img, 
                 overwrite=True,
                 name=f'original', 

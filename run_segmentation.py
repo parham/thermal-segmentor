@@ -10,7 +10,7 @@ from datetime import datetime
 
 from phm.core import load_config
 from phm.dataset import FileRepeaterDataset, RepetitiveDatasetWrapper
-from phm.transform import ClassMapToMDTarget, GrayToRGB, ImageResizeByCoefficient, PrepareDimensionsCHW, ToGrayscale
+from phm.transform import GrayToRGB, ImageResizeByCoefficient, NumpyImageToTensor
 from phm.metrics import ConfusionMatrix, Function_Metric, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim
 from phm.segmentation import list_segmenter_methods, segment_loader
 
@@ -20,6 +20,7 @@ from ignite.handlers import ModelCheckpoint, global_step_from_engine
 
 from torchvision.transforms.functional import InterpolationMode
 from torch.utils.data import DataLoader
+
 from gimp_labeling_converter.dataset import XCFDataset
 
 logging.basicConfig(
@@ -93,15 +94,12 @@ def main():
     # Initialize Transformation
     transform = torch.nn.Sequential(
         GrayToRGB(),
-        # ToGrayscale(),
         ImageResizeByCoefficient(32),
-        PrepareDimensionsCHW()
+        NumpyImageToTensor()
     )
     target_transform = torch.nn.Sequential(
-        # GrayToRGB(),
         ImageResizeByCoefficient(32, interpolation=InterpolationMode.NEAREST),
-        PrepareDimensionsCHW()
-        # ClassMapToMDTarget(categories=category.values()),
+        NumpyImageToTensor()
     )
     # Initialize Dataset
     iteration_max = config.segmentation.iteration_max if config.segmentation.iteration_max else 1

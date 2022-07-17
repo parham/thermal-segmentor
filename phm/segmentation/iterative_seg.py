@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torchvision.transforms import ToPILImage
 
 from typing import Callable, Dict, List
 from comet_ml import Experiment
@@ -119,12 +120,12 @@ def iterative_segment(
     }
 
 def __helper_prepare_image(engine, img, device):
-    img_w = img.shape[0]
-    img_h = img.shape[1]
+    img_h = img.shape[0]
+    img_w = img.shape[1]
+    data = img.to(device, dtype=torch.float)
     # Convert image to numpy data
-    data = (img.transpose(0,2).transpose(1,2) / 255.0).to(device)
-    data = data.unsqueeze(dim=0)
-
+    # data = (img.transpose(0,2).transpose(1,2) / 255.0).to(device)
+    # data = data.unsqueeze(dim=0)
     return img_w, img_h, data
 
 def __helper_apply_model(engine, model, **kwargs):
@@ -132,7 +133,7 @@ def __helper_apply_model(engine, model, **kwargs):
     img_w = kwargs['img_w']
     img_h = kwargs['img_h']
 
-    output = model(data)[0, :, 0:img_w, 0:img_h]
+    output = model(data)[0, :, 0:img_h, 0:img_w]
     output_orig = output.permute(1, 2, 0).contiguous()
     output = output_orig.view(-1, engine.state.num_channels)
 
@@ -174,13 +175,13 @@ def segment_ignite__(
     postprocessing_func : Callable = __helper_postprocessing,
     prepare_result_func : Callable = __helper_prepare_result
 ):
-    result = None
-    img_data = batch[0]
-    target_data = batch[1] if len(batch) > 1 else None
+    transform = ToPILImage()
 
-    img = img_data.squeeze(dim=0).contiguous()
-    img = img.view((*img.shape[1:], img.shape[0]))
-    target = target_data.squeeze(dim=0).contiguous()
+    result = None
+    img = batch[0]
+    target = batch[1]
+    # img = torch.permute(torch.squeeze(batch[0]), (1, 2, 0)).contiguous()
+    # target = torch.squeeze(batch[1]).contiguous()
     # Prepare Image
     img_w, img_h, data = prepare_img_func(engine, img, device=device)
     

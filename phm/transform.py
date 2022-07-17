@@ -6,6 +6,7 @@ from typing import Any, Dict, List
 from PIL import Image
 from skimage import color
 
+from torchvision.transforms import ToPILImage, PILToTensor
 from torchvision.transforms.functional import InterpolationMode, resize
 
 class GrayToRGB(torch.nn.Module):
@@ -46,12 +47,16 @@ class ImageResizeByCoefficient(torch.nn.Module):
         res = resize(img_pil, img_size[:2], self.interpolation, self.max_size, self.antialias)
         return np.asarray(res)
 
-class PrepareDimensionsCHW(torch.nn.Module):
+class NumpyImageToTensor(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
+        self.to_pil = ToPILImage()
+        self.to_tensor = PILToTensor()
 
     def forward(self, img):
-        return np.moveaxis(img, -1, 0) if len(img.shape) > 2 else img
+        img = self.to_pil(img)
+        img = self.to_tensor(img)
+        return img
 
 class ToGrayscale(torch.nn.Module):
     def __init__(self) -> None:
