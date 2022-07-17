@@ -107,8 +107,9 @@ def iterative_segment(
     # Event Handlers
     @engine.on(Events.ITERATION_COMPLETED)
     def __train_iteration_ended(engine):
-        if engine.state.class_count <= engine.state.min_classes:
+        if engine.state.class_count <= len(category.keys()) + 1:
             engine.terminate()
+            engine.fire_event(Events.EPOCH_COMPLETED)
 
     # return engine, model, loss, optimizer
     return {
@@ -177,8 +178,9 @@ def segment_ignite__(
     img_data = batch[0]
     target_data = batch[1] if len(batch) > 1 else None
 
-    img = img_data.squeeze(dim=0)
-    target = target_data.squeeze(dim=0)
+    img = img_data.squeeze(dim=0).contiguous()
+    img = img.view((*img.shape[1:], img.shape[0]))
+    target = target_data.squeeze(dim=0).contiguous()
     # Prepare Image
     img_w, img_h, data = prepare_img_func(engine, img, device=device)
     
@@ -205,8 +207,8 @@ def segment_ignite__(
     result = torch.reshape(target_out, (img_w, img_h))
     engine.state.step_time = time.time() - t
 
-    result_np = postprocessing_func(engine, result.cpu().numpy(), target)
-    target_np = target.cpu().numpy() if target is not None else None
+    result_np = postprocessing_func(engine, result.cpu().detach().numpy(), target)
+    target_np = target.cpu().detach().numpy() if target is not None else None
 
     return prepare_result_func(engine, img, result_np, target_np, internal_metrics={
         'loss' : loss,

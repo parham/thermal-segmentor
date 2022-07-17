@@ -13,6 +13,7 @@ import torch.optim as optim
 
 from ignite.engine import Engine
 from ignite.engine.events import Events
+from phm.loss import FocalLoss
 
 from phm.metrics import phm_Metric
 from phm.segmentation.core import SegmentRecord, segmenter_method, simplify_train_step
@@ -39,6 +40,7 @@ def smp_seg(
             classes=len(category.keys())+1 
         )
         loss = smp.losses.FocalLoss(mode = 'multiclass')
+        # loss = FocalLoss()
     else:
         raise ValueError(f'{handler} is not supported!')
     
@@ -115,6 +117,12 @@ def segment_ignite__(
     
     engine.state.last_loss = loss.item()
     engine.state.step_time = time.time() - t
+
+    output = torch.squeeze(output)
+    target = torch.squeeze(target)
+
+    output = output.contiguous().view((*output.shape[1:], output.shape[0]))
+    target = target.contiguous().view((*target.shape[1:], target.shape[0]))
 
     return SegmentRecord(
         output=output,

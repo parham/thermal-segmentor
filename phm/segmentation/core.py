@@ -1,5 +1,7 @@
 
 import torch
+import torchvision.transforms as T
+
 import logging
 import numpy as np
 
@@ -45,9 +47,12 @@ def segment_loader(
         logging.error(msg)
         raise ValueError(msg)
 
-    experiment.log_parameters(config.model)
-    experiment.log_parameters(config.segmentation)
-    experiment.log_parameters(config.general)
+    if 'model' in config:
+        experiment.log_parameters(config.model.toDict())
+    if 'segmentation' in config:
+        experiment.log_parameters(config.segmentation.toDict())
+    if 'general' in config:
+        experiment.log_parameters(config.general.toDict())
 
     return __segmenter_handler[handler](
         handler=handler,
@@ -65,11 +70,12 @@ def simplify_train_step(
     metrics : List[phm_Metric] = None
 ):
     def __train_step(engine, batch):
+        transform = T.ToPILImage()
         # Log the image and target
         if engine.state.log_image:
-            target = batch[1] if len(batch) > 1 else None
-            img = batch[0].cpu().numpy()
-            img = np.squeeze(img, axis=0)
+            target = np.asarray(transform(torch.squeeze(batch[1])))
+            img = np.asarray(transform(torch.squeeze(batch[0])))
+
             
             experiment.log_image(img, 
                 overwrite=True,
@@ -85,15 +91,15 @@ def simplify_train_step(
         # Recall the step
         res = call_segment_func(engine, batch)
 
-        out = res.output.cpu().detach().numpy() if isinstance(res.output, torch.Tensor) else res.output
-        out_ready = res.output_ready.cpu().detach().numpy() if isinstance(res.output_ready, torch.Tensor) else res.output_ready
+        out = np.asarray(transform(res.output)) if isinstance(res.output, torch.Tensor) else res.output
+        out_ready = np.asarray(transform(res.output_ready)) if isinstance(res.output_ready, torch.Tensor) else res.output_ready
 
         if engine.state.log_metrics:
             if res.internal_metrics is not None and res.internal_metrics:
                 experiment.log_metrics(res.internal_metrics, prefix='loop_',
                     step=engine.state.iteration, epoch=engine.state.epoch)
             if metrics is not None and metrics:
-                targ = res.target.cpu().detach().numpy() if isinstance(res.target, torch.Tensor) else res.target
+                targ = np.asarray(transform(res.target)) if isinstance(res.target, torch.Tensor) else res.target
                 for m in metrics:
                     m.update((out, targ))
                     m.compute(experiment, prefix='step_',

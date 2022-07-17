@@ -89,7 +89,7 @@ def classical_segment(
         engine.state.class_count = nLabels
         engine.state.last_loss = 0.00001
 
-        target_np = target.cpu().numpy() if target is not None else None
+        target_np = target.cpu().detach().numpy() if target is not None else None
         return __helper_prepare_result(engine, img, result, target_np, internal_metrics={
             'step_time' : engine.state.step_time,
             'class_count' : engine.state.class_count

@@ -278,8 +278,8 @@ def segment_ignite__(
     result = torch.reshape(target_out, (img_w, img_h))
     engine.state.step_time = time.time() - t
 
-    result_np = postprocessing_func(engine, result.cpu().numpy())
-    target_np = target.cpu().numpy() if target is not None else None
+    result_np = postprocessing_func(engine, result.cpu().detach().numpy())
+    target_np = target.cpu().detach().numpy() if target is not None else None
 
     return prepare_result_func(engine, img, result_np, target_np, internal_metrics={
         'loss' : loss,

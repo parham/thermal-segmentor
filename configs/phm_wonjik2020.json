@@ -4,7 +4,7 @@
         "num_conv_layers" : 3
     },
     "segmentation": {
-        "iteration_max" : 25,
+        "iteration_max" : 5,
         "similarity_loss" : 1,
         "continuity_loss" : 0.5,
         "learning_rate" : 0.1,

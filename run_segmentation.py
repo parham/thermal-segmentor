@@ -98,8 +98,9 @@ def main():
         PrepareDimensionsCHW()
     )
     target_transform = torch.nn.Sequential(
-        GrayToRGB(),
+        # GrayToRGB(),
         ImageResizeByCoefficient(32, interpolation=InterpolationMode.NEAREST),
+        PrepareDimensionsCHW()
         # ClassMapToMDTarget(categories=category.values()),
     )
     # Initialize Dataset
@@ -144,9 +145,11 @@ def main():
 
     if 'model' in settings:
         checkpoint_dir = os.path.join('./models', handler, dataset_name)
-        checkpoint_saver = ModelCheckpoint(checkpoint_dir, 'training',
+        checkpoint_saver = ModelCheckpoint(
+            checkpoint_dir, 'training',
             require_empty=False, create_dir=True,
-            n_saved=1, global_step_transform=global_step_from_engine(engine))
+            n_saved=1, global_step_transform=global_step_from_engine(engine)
+        )
         engine.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_saver, {**settings})
 
     # Define Training Events
@@ -173,7 +176,8 @@ def main():
             ModelCheckpoint.load_objects(to_load=settings, checkpoint=checkpoint_obj) 
     
     # Run the pipeline
-    state = engine.run(data_loader)
+    state = engine.run(data_loader, max_epochs=2)
+    print(state)
     return 0
 
 if __name__ == "__main__":
