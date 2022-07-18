@@ -10,11 +10,12 @@ import segmentation_models_pytorch as smp
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torchvision.transforms import ToPILImage
 
 from ignite.engine import Engine
 from ignite.engine.events import Events
-from phm.loss import FocalLoss
 
+from phm.loss import FocalLoss
 from phm.metrics import phm_Metric
 from phm.segmentation.core import SegmentRecord, segmenter_method, simplify_train_step
 
@@ -99,30 +100,32 @@ def segment_ignite__(
     target = target_data.to(device=device, dtype=torch.float32)
 
     # Initialize training time
-    img_w = img.shape[0]
-    img_h = img.shape[1]
+    img_h = img.shape[-2]
+    img_w = img.shape[-1]
     t = time.time()
 
     model.train()
     optimizer.zero_grad()
 
     output = model(img)
-    nLabels = len(torch.unique(torch.ravel(output)))
+    nLabels = output.shape[1]
     engine.state.class_count = nLabels
 
-    loss = loss_fn(output, target)
+    loss = loss_fn(output, target.squeeze(dim=1))
     loss.backward()
 
     optimizer.step()
     
+    transform = ToPILImage()
+
     engine.state.last_loss = loss.item()
     engine.state.step_time = time.time() - t
 
-    output = torch.squeeze(output)
-    target = torch.squeeze(target)
+    output = np.asarray(transform(output.squeeze()))
+    target = np.asarray(transform(target.squeeze()))
 
-    output = output.contiguous().view((*output.shape[1:], output.shape[0]))
-    target = target.contiguous().view((*target.shape[1:], target.shape[0]))
+    # output = output.contiguous().view((*output.shape[1:], output.shape[0]))
+    # target = target.contiguous().view((*target.shape[1:], target.shape[0]))
 
     return SegmentRecord(
         output=output,

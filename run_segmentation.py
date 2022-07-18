@@ -117,11 +117,11 @@ def main():
     data_loader = DataLoader(dataset, batch_size=1, shuffle=True)
     # Initialize Metrics
     metrics = [
-        mIoU(ignored_class=0, iou_thresh=0.1),
-        ConfusionMatrix(
-            category=category,
-            cm_based_metrics=[measure_accuracy_cm__]
-        ),
+        # mIoU(ignored_class=0, iou_thresh=0.1),
+        # ConfusionMatrix(
+        #     category=category,
+        #     cm_based_metrics=[measure_accuracy_cm__]
+        # ),
         Function_Metric(rmse, max_p = 255),
         Function_Metric(psnr, max_p = 255),
         Function_Metric(fsim, T1 = 0.85, T2 = 160),
