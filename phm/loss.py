@@ -402,8 +402,8 @@ class UnsupervisedLoss_TwoFactors(phmLoss):
     ) -> None:
         super().__init__()
         self.loss_fn = torch.nn.CrossEntropyLoss()
-        self.loss_hpy = torch.nn.L1Loss(size_average=True)
-        self.loss_hpz = torch.nn.L1Loss(size_average=True)
+        self.loss_hpy = torch.nn.L1Loss(reduction='mean')
+        self.loss_hpz = torch.nn.L1Loss(reduction='mean')
         self.HPy_target = None
         self.HPz_target = None
 
@@ -414,25 +414,23 @@ class UnsupervisedLoss_TwoFactors(phmLoss):
     def prepare_loss(self, **kwargs):
         ref = kwargs['ref']
         self._ref = ref
-        img_w = ref.shape[0]
-        img_h = ref.shape[1]
+        img_w = ref.shape[-1]
+        img_h = ref.shape[-2]
         self.HPy_target = torch.zeros(
-            img_w - 1, img_h, self.nChannel).to(self.device)
+            self.nChannel, img_h - 1, img_w).to(self.device)
         self.HPz_target = torch.zeros(
-            img_w, img_h - 1, self.nChannel).to(self.device)
+            self.nChannel, img_h, img_w - 1).to(self.device)
 
     def forward(self, output, target, **kwargs):
-        img_size = kwargs['img_size']
-        img_w = img_size[0]
-        img_h = img_size[1]
-
-        outputHP = output.reshape((img_w, img_h, self.nChannel))
-        HPy = outputHP[1:, :, :] - outputHP[0:-1, :, :]
-        HPz = outputHP[:, 1:, :] - outputHP[:, 0:-1, :]
+        # HPy = output[1:, :, :] - output[0:-1, :, :]
+        # HPz = output[:, 1:, :] - output[:, 0:-1, :]
+        HPy = output[:, 1:, :] - output[:, 0:-1, :]
+        HPz = output[:, :, 1:] - output[:, :, 0:-1]
         lhpy = self.loss_hpy(HPy, self.HPy_target)
         lhpz = self.loss_hpz(HPz, self.HPz_target)
         # loss calculation
-        return self.similarity_loss * self.loss_fn(output, target) + \
+        return self.similarity_loss * \
+            self.loss_fn(output.unsqueeze(dim=0), target.unsqueeze(dim=0)) + \
             self.continuity_loss * (lhpy + lhpz)
 
 class UnsupervisedLoss_ThreeFactors(UnsupervisedLoss_TwoFactors):

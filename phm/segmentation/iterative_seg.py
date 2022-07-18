@@ -120,12 +120,9 @@ def iterative_segment(
     }
 
 def __helper_prepare_image(engine, img, device):
-    img_h = img.shape[0]
-    img_w = img.shape[1]
+    img_w = img.shape[-1]
+    img_h = img.shape[-2]
     data = img.to(device, dtype=torch.float)
-    # Convert image to numpy data
-    # data = (img.transpose(0,2).transpose(1,2) / 255.0).to(device)
-    # data = data.unsqueeze(dim=0)
     return img_w, img_h, data
 
 def __helper_apply_model(engine, model, **kwargs):
@@ -135,9 +132,13 @@ def __helper_apply_model(engine, model, **kwargs):
 
     output = model(data)[0, :, 0:img_h, 0:img_w]
     output_orig = output.permute(1, 2, 0).contiguous()
-    output = output_orig.view(-1, engine.state.num_channels)
+    output_orig = output_orig.view(-1, engine.state.num_channels)
 
-    _, target = torch.max(output, 1)
+    _, target = torch.max(output_orig, 1)
+
+    target = torch.reshape(target, (img_h, img_w))
+    # output = torch.reshape(output, (engine.state.num_channels, img_h, img_w))
+
     return output, target
 
 def __helper_loss(engine, loss_fn, **kwargs):
@@ -180,11 +181,8 @@ def segment_ignite__(
     result = None
     img = batch[0]
     target = batch[1]
-    # img = torch.permute(torch.squeeze(batch[0]), (1, 2, 0)).contiguous()
-    # target = torch.squeeze(batch[1]).contiguous()
     # Prepare Image
     img_w, img_h, data = prepare_img_func(engine, img, device=device)
-    
     # ###### Training Step 
     # Initialize training time
     t = time.time()
@@ -193,23 +191,23 @@ def segment_ignite__(
 
     model.train()
     optimizer.zero_grad()
-    output, target_out = apply_model_func(
+    output, result = apply_model_func(
         engine, model, data=data, img_w=img_w, img_h=img_h)
     # Determine the number of classes in output
-    nLabels = len(torch.unique(target_out))
-    engine.state.class_count = nLabels
+    nLabels = len(torch.unique(result))
 
-    loss = calc_loss_func(engine, loss_fn, output=output, target=target_out, img_size=img.shape)
+    loss = calc_loss_func(engine, loss_fn, output=output, target=result, img_size=img.shape)
     loss.backward()
-    engine.state.last_loss = loss.item()
     
     optimizer.step()
 
-    result = torch.reshape(target_out, (img_w, img_h))
+    engine.state.last_loss = loss.item()
+    engine.state.class_count = nLabels
     engine.state.step_time = time.time() - t
 
-    result_np = postprocessing_func(engine, result.cpu().detach().numpy(), target)
-    target_np = target.cpu().detach().numpy() if target is not None else None
+    result_np = result.cpu().detach().numpy()
+    target_np = target.squeeze().cpu().detach().numpy() if target is not None else None
+    result_np = postprocessing_func(engine, result_np, target_np)
 
     return prepare_result_func(engine, img, result_np, target_np, internal_metrics={
         'loss' : loss,

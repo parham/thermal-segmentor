@@ -285,6 +285,7 @@ def extract_regions(data : np.ndarray, min_size : int = 0) -> List[Dict]:
     for i in range(1, len(labels)):
         clss_id = labels[i]
         class_layer = data * (data == clss_id)
+        # print(np.unique(clss_id))
         numLabels, area, _, _ = cv2.connectedComponentsWithStats(class_layer, 8)
         for j in range(1, numLabels):
             region = data * (area == j)
