@@ -122,10 +122,8 @@ def segment_ignite__(
     engine.state.step_time = time.time() - t
 
     output = np.asarray(transform(output.squeeze()))
+    output = np.argmax(output, axis=2).astype(np.uint8)
     target = np.asarray(transform(target.squeeze()))
-
-    # output = output.contiguous().view((*output.shape[1:], output.shape[0]))
-    # target = target.contiguous().view((*target.shape[1:], target.shape[0]))
 
     return SegmentRecord(
         output=output,
