@@ -49,7 +49,7 @@ def main():
     device = torch.device("cuda" if args.device == 'cuda' and torch.cuda.is_available() else  "cpu")
     if args.device == 'cuda':
         torch.cuda.set_device(args.cuda_index)
-    # torch.cuda.set_device(0)
+    # torch.cuda.set_device(1)
     # device = torch.device("cpu")
     # Input Data
     in_path = args.input
@@ -117,11 +117,11 @@ def main():
     data_loader = DataLoader(dataset, batch_size=1, shuffle=True)
     # Initialize Metrics
     metrics = [
-        # mIoU(ignored_class=0, iou_thresh=0.1),
-        # ConfusionMatrix(
-        #     category=category,
-        #     cm_based_metrics=[measure_accuracy_cm__]
-        # ),
+        mIoU(ignored_class=0, iou_thresh=0.1),
+        ConfusionMatrix(
+            category=category,
+            cm_based_metrics=[measure_accuracy_cm__]
+        ),
         Function_Metric(rmse, max_p = 255),
         Function_Metric(psnr, max_p = 255),
         Function_Metric(fsim, T1 = 0.85, T2 = 160),
