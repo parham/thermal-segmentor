@@ -33,6 +33,7 @@
     - [x] Kanezaki2018
     - [x] Wonjik2020
     - [x] WNet
+    - [x] UNET with RESNET18 encoder
     - [ ] DFR
     - [ ] AutoEncoder with SSIM loss (https://github.com/plutoyuxie/AutoEncoder-SSIM-for-unsupervised-anomaly-detection-)
     - [ ] Unsupervised Semantic Segmentation by Contrasting Object Mask Proposals
@@ -49,6 +50,11 @@
 - Additional Layers
   - [x] CRF Layer
 
+## Datasets
+- [ ] Simulated Heated Plates
+- [ ] CRF, Glass, and other plates
+- [ ] Pipe inspection
+- [ ] Aerospace component inspection
 
 ## Experiment
 - [ ] Apply the segmentation methods on the collected dataset.
