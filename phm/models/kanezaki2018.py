@@ -11,7 +11,10 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-class Kanezaki2018Module(nn.Module):
+from phm.models.core import BaseModule, model_selector
+
+@model_selector('kanezaki2018')
+class Kanezaki2018Module(BaseModule):
     """ Implementation of the model presented in:
     @name           Unsupervised Image Segmentation by Backpropagation
     @journal        IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)
@@ -20,25 +23,22 @@ class Kanezaki2018Module(nn.Module):
     @citation       Asako Kanezaki. Unsupervised Image Segmentation by Backpropagation. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018.
     """
 
-    def __init__(self, num_dim, num_channels: int = 100, num_convs: int = 3):
-        super(Kanezaki2018Module, self).__init__()
-
-        self.num_convs = num_convs
-        self.num_channel = num_channels
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
         self.conv1 = nn.Conv2d(
-            num_dim, num_channels, kernel_size=3, stride=1, padding=1)
-        self.bn1 = nn.BatchNorm2d(num_channels)
+            self.num_dim, self.num_channels, kernel_size=3, stride=1, padding=1)
+        self.bn1 = nn.BatchNorm2d(self.num_channels)
         self.conv2 = nn.ModuleList()
         self.bn2 = nn.ModuleList()
-        for i in range(num_convs-1):
+        for i in range(self.num_convs-1):
             self.conv2.append(nn.Conv2d(
-                num_channels, num_channels,
+                self.num_channels, self.num_channels,
                 kernel_size=3, stride=1, padding=1))
-            self.bn2.append(nn.BatchNorm2d(num_channels))
-        self.conv3 = nn.Conv2d(num_channels, num_channels,
+            self.bn2.append(nn.BatchNorm2d(self.num_channels))
+        self.conv3 = nn.Conv2d(self.num_channels, self.num_channels,
                                kernel_size=1, stride=1, padding=0)
-        self.bn3 = nn.BatchNorm2d(num_channels)
+        self.bn3 = nn.BatchNorm2d(self.num_channels)
 
     def forward(self, x):
         x = self.conv1(x)

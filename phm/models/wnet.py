@@ -8,23 +8,14 @@
                  adopted from https://github.com/fkodom/wnet-unsupervised-image-segmentation
 """
 
-import functools
 import numpy as np
-from time import time
-from typing import Dict, Tuple
-from comet_ml import Experiment
-
-from ignite.engine import Engine
+from typing import Tuple
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
 
-from torchmetrics import Metric
-
-from phm.core import load_config
-from phm.loss import NCutLoss2D, OpeningLoss2D
+from phm.models.core import BaseModule, model_selector
 
 def make_same_size(src, ref):
     pt = np.array(ref.shape) - np.array(src.shape)
@@ -32,11 +23,11 @@ def make_same_size(src, ref):
     pad = list()
     for p in pt:
         if p > 0:
-            pad.insert(0,int(p // 2))
-            pad.insert(0,int((p // 2) + 1))
+            pad.insert(0, int(p // 2))
+            pad.insert(0, int((p // 2) + 1))
         else:
-            pad.insert(0,0)
-            pad.insert(0,0)
+            pad.insert(0, 0)
+            pad.insert(0, 0)
 
     return F.pad(src, pad, mode='constant')
 
@@ -152,7 +143,7 @@ class UNetEncoder(nn.Module):
         :param x: Input values
         :return: Network outputs
         """
-        
+
         c1 = self.conv1(x)
         c2 = self.conv2(c1)
         x = self.conv3(c2)
@@ -203,21 +194,24 @@ class UNetDecoder(nn.Module):
 
         return x
 
-class WNet(nn.Module):
+@model_selector('wnet')
+class WNet(BaseModule):
     """
     Implements a W-Net CNN model for learning unsupervised image segmentations.  
     First encodes image data into class probabilities using UNet, and then decodes 
     the labels into a reconstruction of the original image using a second UNet.
     """
 
-    def __init__(self, num_channels: int = 3, num_classes: int = 20):
+    def __init__(self, **kwargs) -> None:
         """
         :param num_channels: Number of channels in the raw image data
         :param num_classes: Number of classes in the output class probabilities
         """
-        super(WNet, self).__init__()
-        self.encoder = UNetEncoder(num_channels=num_channels, num_classes=num_classes)
-        self.decoder = UNetDecoder(num_channels=num_channels, num_classes=num_classes)
+        super().__init__(**kwargs)
+        self.encoder = UNetEncoder(
+            num_channels=self.num_channels, num_classes=self.num_classes)
+        self.decoder = UNetDecoder(
+            num_channels=self.num_channels, num_classes=self.num_classes)
 
     def forward_encode_(self, x: torch.Tensor) -> torch.Tensor:
         """

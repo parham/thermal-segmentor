@@ -2,10 +2,11 @@
 import time
 import functools
 import numpy as np
+import segmentation_models_pytorch as smp
+
 from typing import Dict, List
 from comet_ml import Experiment
 
-import segmentation_models_pytorch as smp
 
 import torch
 import torch.nn as nn

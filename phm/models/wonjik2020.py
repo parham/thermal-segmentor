@@ -9,6 +9,9 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+from phm.models.core import model_selector
+
+@model_selector('wonjik2020')
 class Wonjik2020Module (nn.Module):
     """ Implementation of the model presented in:
     @name           Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering   
@@ -18,14 +21,11 @@ class Wonjik2020Module (nn.Module):
     @citation       Wonjik Kim*, Asako Kanezaki*, and Masayuki Tanaka. Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering. IEEE Transactions on Image Processing, accepted, 2020.
     """
 
-    def __init__(self, num_dim, num_channels: int = 100, num_convs: int = 3):
-        super(Wonjik2020Module, self).__init__()
-
-        self.num_convs = num_convs
-        self.num_channel = num_channels
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
         # First convolutional layer
-        self.conv1 = nn.Conv2d(num_dim, self.num_channel,
+        self.conv1 = nn.Conv2d(self.num_dim, self.num_channel,
                                kernel_size=3, stride=1, padding=1)
         self.bn1 = nn.BatchNorm2d(self.num_channel)
         # Feature space including multiple convolutional layers
