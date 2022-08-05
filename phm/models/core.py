@@ -35,7 +35,6 @@ def load_model(model_name : str, config):
     
     return __model_handler[model_name](**config)
 
-
 class BaseModule(nn.Module):
     def __init__(self, **kwargs) -> None:
         # Initialize the configuration
