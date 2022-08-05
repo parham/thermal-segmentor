@@ -9,7 +9,8 @@ from phm.loss.core import loss_selector
 
 @loss_selector('focal_loss')
 class FocalLoss(phmLoss):
-    """ Focal Loss, as described in https://arxiv.org/abs/1708.02002.
+    """ 
+    Focal Loss, as described in https://arxiv.org/abs/1708.02002.
     It is essentially an enhancement to cross entropy loss and is
     useful for classification tasks when there is a large class imbalance.
     x is expected to contain raw, unnormalized scores for each class.
