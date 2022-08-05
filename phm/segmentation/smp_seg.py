@@ -20,6 +20,7 @@ from phm.metrics import phm_Metric
 from phm.segmentation.core import SegmentRecord, segmenter_method, simplify_train_step
 
 __smp_unet_resnet18__ = 'smp_unet_resnet18'
+__smp_unetpp_resnet18__ = 'smp_unetpp_resnet18'
 
 @segmenter_method([__smp_unet_resnet18__])
 def smp_seg(
@@ -41,7 +42,14 @@ def smp_seg(
             classes=len(category.keys())+1 
         )
         loss = smp.losses.FocalLoss(mode = 'multiclass')
-        # loss = FocalLoss()
+    elif handler == __smp_unetpp_resnet18__:
+        model = smp.UnetPlusPlus(
+            encoder_name='resnet18',
+            encoder_weights="imagenet",
+            in_channels=3,
+            classes=len(category.keys())+1 
+        )
+        loss = smp.losses.FocalLoss(mode = 'multiclass')
     else:
         raise ValueError(f'{handler} is not supported!')
     
