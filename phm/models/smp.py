@@ -1,4 +1,11 @@
 
+""" 
+    @organization: Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
+
 from phm.models.core import BaseModule, model_selector
 import segmentation_models_pytorch as smp
 

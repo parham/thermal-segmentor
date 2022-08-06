@@ -12,7 +12,6 @@ from typing import List, Union
 
 import torch
 
-
 __loss_handler = {}
 
 def loss_selector(name : Union[str, List[str]]):

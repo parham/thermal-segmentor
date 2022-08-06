@@ -1,5 +1,4 @@
 
-
 """ 
     @organization: Laval University
     @professor  Professor Xavier Maldague
@@ -40,7 +39,7 @@ class BaseModule(nn.Module):
         # Initialize the configuration
         for key, value in kwargs.items():
             setattr(self, key, value)
-    
+
 # @model_selector('test')
 # class Test(BaseModule):
 #     def __init__(self, **kwargs) -> None:
