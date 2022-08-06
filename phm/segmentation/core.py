@@ -9,12 +9,23 @@ from typing import Any, Callable, Dict, List, Union
 from dataclasses import dataclass
 from comet_ml import Experiment
 from ignite.engine import Engine
+from phm.loss.core import phmLoss
 
 from phm.metrics import phm_Metric
+from phm.models.core import BaseModule
+from phm.postprocessing import adapt_output, remove_small_regions
 
 label_colors_1ch8bits = np.random.randint(10,255,size=(100,1))
 
 __segmenter_handler = {}
+
+@dataclass
+class SegmentRecord:
+    loss : float
+    output : Any
+    target : Any = None
+    output_ready : Any = None
+    internal_metrics : Dict = None
 
 def segmenter_method(name : Union[str, List[str]]):
     def __embed_func(func):
@@ -25,99 +36,102 @@ def segmenter_method(name : Union[str, List[str]]):
 
     return __embed_func
 
-def list_segmenter_methods() -> List[str]:
+def list_segmenters() -> List[str]:
     global __segmenter_handler
     return list(__segmenter_handler.keys())
 
-def segment_loader(
-    handler : str,
-    data_name : str,
-    data_loader,
-    category : Dict,
+def load_segmenter(
+    seg_name : str,
+    engine : Engine,
+    device : str,
+    model : BaseModule,
+    loss_fn : phmLoss,
+    optimizer,
     experiment : Experiment,
-    config = None,
-    device : str = None,
-    metrics : List[phm_Metric] = None
-) -> Engine:
-    device_non = device if device is not None else \
-        torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        
-    if not handler in __segmenter_handler.keys():
-        msg = f'{handler} handler is not supported!'
+    **kwargs
+):
+    if not seg_name in list_segmenters():
+        msg = f'{seg_name} model is not supported!'
         logging.error(msg)
         raise ValueError(msg)
-
-    if 'model' in config:
-        experiment.log_parameters(config.model.toDict())
-    if 'segmentation' in config:
-        experiment.log_parameters(config.segmentation.toDict())
-    if 'general' in config:
-        experiment.log_parameters(config.general.toDict())
-
-    return __segmenter_handler[handler](
-        handler=handler,
-        data_name=data_name,
-        category=category,
+    
+    return __segmenter_handler[seg_name](
+        engine=engine,
+        device=device,
+        model=model,
+        loss_fn=loss_fn,
+        optimizer=optimizer,
         experiment=experiment,
-        config=config,
-        device=device_non,
-        metrics=metrics
+        **kwargs
     )
 
-def simplify_train_step(
-    experiment : Experiment,
-    call_segment_func : Callable,
-    metrics : List[phm_Metric] = None
-):
-    def __train_step(engine, batch):
+class BaseSegmenter:
+    def __init__(
+        self,
+        engine : Engine,
+        device : str,
+        model : BaseModule,
+        loss_fn : phmLoss,
+        optimizer,
+        experiment : Experiment,
+        metrics : List[phm_Metric] = None,
+        **kwargs
+    ):
+        self.engine = engine
+        self.device = torch.device(device)
+        self.model = model
+        self.loss_fn = loss_fn
+        self.optimizer = optimizer
+        self.experiment = experiment
+        self.metrics = metrics
+        # Initialize the configuration
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def segment(self, batch):
+        pass
+
+    def __call__(self, batch) -> Any:
         transform = T.ToPILImage()
         # Log the image and target
-        if engine.state.log_image:
+        if self.engine.state.log_image:
             target = np.asarray(transform(torch.squeeze(batch[1])))
             img = np.asarray(transform(torch.squeeze(batch[0])))
 
-            experiment.log_image(img, 
+            self.experiment.log_image(img, 
                 overwrite=True,
                 name=f'original', 
-                step=engine.state.iteration)
+                step=self.engine.state.iteration)
             
             if target is not None:
-                experiment.log_image(target, 
+                self.experiment.log_image(target, 
                     overwrite=True,
                     name=f'target', 
-                    step=engine.state.iteration)
+                    step=self.engine.state.iteration)
 
         # Recall the step
-        res = call_segment_func(engine, batch)
+        res = self.segment(batch)
 
         out = np.asarray(transform(res.output)) if isinstance(res.output, torch.Tensor) else res.output
         out_ready = np.asarray(transform(res.output_ready)) if isinstance(res.output_ready, torch.Tensor) else res.output_ready
 
-        if engine.state.log_metrics:
+        if self.engine.state.log_metrics:
             if res.internal_metrics is not None and res.internal_metrics:
-                experiment.log_metrics(res.internal_metrics, prefix='loop_',
-                    step=engine.state.iteration, epoch=engine.state.epoch)
-            if metrics is not None and metrics:
+                self.experiment.log_metrics(res.internal_metrics, prefix='loop_',
+                    step=self.engine.state.iteration, 
+                    epoch=self.engine.state.epoch)
+            if self.metrics is not None and self.metrics:
                 targ = np.asarray(transform(res.target)) if isinstance(res.target, torch.Tensor) else res.target
-                for m in metrics:
+                for m in self.metrics:
                     m.update((out, targ))
-                    m.compute(experiment, prefix='step_',
-                        step=engine.state.iteration, epoch=engine.state.epoch)
+                    m.compute(self.experiment, prefix='step_',
+                        step=self.engine.state.iteration, epoch=self.engine.state.epoch)
 
-        if engine.state.log_image:
-            experiment.log_image(out, 
+        if self.engine.state.log_image:
+            self.experiment.log_image(out, 
                 name=f'adapted_result', 
-                step=engine.state.iteration)
-            experiment.log_image(out_ready, 
+                step=self.engine.state.iteration)
+            self.experiment.log_image(out_ready, 
                 name=f'result', 
-                step=engine.state.iteration)
-    
-    return __train_step
+                step=self.engine.state.iteration)
 
-@dataclass
-class SegmentRecord:
-    loss : float
-    output : Any
-    target : Any = None
-    output_ready : Any = None
-    internal_metrics : Dict = None

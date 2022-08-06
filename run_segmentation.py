@@ -12,7 +12,7 @@ from phm.core import load_config
 from phm.dataset import FileRepeaterDataset, RepetitiveDatasetWrapper
 from phm.transform import GrayToRGB, ImageResizeByCoefficient, NumpyImageToTensor
 from phm.metrics import ConfusionMatrix, Function_Metric, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim
-from phm.segmentation import list_segmenter_methods, segment_loader
+from phm.segmentation import list_segmenters, segment_loader
 
 from ignite.utils import setup_logger
 from ignite.engine.events import Events
@@ -34,7 +34,7 @@ parser.add_argument('--input', '-i', type=str, required=True, help="Dataset dire
 parser.add_argument('--dtype', '-d', required=True, choices=['file', 'dataset'], help="Type of input data")
 parser.add_argument('--dconfig', type=str, help="File configuration file.")
 parser.add_argument('--config', '-c', type=str, required=True, help="Configuration file.")
-parser.add_argument('--handler', required=True, choices=list_segmenter_methods(), help="Handler determination.")
+parser.add_argument('--handler', required=True, choices=list_segmenters(), help="Handler determination.")
 parser.add_argument('--nologging', dest='dlogging', default=False, action='store_true')
 parser.add_argument('--checkpoint', '-l', type=str, required=False, help='Load the specificed checkpoint')
 parser.add_argument('--device', type=str, required=False, default='cuda', choices=['cuda','cpu'], help='Select the device')

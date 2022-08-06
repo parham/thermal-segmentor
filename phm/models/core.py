@@ -5,7 +5,7 @@
     @author     Parham Nooralishahi
     @email      parham.nooralishahi@gmail.com
 """
-
+import torch
 import logging
 from typing import List, Union
 import torch.nn as nn
@@ -36,9 +36,14 @@ def load_model(model_name : str, config):
 
 class BaseModule(nn.Module):
     def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         # Initialize the configuration
         for key, value in kwargs.items():
             setattr(self, key, value)
+
+        self.device = torch.device(
+            kwargs['device'] if 'device' in kwargs else 'cpu'
+        )
 
 # @model_selector('test')
 # class Test(BaseModule):
