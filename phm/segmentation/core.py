@@ -8,6 +8,7 @@ import numpy as np
 from typing import Any, Callable, Dict, List, NamedTuple, Union
 from comet_ml import Experiment
 from ignite.engine import Engine
+from phm.core import phmCore
 
 from phm.loss import BaseLoss
 from phm.metrics import phmMetric
@@ -62,26 +63,27 @@ def load_segmenter(
         config=config
     )
 
-class BaseSegmenter:
+class BaseSegmenter(phmCore):
     def __init__(
         self,
+        device : str,
+        config : Dict[str,Any],
         model : BaseModule,
         loss_fn : BaseLoss,
         optimizer,
-        config : Dict,
         experiment : Experiment,
         metrics : List[phmMetric] = None,
-        device : str = 'gpu'
     ):
-        self.device = torch.device(device)
+        super().__init__(
+            device=device,
+            config=config
+        )
         self.model = model
         self.loss_fn = loss_fn
         self.optimizer = optimizer
         self.experiment = experiment
         self.metrics = metrics
-        # Initialize the configuration
-        for key, value in config.items():
-            setattr(self, key, value)
+        # Initialize Engine
         self.engine = Engine(self.__call__)
         self.__init_state(config)
 
@@ -89,13 +91,13 @@ class BaseSegmenter:
         # Add configurations to the engine state
         for sec in config.keys():
             for key, value in config[sec].items():
-                engine.state_dict_user_keys.append(key)
-                setattr(engine.state, key, value)
+                self.engine.state_dict_user_keys.append(key)
+                setattr(self.engine.state, key, value)
         # Status
-        engine.state_dict_user_keys.append('class_count')
-        engine.state.class_count = 0
-        engine.state_dict_user_keys.append('last_loss')
-        engine.state.last_loss = 0
+        self.engine.state_dict_user_keys.append('class_count')
+        self.engine.state.class_count = 0
+        self.engine.state_dict_user_keys.append('last_loss')
+        self.engine.state.last_loss = 0
 
     def segment(self, batch):
         pass

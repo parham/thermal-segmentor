@@ -5,11 +5,10 @@
     @author     Parham Nooralishahi
     @email      parham.nooralishahi@gmail.com
 """
-import torch
 import logging
 from typing import Any, Dict, List, Union
-import torch.nn as nn
-import torch.nn.functional as F
+
+from phm.core import phmCore
 
 __model_handler = {}
 
@@ -34,7 +33,7 @@ def load_model(model_name : str, device : str, config):
     
     return __model_handler[model_name](device, **config)
 
-class BaseModule(nn.Module):
+class BaseModule(phmCore):
     def __init__(self, device : str, config : Dict[str,Any]) -> None:
         super().__init__(
             device=device,
