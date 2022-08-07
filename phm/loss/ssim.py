@@ -1,11 +1,12 @@
 
 
+from typing import Any, Dict
 import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
 
 from math import exp
-from phm.loss import phmLoss
+from phm.loss import BaseLoss
 
 from phm.loss.core import loss_selector
 
@@ -38,9 +39,12 @@ def _ssim(img1, img2, window, window_size, channel, size_average = True):
     return ssim_map.mean() if size_average else ssim_map.mean(1).mean(1).mean(1)
 
 @loss_selector('ssim_loss')
-class SSIM(phmLoss):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+class SSIM(BaseLoss):
+    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+        super().__init__(
+            device=device, 
+            config=config
+        )
 
         # self.window_size = window_size
         # self.size_average = size_average

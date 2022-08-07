@@ -10,16 +10,27 @@
 import os
 import random
 import string
+from typing import Any, Dict
 import yaml
 import json
 import logging
 import logging.config
 import functools
 
+import torch
+
 from time import time
 from dotmap import DotMap
 
 generate_random_str = lambda x: ''.join(random.choice(string.ascii_lowercase) for i in range(x))
+
+class phmCore(torch.nn.Module):
+    def __init__(self, device : str, config : Dict[str, Any]) -> None:
+        super().__init__()
+        # Initialize the configuration
+        for key, value in config.items():
+            setattr(self, key, value)
+        self.device = torch.device(device)
 
 def initialize_log():
     """Initialize the log configuration"""

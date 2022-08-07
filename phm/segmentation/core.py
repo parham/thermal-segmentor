@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, List, NamedTuple, Union
 from comet_ml import Experiment
 from ignite.engine import Engine
 
-from phm.loss import phmLoss
+from phm.loss import BaseLoss
 from phm.metrics import phmMetric
 from phm.models import BaseModule
 from phm.postprocessing import adapt_output, remove_small_regions
@@ -43,7 +43,7 @@ def load_segmenter(
     seg_name : str,
     device : str,
     model : BaseModule,
-    loss_fn : phmLoss,
+    loss_fn : BaseLoss,
     optimizer,
     experiment : Experiment,
     config
@@ -66,7 +66,7 @@ class BaseSegmenter:
     def __init__(
         self,
         model : BaseModule,
-        loss_fn : phmLoss,
+        loss_fn : BaseLoss,
         optimizer,
         config : Dict,
         experiment : Experiment,
@@ -83,6 +83,19 @@ class BaseSegmenter:
         for key, value in config.items():
             setattr(self, key, value)
         self.engine = Engine(self.__call__)
+        self.__init_state(config)
+
+    def __init_state(self, config):
+        # Add configurations to the engine state
+        for sec in config.keys():
+            for key, value in config[sec].items():
+                engine.state_dict_user_keys.append(key)
+                setattr(engine.state, key, value)
+        # Status
+        engine.state_dict_user_keys.append('class_count')
+        engine.state.class_count = 0
+        engine.state_dict_user_keys.append('last_loss')
+        engine.state.last_loss = 0
 
     def segment(self, batch):
         pass

@@ -1,25 +1,22 @@
 
 
 import torch
-from phm.loss import SSIM, phmLoss
+from phm.loss import SSIM, BaseLoss
 
 
-class UnsupervisedLoss_ThreeFactors(phmLoss):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
-    # def __init__(self,
-    #     num_channel: int = 100,
-    #     similarity_loss: float = 1.0,
-    #     continuity_loss: float = 0.5,
-    #     overall_similarity_loss : float = 0.4,
-    #     window_size = 11, 
-    #     size_average = True
-    # ) -> None:
-    #     super().__init__(
-    #         num_channel,
-    #         similarity_loss,
-    #         continuity_loss
-    #     )
+class UnsupervisedLoss_ThreeFactors(BaseLoss):
+    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+        super().__init__(
+            device=device, 
+            config=config
+        )
+
+        #     num_channel: int = 100,
+        #     similarity_loss: float = 1.0,
+        #     continuity_loss: float = 0.5,
+        #     overall_similarity_loss : float = 0.4,
+        #     window_size = 11, 
+        #     size_average = True
 
         self.loss_fn = torch.nn.CrossEntropyLoss()
         self.loss_hpy = torch.nn.L1Loss(reduction='mean')

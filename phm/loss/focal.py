@@ -1,14 +1,14 @@
 
-from typing import Optional, Sequence
+from typing import Any, Dict, Optional, Sequence
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from phm.loss import phmLoss
+from phm.loss import BaseLoss
 from phm.loss.core import loss_selector
 
 @loss_selector('focal_loss')
-class FocalLoss(phmLoss):
+class FocalLoss(BaseLoss):
     """ 
     Focal Loss, as described in https://arxiv.org/abs/1708.02002.
     It is essentially an enhancement to cross entropy loss and is
@@ -22,14 +22,16 @@ class FocalLoss(phmLoss):
     adopted from https://github.com/AdeelH/pytorch-multi-class-focal-loss/
     """
     
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+        super().__init__(
+            device=device, 
+            config=config
+        )
 
-    # def __init__(self,
-    #              alpha: Optional[torch.Tensor] = None,
-    #              gamma: float = 0.,
-    #              reduction: str = 'mean',
-    #              ignore_index: int = -100):
+        #              alpha: Optional[torch.Tensor] = None,
+        #              gamma: float = 0.,
+        #              reduction: str = 'mean',
+        #              ignore_index: int = -100):
 
         """Constructor.
         Args:
@@ -44,8 +46,6 @@ class FocalLoss(phmLoss):
         if self.reduction not in ('mean', 'sum', 'none'):
             raise ValueError(
                 'Reduction must be one of: "mean", "sum", "none".')
-
-        super().__init__()
 
         self.nll_loss = nn.NLLLoss(
             weight=self.alpha, reduction='none', 
@@ -98,12 +98,14 @@ class FocalLoss(phmLoss):
 
         return loss
 
-def focal_loss(alpha: Optional[Sequence] = None,
-               gamma: float = 0.,
-               reduction: str = 'mean',
-               ignore_index: int = -100,
-               device='cpu',
-               dtype=torch.float32) -> FocalLoss:
+def focal_loss(
+    alpha: Optional[Sequence] = None,
+    gamma: float = 0.,
+    reduction: str = 'mean',
+    ignore_index: int = -100,
+    device='cpu',
+    dtype=torch.float32
+) -> FocalLoss:
     """Factory function for FocalLoss.
     Args:
         alpha (Sequence, optional): Weights for each class. Will be converted
@@ -132,4 +134,5 @@ def focal_loss(alpha: Optional[Sequence] = None,
         gamma=gamma,
         reduction=reduction,
         ignore_index=ignore_index)
+        
     return fl

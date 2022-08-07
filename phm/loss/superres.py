@@ -1,15 +1,15 @@
 
 
+from typing import Any, Dict
 import torch
 
 import numpy as np
-from math import exp
 from skimage import segmentation
 
-from phm.loss import phmLoss
+from phm.loss import BaseLoss
 
 
-class UnsupervisedLoss_SuperResolusion(phmLoss):
+class UnsupervisedLoss_SuperResolusion(BaseLoss):
     """Loss function implemented based on the loss function defined in,
     @name           Unsupervised Image Segmentation by Backpropagation
     @journal        IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)
@@ -18,12 +18,14 @@ class UnsupervisedLoss_SuperResolusion(phmLoss):
     @citation       Asako Kanezaki. Unsupervised Image Segmentation by Backpropagation. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018.
     """
 
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
-    # def __init__(self,
-    #              compactness: int = 100,
-    #              superpixel_regions: int = 30) -> None:
-    #     super().__init__()
+    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+        super().__init__(
+            device=device, 
+            config=config
+        )
+
+        #              compactness: int = 100,
+        #              superpixel_regions: int = 30) -> None:
 
         self.l_inds = None
         self.loss_fn = torch.nn.CrossEntropyLoss()

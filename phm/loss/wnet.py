@@ -3,21 +3,23 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from typing import Any, Dict
 from scipy.ndimage import grey_opening
 
-from phm.loss import phmLoss
+from phm.loss import BaseLoss
 from phm.filter import gaussian_kernel
 
 
-class WNetLoss(phmLoss):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
-    # def __init__(self, 
-    #     alpha = 1e-3, 
-    #     beta = 1, 
-    #     gamma = 1e-1
-    # ) -> None:
-    #     super().__init__()
+class WNetLoss(BaseLoss):
+    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+        super().__init__(
+            device=device, 
+            config=config
+        )
+
+        #     alpha = 1e-3, 
+        #     beta = 1, 
+        #     gamma = 1e-1
 
     def forward(self, output, target, input, mask): # labels > target
         input, label, output = input.contiguous(), target.contiguous(), output.contiguous()
@@ -28,24 +30,27 @@ class WNetLoss(phmLoss):
         loss = ncut_loss + mse_loss + smooth_loss
         return loss
 
-class NCutLoss2D(phmLoss):
+class NCutLoss2D(BaseLoss):
     """
         Implementation of the continuous N-Cut loss, as in:
         'W-Net: A Deep Model for Fully Unsupervised Image Segmentation', by Xia, Kulis (2017)
         adopted from https://github.com/fkodom/wnet-unsupervised-image-segmentation
     """
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
-    # def __init__(self, radius: int = 4, sigma_1: float = 5, sigma_2: float = 1):
+    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+        super().__init__(
+            device=device, 
+            config=config
+        )
+
+        #   radius: int = 4, 
+        #   sigma_1: float = 5, # Spatial standard deviation
+        #   sigma_2: float = 1  # Pixel value standard deviation
+
         """
         :param radius: Radius of the spatial interaction term
         :param sigma_1: Standard deviation of the spatial Gaussian interaction
         :param sigma_2: Standard deviation of the pixel value Gaussian interaction
         """
-
-        # self.radius = radius
-        # self.sigma_1 = sigma_1  # Spatial standard deviation
-        # self.sigma_2 = sigma_2  # Pixel value standard deviation
 
     def forward(self, inputs: torch.Tensor, labels: torch.Tensor, **kwargs) -> torch.Tensor:
         """
@@ -83,7 +88,7 @@ class NCutLoss2D(phmLoss):
 
         return num_classes - loss
 
-class OpeningLoss2D(phmLoss):
+class OpeningLoss2D(BaseLoss):
     """
         Computes the Mean Squared Error between computed class probabilities their grey opening.  Grey opening is a
         morphology operation, which performs an erosion followed by dilation.  Conceptually, this encourages the network
@@ -93,9 +98,12 @@ class OpeningLoss2D(phmLoss):
         adopted from https://github.com/fkodom/wnet-unsupervised-image-segmentation
     """
 
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
-    # def __init__(self, radius: int = 2):
+    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+        super().__init__(
+            device=device, 
+            config=config
+        )
+        #       radius: int = 2
 
     def forward(self, labels: torch.Tensor, **kwargs) -> torch.Tensor:
         """
