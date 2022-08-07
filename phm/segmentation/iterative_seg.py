@@ -176,8 +176,6 @@ def segment_ignite__(
     postprocessing_func : Callable = __helper_postprocessing,
     prepare_result_func : Callable = __helper_prepare_result
 ):
-    transform = ToPILImage()
-
     result = None
     img = batch[0]
     target = batch[1]

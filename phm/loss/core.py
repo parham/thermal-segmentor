@@ -13,8 +13,9 @@ from typing import Any, Dict, List, Union
 from phm.core import phmCore
 
 class BaseLoss(phmCore):
-    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+    def __init__(self, name : str, device : str, config : Dict[str,Any]) -> None:
         super().__init__(
+            name=name,
             device=device,
             config=config
         )
@@ -48,7 +49,7 @@ def load_loss(loss_name : str, device : str, config : Dict[str,Any]):
         logging.error(msg)
         raise ValueError(msg)
     
-    return __loss_handler[loss_name](device, config)
+    return __loss_handler[loss_name](loss_name, device, config)
 
 @loss_selector('neutral')
 class NeutralLoss(BaseLoss):

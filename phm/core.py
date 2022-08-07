@@ -25,12 +25,13 @@ from dotmap import DotMap
 generate_random_str = lambda x: ''.join(random.choice(string.ascii_lowercase) for i in range(x))
 
 class phmCore(torch.nn.Module):
-    def __init__(self, device : str, config : Dict[str, Any]) -> None:
+    def __init__(self, name : str, device : str, config : Dict[str, Any]) -> None:
         super().__init__()
         # Initialize the configuration
         for key, value in config.items():
             setattr(self, key, value)
         self.device = torch.device(device)
+        self.name = name
 
 def initialize_log():
     """Initialize the log configuration"""

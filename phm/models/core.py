@@ -31,22 +31,15 @@ def load_model(model_name : str, device : str, config):
         logging.error(msg)
         raise ValueError(msg)
     
-    return __model_handler[model_name](device, **config)
+    return __model_handler[model_name](model_name, device, config)
 
 class BaseModule(phmCore):
-    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+    def __init__(self, name : str, device : str, config : Dict[str,Any]) -> None:
         super().__init__(
+            name=name,
             device=device,
             config=config
         )
-
-@model_selector('neutral')
-class NeutralModel(BaseModule):
-    def __init__(self, 
-        device: str, 
-        config: Dict[str, Any]
-    ) -> None:
-        super().__init__(device, config)
 
 # @model_selector('test')
 # class Test(BaseModule):

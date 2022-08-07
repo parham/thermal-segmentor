@@ -43,11 +43,10 @@ def list_segmenters() -> List[str]:
 def load_segmenter(
     seg_name : str,
     device : str,
-    model : BaseModule,
-    loss_fn : BaseLoss,
-    optimizer,
+    config : Dict[str, Any],
     experiment : Experiment,
-    config
+    metrics : List[BaseMetric],
+    **kwargs
 ):
     if not seg_name in list_segmenters():
         msg = f'{seg_name} model is not supported!'
@@ -55,34 +54,36 @@ def load_segmenter(
         raise ValueError(msg)
     
     return __segmenter_handler[seg_name](
+        name=seg_name,
         device=device,
-        model=model,
-        loss_fn=loss_fn,
-        optimizer=optimizer,
+        config=config,
         experiment=experiment,
-        config=config
+        metrics=metrics,
+        **kwargs
     )
 
 class BaseSegmenter(phmCore):
     def __init__(
         self,
+        name : str,
         device : str,
         config : Dict[str,Any],
-        model : BaseModule,
-        loss_fn : BaseLoss,
-        optimizer,
         experiment : Experiment,
-        metrics : List[BaseMetric] = None,
+        metrics : List[BaseMetric],
+        **kwargs
     ):
         super().__init__(
+            name=name,
             device=device,
             config=config
         )
-        self.model = model
-        self.loss_fn = loss_fn
-        self.optimizer = optimizer
+
         self.experiment = experiment
         self.metrics = metrics
+
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
         # Initialize Engine
         self.engine = Engine(self.__call__)
         self.__init_state(config)
