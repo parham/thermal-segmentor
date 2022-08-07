@@ -25,8 +25,8 @@ from ignite.metrics import Metric
 
 def segment_metric(name):
     def __embed_func(clss):
-        if not issubclass(clss,phm_Metric):
-            raise ValueError(f'{name} must be a subclass of phm_Metric')
+        if not issubclass(clss,phmMetric):
+            raise ValueError(f'{name} must be a subclass of phmMetric')
         clss._name = name
         
         def get_name(self):
@@ -38,7 +38,7 @@ def segment_metric(name):
     
     return __embed_func
 
-class phm_Metric(object):
+class phmMetric(object):
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
@@ -59,7 +59,7 @@ class phm_Metric(object):
         """
         pass
 
-class Function_Metric(phm_Metric):
+class Function_Metric(phmMetric):
     def __init__(self, 
         func : Callable, 
         **kwargs):
@@ -119,7 +119,7 @@ class CMRecord:
     cm_metrics : Dict[str, float]
 
 @segment_metric('confusion_matrix')
-class ConfusionMatrix(phm_Metric):
+class ConfusionMatrix(phmMetric):
     def __init__(self, 
         category : Dict[str, int],
         cm_based_metrics : List[Callable] = None,
@@ -210,7 +210,7 @@ class ConfusionMatrix(phm_Metric):
         return cm
 
 @segment_metric('mIoU')
-class mIoU(phm_Metric):
+class mIoU(phmMetric):
     def __init__(self, ignored_class, 
         iou_thresh : float = 0.1
     ) -> None:

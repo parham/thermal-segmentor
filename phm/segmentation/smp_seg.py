@@ -17,7 +17,7 @@ from ignite.engine import Engine
 from ignite.engine.events import Events
 
 from phm.loss import FocalLoss
-from phm.metrics import phm_Metric
+from phm.metrics import phmMetric
 from phm.segmentation.core import SegmentRecord, segmenter_method, simplify_train_step
 
 __smp_unet_resnet18__ = 'smp_unet_resnet18'
@@ -31,7 +31,7 @@ def smp_seg(
     experiment : Experiment,
     config = None,
     device : str = None,
-    metrics : List[phm_Metric] = None
+    metrics : List[phmMetric] = None
 ) -> Engine:
     model = None
     loss = None

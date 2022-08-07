@@ -5,14 +5,13 @@ import numpy as np
 from typing import Dict, List
 from comet_ml import Experiment
 import torch
-from phm.metrics import phm_Metric
-from phm.segmentation.core import SegmentRecord, segmenter_method
 from ignite.engine import Engine
 
 from sklearn.cluster import DBSCAN, KMeans, MeanShift, estimate_bandwidth
 from skimage import segmentation, color
 from skimage.future import graph
 
+from phm.metrics import phmMetric
 from phm.segmentation.core import SegmentRecord, segmenter_method, label_colors_1ch8bits, simplify_train_step
 from phm.postprocessing import remove_small_regions, adapt_output
 
@@ -24,7 +23,7 @@ def classical_segment(
     experiment : Experiment,
     config = None,
     device : str = None,
-    metrics : List[phm_Metric] = None
+    metrics : List[phmMetric] = None
 ) -> Engine:
     
     def __train_step(engine, batch):

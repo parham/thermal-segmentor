@@ -26,24 +26,22 @@ def list_models() -> List[str]:
     global __model_handler
     return list(__model_handler.keys())
 
-def load_model(model_name : str, config):
+def load_model(model_name : str, device : str, config):
     if not model_name in list_models():
         msg = f'{model_name} model is not supported!'
         logging.error(msg)
         raise ValueError(msg)
     
-    return __model_handler[model_name](**config)
+    return __model_handler[model_name](device, **config)
 
 class BaseModule(nn.Module):
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, device : str='gpu', **kwargs) -> None:
         super().__init__(**kwargs)
         # Initialize the configuration
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-        self.device = torch.device(
-            kwargs['device'] if 'device' in kwargs else 'cpu'
-        )
+        self.device = torch.device(device)
 
 # @model_selector('test')
 # class Test(BaseModule):

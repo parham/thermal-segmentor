@@ -5,26 +5,25 @@ import torchvision.transforms as T
 import logging
 import numpy as np
 
-from typing import Any, Callable, Dict, List, Union
-from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, NamedTuple, Union
 from comet_ml import Experiment
 from ignite.engine import Engine
-from phm.loss.core import phmLoss
 
-from phm.metrics import phm_Metric
-from phm.models.core import BaseModule
+from phm.loss import phmLoss
+from phm.metrics import phmMetric
+from phm.models import BaseModule
 from phm.postprocessing import adapt_output, remove_small_regions
 
 label_colors_1ch8bits = np.random.randint(10,255,size=(100,1))
 
 __segmenter_handler = {}
 
-@dataclass
-class SegmentRecord:
+class SegmentRecord(NamedTuple):
+    orig : Any
     loss : float
-    output : Any
+    orig_output : Any
+    processed_output : Any
     target : Any = None
-    output_ready : Any = None
     internal_metrics : Dict = None
 
 def segmenter_method(name : Union[str, List[str]]):
@@ -42,13 +41,12 @@ def list_segmenters() -> List[str]:
 
 def load_segmenter(
     seg_name : str,
-    engine : Engine,
     device : str,
     model : BaseModule,
     loss_fn : phmLoss,
     optimizer,
     experiment : Experiment,
-    **kwargs
+    config
 ):
     if not seg_name in list_segmenters():
         msg = f'{seg_name} model is not supported!'
@@ -56,28 +54,25 @@ def load_segmenter(
         raise ValueError(msg)
     
     return __segmenter_handler[seg_name](
-        engine=engine,
         device=device,
         model=model,
         loss_fn=loss_fn,
         optimizer=optimizer,
         experiment=experiment,
-        **kwargs
+        config=config
     )
 
 class BaseSegmenter:
     def __init__(
         self,
-        engine : Engine,
-        device : str,
         model : BaseModule,
         loss_fn : phmLoss,
         optimizer,
+        config : Dict,
         experiment : Experiment,
-        metrics : List[phm_Metric] = None,
-        **kwargs
+        metrics : List[phmMetric] = None,
+        device : str = 'gpu'
     ):
-        self.engine = engine
         self.device = torch.device(device)
         self.model = model
         self.loss_fn = loss_fn
@@ -85,8 +80,9 @@ class BaseSegmenter:
         self.experiment = experiment
         self.metrics = metrics
         # Initialize the configuration
-        for key, value in kwargs.items():
+        for key, value in config.items():
             setattr(self, key, value)
+        self.engine = Engine(self.__call__)
 
     def segment(self, batch):
         pass
@@ -112,8 +108,8 @@ class BaseSegmenter:
         # Recall the step
         res = self.segment(batch)
 
-        out = np.asarray(transform(res.output)) if isinstance(res.output, torch.Tensor) else res.output
-        out_ready = np.asarray(transform(res.output_ready)) if isinstance(res.output_ready, torch.Tensor) else res.output_ready
+        orig_output = np.asarray(transform(res.orig_output)) if isinstance(res.orig_output, torch.Tensor) else res.orig_output
+        processed_output = np.asarray(transform(res.processed_output)) if isinstance(res.processed_output, torch.Tensor) else res.processed_output
 
         if self.engine.state.log_metrics:
             if res.internal_metrics is not None and res.internal_metrics:
@@ -123,15 +119,15 @@ class BaseSegmenter:
             if self.metrics is not None and self.metrics:
                 targ = np.asarray(transform(res.target)) if isinstance(res.target, torch.Tensor) else res.target
                 for m in self.metrics:
-                    m.update((out, targ))
+                    m.update((processed_output, targ))
                     m.compute(self.experiment, prefix='step_',
                         step=self.engine.state.iteration, epoch=self.engine.state.epoch)
 
         if self.engine.state.log_image:
-            self.experiment.log_image(out, 
-                name=f'adapted_result', 
+            self.experiment.log_image(processed_output, 
+                name=f'processed_result', 
                 step=self.engine.state.iteration)
-            self.experiment.log_image(out_ready, 
-                name=f'result', 
+            self.experiment.log_image(orig_output, 
+                name=f'orig_result', 
                 step=self.engine.state.iteration)
 

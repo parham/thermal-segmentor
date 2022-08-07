@@ -13,15 +13,13 @@ from typing import List, Union
 import torch
 
 class phmLoss(torch.nn.Module):
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, device : str = 'gpu', **kwargs) -> None:
         super().__init__(**kwargs)
         # Initialize the configuration
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-        self.device = torch.device(
-            kwargs['device'] if 'device' in kwargs else 'cpu'
-        )
+        self.device = torch.device(device)
         
     def prepare_loss(self, **kwargs):
         return
@@ -46,10 +44,10 @@ def list_losses() -> List[str]:
     global __loss_handler
     return list(__loss_handler.keys())
 
-def load_loss(loss_name : str, config):
+def load_loss(loss_name : str, device : str, config):
     if not loss_name in list_losses():
         msg = f'{loss_name} model is not supported!'
         logging.error(msg)
         raise ValueError(msg)
     
-    return __loss_handler[loss_name](**config)
+    return __loss_handler[loss_name](device, **config)
