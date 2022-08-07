@@ -8,6 +8,7 @@
     @email      parham.nooralishahi@gmail.com
 """
 
+from typing import Any, Dict
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -23,8 +24,11 @@ class Kanezaki2018Module(BaseModule):
     @citation       Asako Kanezaki. Unsupervised Image Segmentation by Backpropagation. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018.
     """
 
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+        super().__init__(
+            device=device,
+            config=config
+        )
 
         self.conv1 = nn.Conv2d(
             self.num_dim, self.num_channels, kernel_size=3, stride=1, padding=1)

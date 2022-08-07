@@ -7,7 +7,7 @@
 """
 import torch
 import logging
-from typing import List, Union
+from typing import Any, Dict, List, Union
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -35,13 +35,11 @@ def load_model(model_name : str, device : str, config):
     return __model_handler[model_name](device, **config)
 
 class BaseModule(nn.Module):
-    def __init__(self, device : str='gpu', **kwargs) -> None:
-        super().__init__(**kwargs)
-        # Initialize the configuration
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-        self.device = torch.device(device)
+    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+        super().__init__(
+            device=device,
+            config=config
+        )
 
 # @model_selector('test')
 # class Test(BaseModule):

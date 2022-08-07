@@ -6,6 +6,7 @@
     @email      parham.nooralishahi@gmail.com
 """
 
+from typing import Any, Dict
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -21,8 +22,11 @@ class Wonjik2020Module (nn.Module):
     @citation       Wonjik Kim*, Asako Kanezaki*, and Masayuki Tanaka. Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering. IEEE Transactions on Image Processing, accepted, 2020.
     """
 
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+        super().__init__(
+            device=device,
+            config=config
+        )
 
         # First convolutional layer
         self.conv1 = nn.Conv2d(self.num_dim, self.num_channel,

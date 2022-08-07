@@ -9,7 +9,7 @@
 """
 
 import numpy as np
-from typing import Tuple
+from typing import Any, Dict, Tuple
 
 import torch
 import torch.nn as nn
@@ -202,16 +202,21 @@ class WNet(BaseModule):
     the labels into a reconstruction of the original image using a second UNet.
     """
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, device : str, config : Dict[str,Any]) -> None:
         """
         :param num_channels: Number of channels in the raw image data
         :param num_classes: Number of classes in the output class probabilities
         """
-        super().__init__(**kwargs)
+        super().__init__(
+            device=device,
+            config=config
+        )
         self.encoder = UNetEncoder(
-            num_channels=self.num_channels, num_classes=self.num_classes)
+            num_channels=self.num_channels, 
+            num_classes=self.num_classes)
         self.decoder = UNetDecoder(
-            num_channels=self.num_channels, num_classes=self.num_classes)
+            num_channels=self.num_channels, 
+            num_classes=self.num_classes)
 
     def forward_encode_(self, x: torch.Tensor) -> torch.Tensor:
         """
