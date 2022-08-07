@@ -2,7 +2,7 @@
 import time
 import numpy as np
 
-from typing import Dict, List
+from typing import Any, Dict, List
 from comet_ml import Experiment
 import torch
 from ignite.engine import Engine
@@ -10,10 +10,52 @@ from ignite.engine import Engine
 from sklearn.cluster import DBSCAN, KMeans, MeanShift, estimate_bandwidth
 from skimage import segmentation, color
 from skimage.future import graph
+from phm.loss.core import BaseLoss
 
-from phm.metrics import phmMetric
-from phm.segmentation.core import SegmentRecord, segmenter_method, label_colors_1ch8bits, simplify_train_step
+from phm.metrics import BaseMetric
+from phm.models.core import BaseModule
+from phm.segmentation.core import BaseSegmenter, SegmentRecord, segmenter_method, label_colors_1ch8bits, simplify_train_step
 from phm.postprocessing import remove_small_regions, adapt_output
+
+@segmenter_method(['dbscan', 'kmeans', 'meanshift', 'graphcut'])
+class ClassicSegmenter(BaseSegmenter):
+    def __init__(self, 
+        device: str, 
+        config: Dict[str, Any], 
+        model: BaseModule, 
+        loss_fn: BaseLoss, 
+        optimizer, 
+        experiment: Experiment, 
+        metrics: List[BaseMetric] = None
+    ):
+        super().__init__(device, config, model, 
+            loss_fn, optimizer, experiment, metrics)
+    
+    def segment(self, batch):
+        result = None
+        img_data = batch[0]
+        target_data = batch[1] if len(batch) > 1 else None
+
+        t = time.time()
+
+        img = img_data.squeeze(dim=0)
+        target = target_data.squeeze(dim=0)
+
+        data = np.array(img)
+        data = np.float32(data.reshape((-1, 3)))
+        db = DBSCAN(
+            eps=self.engine.state.eps,
+            min_samples=self.engine.state.min_samples,
+            leaf_size=self.engine.state.leaf_size
+        ).fit(data[:, :2])
+        result = np.uint8(db.labels_.reshape(img.shape[:2]))
+
+        self.engine.state.step_time = time.time() - t
+
+        nLabels = len(np.unique(result))
+        self.engine.state.class_count = nLabels
+        self.engine.state.last_loss = 0.00001
+
 
 @segmenter_method(['dbscan', 'kmeans', 'meanshift', 'graphcut'])
 def classical_segment(
@@ -23,7 +65,7 @@ def classical_segment(
     experiment : Experiment,
     config = None,
     device : str = None,
-    metrics : List[phmMetric] = None
+    metrics : List[BaseMetric] = None
 ) -> Engine:
     
     def __train_step(engine, batch):

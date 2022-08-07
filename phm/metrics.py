@@ -15,7 +15,6 @@ import phasepack.phasecong as pc
 
 from comet_ml import Experiment
 from dataclasses import dataclass
-from scipy.signal import medfilt2d
 from typing import Callable, Dict, List
 from skimage.metrics import structural_similarity
 from scipy.spatial.distance import directed_hausdorff
@@ -25,8 +24,8 @@ from ignite.metrics import Metric
 
 def segment_metric(name):
     def __embed_func(clss):
-        if not issubclass(clss,phmMetric):
-            raise ValueError(f'{name} must be a subclass of phmMetric')
+        if not issubclass(clss,BaseMetric):
+            raise ValueError(f'{name} must be a subclass of BaseMetric')
         clss._name = name
         
         def get_name(self):
@@ -38,7 +37,7 @@ def segment_metric(name):
     
     return __embed_func
 
-class phmMetric(object):
+class BaseMetric(object):
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
@@ -59,7 +58,7 @@ class phmMetric(object):
         """
         pass
 
-class Function_Metric(phmMetric):
+class Function_Metric(BaseMetric):
     def __init__(self, 
         func : Callable, 
         **kwargs):
@@ -119,7 +118,7 @@ class CMRecord:
     cm_metrics : Dict[str, float]
 
 @segment_metric('confusion_matrix')
-class ConfusionMatrix(phmMetric):
+class ConfusionMatrix(BaseMetric):
     def __init__(self, 
         category : Dict[str, int],
         cm_based_metrics : List[Callable] = None,
@@ -210,7 +209,7 @@ class ConfusionMatrix(phmMetric):
         return cm
 
 @segment_metric('mIoU')
-class mIoU(phmMetric):
+class mIoU(BaseMetric):
     def __init__(self, ignored_class, 
         iou_thresh : float = 0.1
     ) -> None:

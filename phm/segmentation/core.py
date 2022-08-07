@@ -11,7 +11,7 @@ from ignite.engine import Engine
 from phm.core import phmCore
 
 from phm.loss import BaseLoss
-from phm.metrics import phmMetric
+from phm.metrics import BaseMetric
 from phm.models import BaseModule
 from phm.postprocessing import adapt_output, remove_small_regions
 
@@ -72,7 +72,7 @@ class BaseSegmenter(phmCore):
         loss_fn : BaseLoss,
         optimizer,
         experiment : Experiment,
-        metrics : List[phmMetric] = None,
+        metrics : List[BaseMetric] = None,
     ):
         super().__init__(
             device=device,

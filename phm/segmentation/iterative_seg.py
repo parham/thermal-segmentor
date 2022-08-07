@@ -16,7 +16,7 @@ from crfseg import CRF
 from ignite.engine import Engine
 from ignite.engine.events import Events
 
-from phm.metrics import phmMetric
+from phm.metrics import BaseMetric
 from phm.models.wnet import WNet
 
 from phm.segmentation import SegmentRecord, segmenter_method, label_colors_1ch8bits, simplify_train_step
@@ -35,7 +35,7 @@ def iterative_segment(
     experiment : Experiment,
     config = None,
     device : str = None,
-    metrics : List[phmMetric] = None
+    metrics : List[BaseMetric] = None
 ) -> Engine:
     # Initialize model
     model = None
