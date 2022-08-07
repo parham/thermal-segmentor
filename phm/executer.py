@@ -13,7 +13,8 @@ def init_optimizer(opt_name, model : BaseModule, config):
     # Generate the config
     ckeys = {
         'sgd' : ['learning_rate', 'momentum', 'weight_decay', 'dampening', 'nesterov'],
-        'adam' : ['learning_rate']
+        'adam' : ['learning_rate'],
+        'neutral' : []
     }[opt_name]
     
     cfg = {}
@@ -30,7 +31,8 @@ def init_optimizer(opt_name, model : BaseModule, config):
         'adam' : optim.Adam(
             model.parameters(),
             lr=cfg['learning_rate']
-        )
+        ),
+        'neutral' : None
     }[opt_name]
 
 def segment_initializer(config, experiment : Experiment):

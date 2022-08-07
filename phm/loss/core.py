@@ -49,3 +49,11 @@ def load_loss(loss_name : str, device : str, config : Dict[str,Any]):
         raise ValueError(msg)
     
     return __loss_handler[loss_name](device, config)
+
+@loss_selector('neutral')
+class NeutralLoss(BaseLoss):
+    def __init__(self, 
+        device: str, 
+        config: Dict[str, Any]
+    ) -> None:
+        super().__init__(device, config)

@@ -8,7 +8,7 @@ from typing import Dict, List
 
 from comet_ml import Experiment
 from phm.loss import UnsupervisedLoss_TwoFactors, WNetLoss
-from phm.metrics import phmMetric
+from phm.metrics import BaseMetric
 from phm.models.wnet import WNet
 from phm.postprocessing import adapt_output
 from phm.segmentation.core import SegmentRecord, segmenter_method, simplify_train_step
@@ -28,7 +28,7 @@ def wnet_segment(
     experiment : Experiment,
     config = None,
     device : str = None,
-    metrics : List[phmMetric] = None
+    metrics : List[BaseMetric] = None
 ) -> Engine:
 
     model = WNet(

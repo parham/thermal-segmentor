@@ -40,6 +40,14 @@ class BaseModule(phmCore):
             config=config
         )
 
+@model_selector('neutral')
+class NeutralModel(BaseModule):
+    def __init__(self, 
+        device: str, 
+        config: Dict[str, Any]
+    ) -> None:
+        super().__init__(device, config)
+
 # @model_selector('test')
 # class Test(BaseModule):
 #     def __init__(self, **kwargs) -> None:
