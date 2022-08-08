@@ -5,24 +5,22 @@ import torchvision.transforms as T
 import logging
 import numpy as np
 
-from typing import Any, Callable, Dict, List, NamedTuple, Union
 from comet_ml import Experiment
 from ignite.engine import Engine
-from phm.core import phmCore
+from typing import Any, Callable, Dict, List, NamedTuple, Union
 
-from phm.loss import BaseLoss
+from phm.core import phmCore
 from phm.metrics import BaseMetric
-from phm.models import BaseModule
-from phm.postprocessing import adapt_output, remove_small_regions
 
 label_colors_1ch8bits = np.random.randint(10,255,size=(100,1))
 
 __segmenter_handler = {}
 
 class SegmentRecord(NamedTuple):
+    iteration : int
     orig : Any
     loss : float
-    orig_output : Any
+    output : Any
     processed_output : Any
     target : Any = None
     internal_metrics : Dict = None
@@ -40,28 +38,6 @@ def list_segmenters() -> List[str]:
     global __segmenter_handler
     return list(__segmenter_handler.keys())
 
-def load_segmenter(
-    seg_name : str,
-    device : str,
-    config : Dict[str, Any],
-    experiment : Experiment,
-    metrics : List[BaseMetric],
-    **kwargs
-):
-    if not seg_name in list_segmenters():
-        msg = f'{seg_name} model is not supported!'
-        logging.error(msg)
-        raise ValueError(msg)
-    
-    return __segmenter_handler[seg_name](
-        name=seg_name,
-        device=device,
-        config=config,
-        experiment=experiment,
-        metrics=metrics,
-        **kwargs
-    )
-
 class BaseSegmenter(phmCore):
     def __init__(
         self,
@@ -70,6 +46,8 @@ class BaseSegmenter(phmCore):
         config : Dict[str,Any],
         experiment : Experiment,
         metrics : List[BaseMetric],
+        preprocess : Callable = None,
+        postprocess : Callable = None,
         **kwargs
     ):
         super().__init__(
@@ -80,7 +58,12 @@ class BaseSegmenter(phmCore):
 
         self.experiment = experiment
         self.metrics = metrics
+        # Preprocess step
+        self.preprocess = preprocess
+        # Postprocess step
+        self.postprocess = postprocess
 
+        # Add fields dynamically
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -146,4 +129,30 @@ class BaseSegmenter(phmCore):
             self.experiment.log_image(orig_output, 
                 name=f'orig_result', 
                 step=self.engine.state.iteration)
+
+def load_segmenter(
+    seg_name : str,
+    device : str,
+    config : Dict[str, Any],
+    experiment : Experiment,
+    metrics : List[BaseMetric],
+    preprocess : Callable = None,
+    postprocess : Callable = None,
+    **kwargs
+) -> BaseSegmenter:
+    if not seg_name in list_segmenters():
+        msg = f'{seg_name} model is not supported!'
+        logging.error(msg)
+        raise ValueError(msg)
+    
+    return __segmenter_handler[seg_name](
+        name=seg_name,
+        device=device,
+        config=config,
+        experiment=experiment,
+        metrics=metrics,
+        preprocess=preprocess,
+        postprocess=postprocess,
+        **kwargs
+    )
 

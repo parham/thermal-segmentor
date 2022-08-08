@@ -17,19 +17,25 @@ from phm.models.core import BaseModule
 from phm.segmentation.core import BaseSegmenter, SegmentRecord, segmenter_method, label_colors_1ch8bits, simplify_train_step
 from phm.postprocessing import remove_small_regions, adapt_output
 
-@segmenter_method(['dbscan', 'kmeans', 'meanshift', 'graphcut'])
-class ClassicSegmenter(BaseSegmenter):
-    def __init__(self, 
-        device: str, 
-        config: Dict[str, Any], 
-        model: BaseModule, 
-        loss_fn: BaseLoss, 
-        optimizer, 
-        experiment: Experiment, 
-        metrics: List[BaseMetric] = None
+@segmenter_method('dbscan')
+class DBScanSegmenter(BaseSegmenter):
+    def __init__(
+        self,
+        name : str,
+        device : str,
+        config : Dict[str,Any],
+        experiment : Experiment,
+        metrics : List[BaseMetric],
+        **kwargs
     ):
-        super().__init__(device, config, model, 
-            loss_fn, optimizer, experiment, metrics)
+        super().__init__(
+            name=name,
+            device=device,
+            config=config,
+            experiment=experiment,
+            metrics=metrics,
+            **kwargs
+        )
     
     def segment(self, batch):
         result = None
