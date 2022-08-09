@@ -1,9 +1,11 @@
 
+from typing import Callable, List
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
 from phm.loss.core import load_loss
+from phm.metrics import BaseMetric
 from phm.models.core import BaseModule, load_model
 from phm.segmentation.core import load_segmenter
 
@@ -35,7 +37,13 @@ def init_optimizer(opt_name, model : BaseModule, config):
         'neutral' : None
     }[opt_name]
 
-def segment_initializer(config, experiment : Experiment):
+def segment_initializer(
+    config, 
+    experiment : Experiment,
+    metrics : List[BaseMetric],
+    preprocess : Callable,
+    postprocess : Callable
+):
     # Initialize the general configs
     if not 'general' in config:
         raise ValueError('general config must be included!')
@@ -73,11 +81,14 @@ def segment_initializer(config, experiment : Experiment):
     seg = load_segmenter(
         seg_name=seg_config['name'],
         device=gcfg['device'],
+        config=seg_config,
+        experiment=experiment,
+        metrics=metrics,
+        preprocess=preprocess,
+        postprocess=postprocess,
         model=model,
         loss_fn=loss,
         optimizer=optim_obj,
-        experiment=experiment,
-        config=seg_config
     )
 
     return seg

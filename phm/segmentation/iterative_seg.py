@@ -199,8 +199,8 @@ def segment_ignite__(
     
     optimizer.step()
 
-    engine.state.last_loss = loss.item()
     engine.state.class_count = nLabels
+    engine.state.last_loss = loss.item()
     engine.state.step_time = time.time() - t
 
     result_np = result.cpu().detach().numpy()

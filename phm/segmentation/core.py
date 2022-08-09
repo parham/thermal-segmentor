@@ -59,9 +59,9 @@ class BaseSegmenter(phmCore):
         self.experiment = experiment
         self.metrics = metrics
         # Preprocess step
-        self.preprocess = preprocess
+        self.preprocess = preprocess if preprocess is not None else lambda x : x
         # Postprocess step
-        self.postprocess = postprocess
+        self.postprocess = postprocess if postprocess is not None else lambda x : x
 
         # Add fields dynamically
         for key, value in kwargs.items():
@@ -83,7 +83,7 @@ class BaseSegmenter(phmCore):
         self.engine.state_dict_user_keys.append('last_loss')
         self.engine.state.last_loss = 0
 
-    def segment(self, batch):
+    def segment(self, batch) -> SegmentRecord:
         pass
 
     def __call__(self, batch) -> Any:
@@ -104,8 +104,12 @@ class BaseSegmenter(phmCore):
                     name=f'target', 
                     step=self.engine.state.iteration)
 
+        # Apply preprocessing
+        batch = self.preprocess(batch)
         # Recall the step
         res = self.segment(batch)
+        # Apply postprocessing
+        res = self.postprocess(res)
 
         orig_output = np.asarray(transform(res.orig_output)) if isinstance(res.orig_output, torch.Tensor) else res.orig_output
         processed_output = np.asarray(transform(res.processed_output)) if isinstance(res.processed_output, torch.Tensor) else res.processed_output
