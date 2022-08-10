@@ -27,7 +27,7 @@ from phm.postprocessing import remove_small_regions, adapt_output
 __phm_kanezaki2018__ = 'phm_kanezaki2018'
 __phm_wonjik2020__ = 'phm_wonjik2020'
 
-@segmenter_method([__phm_kanezaki2018__, __phm_wonjik2020__]) # 'phm_wnet'
+# @segmenter_method([__phm_kanezaki2018__, __phm_wonjik2020__]) # 'phm_wnet'
 def iterative_segment(
     handler : str,
     data_name : str,

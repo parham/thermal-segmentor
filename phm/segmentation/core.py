@@ -1,4 +1,5 @@
 
+from dataclasses import dataclass
 import torch
 import torchvision.transforms as T
 
@@ -12,25 +13,28 @@ from typing import Any, Callable, Dict, List, NamedTuple, Union
 from phm.core import phmCore
 from phm.metrics import BaseMetric
 
-label_colors_1ch8bits = np.random.randint(10,255,size=(100,1))
+label_colors_1ch8bits = np.random.randint(10,255,size=200)
 
 __segmenter_handler = {}
 
-class SegmentRecord(NamedTuple):
+@dataclass
+class SegmentRecord:
     iteration : int
     orig : Any
     loss : float
     output : Any
-    processed_output : Any
     target : Any = None
+    processed_output : Any = None
     internal_metrics : Dict = None
 
 def segmenter_method(name : Union[str, List[str]]):
-    def __embed_func(func):
+    def __embed_func(clss):
         global __segmenter_handler
         hname = name if isinstance(name, list) else [name]
+        if not issubclass(clss, BaseSegmenter):
+            raise NotImplementedError('The specified loss handler is not implemented!')
         for n in hname:
-            __segmenter_handler[n] = func
+            __segmenter_handler[n] = clss
 
     return __embed_func
 
@@ -68,20 +72,35 @@ class BaseSegmenter(phmCore):
             setattr(self, key, value)
 
         # Initialize Engine
-        self.engine = Engine(self.__call__)
+        step_func = lambda engine, batch : self(batch)
+
+        self.engine = Engine(step_func)
         self.__init_state(config)
 
+    def to_record(self) -> Dict[str, Any]:
+        record = {}
+        record['engine'] = self.engine
+        if hasattr(self,'model'):
+            record['model'] = self.model
+        if hasattr(self,'optimizer'):
+            record['optimizer'] = self.optimizer
+        if hasattr(self,'loss_fn'):
+            record['loss'] = self.loss_fn
+        return record
+
     def __init_state(self, config):
-        # Add configurations to the engine state
-        for sec in config.keys():
-            for key, value in config[sec].items():
-                self.engine.state_dict_user_keys.append(key)
-                setattr(self.engine.state, key, value)
+        self.update_state(config)
         # Status
         self.engine.state_dict_user_keys.append('class_count')
         self.engine.state.class_count = 0
         self.engine.state_dict_user_keys.append('last_loss')
         self.engine.state.last_loss = 0
+    
+    def update_state(self, config):
+        # Add configurations to the engine state
+        for key, value in config.items():
+            self.engine.state_dict_user_keys.append(key)
+            setattr(self.engine.state, key, value)
 
     def segment(self, batch) -> SegmentRecord:
         pass
@@ -110,6 +129,7 @@ class BaseSegmenter(phmCore):
         res = self.segment(batch)
         # Apply postprocessing
         res = self.postprocess(res)
+        res.iteration = self.engine.state.iteration
 
         orig_output = np.asarray(transform(res.orig_output)) if isinstance(res.orig_output, torch.Tensor) else res.orig_output
         processed_output = np.asarray(transform(res.processed_output)) if isinstance(res.processed_output, torch.Tensor) else res.processed_output

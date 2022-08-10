@@ -32,8 +32,8 @@ def loss_selector(name : Union[str, List[str]]):
     def __embed_func(clss):
         global __loss_handler
         hname = name if isinstance(name, list) else [name]
-        if not isinstance(clss, BaseLoss):
-            raise NotImplementedError('The specified loss handler is not implemented!')
+        if not issubclass(clss, BaseLoss):
+            raise NotImplementedError('The specified loss handler is not correctly implemented!')
         for n in hname:
             __loss_handler[n] = clss
 

@@ -14,7 +14,7 @@ import torch.nn.functional as F
 
 from phm.models.core import BaseModule, model_selector
 
-@model_selector('kanezaki2018')
+# @model_selector('kanezaki2018')
 class Kanezaki2018Module(BaseModule):
     """ Implementation of the model presented in:
     @name           Unsupervised Image Segmentation by Backpropagation

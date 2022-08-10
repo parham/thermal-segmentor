@@ -194,7 +194,7 @@ class UNetDecoder(nn.Module):
 
         return x
 
-@model_selector('wnet')
+# @model_selector('wnet')
 class WNet(BaseModule):
     """
     Implements a W-Net CNN model for learning unsupervised image segmentations.  

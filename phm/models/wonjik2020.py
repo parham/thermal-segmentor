@@ -12,7 +12,7 @@ import torch.nn.functional as F
 
 from phm.models.core import model_selector
 
-@model_selector('wonjik2020')
+# @model_selector('wonjik2020')
 class Wonjik2020Module (nn.Module):
     """ Implementation of the model presented in:
     @name           Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering   

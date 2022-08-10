@@ -20,7 +20,7 @@ import torch.optim as optim
 from ignite.engine import Engine
 from ignite.engine.events import Events
 
-@segmenter_method(['phm_wnet'])
+# @segmenter_method(['phm_wnet'])
 def wnet_segment(
     handler : str,
     data_name : str,

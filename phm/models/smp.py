@@ -10,7 +10,7 @@ from typing import Any, Dict
 from phm.models.core import BaseModule, model_selector
 import segmentation_models_pytorch as smp
 
-@model_selector('unet_resnet18')
+# @model_selector('unet_resnet18')
 class Unet_Resnet18(BaseModule):
     def __init__(self, device : str, config : Dict[str,Any]) -> None:
         super().__init__(
@@ -27,7 +27,7 @@ class Unet_Resnet18(BaseModule):
     def forward(self, x):
         return self.clss(x)
 
-@model_selector('unetplusplus_resnet18')
+# @model_selector('unetplusplus_resnet18')
 class UnetPlusPlus_Resnet18(BaseModule):
     def __init__(self, device : str, config : Dict[str,Any]) -> None:
         super().__init__(
@@ -44,7 +44,7 @@ class UnetPlusPlus_Resnet18(BaseModule):
     def forward(self, x):
         return self.clss(x)
 
-@model_selector('fpn_resnet18')
+# @model_selector('fpn_resnet18')
 class FPN_Resnet18(BaseModule):
     def __init__(self, device : str, config : Dict[str,Any]) -> None:
         super().__init__(

@@ -13,11 +13,13 @@ from phm.core import phmCore
 __model_handler = {}
 
 def model_selector(name : Union[str, List[str]]):
-    def __embed_func(func):
+    def __embed_func(clss):
         global __model_handler
         hname = name if isinstance(name, list) else [name]
+        if not issubclass(clss, BaseModule):
+            raise NotImplementedError('The specified model is not correctly implemented!')
         for n in hname:
-            __model_handler[n] = func
+            __model_handler[n] = clss
 
     return __embed_func
 

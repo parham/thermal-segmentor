@@ -2,20 +2,19 @@
 import time
 import numpy as np
 
+import torch
+import torchvision.transforms as T
+
 from typing import Any, Callable, Dict, List
 from comet_ml import Experiment
-import torch
-from ignite.engine import Engine
 
 from sklearn.cluster import DBSCAN, KMeans, MeanShift, estimate_bandwidth
 from skimage import segmentation, color
 from skimage.future import graph
-from phm.loss.core import BaseLoss
 
 from phm.metrics import BaseMetric
-from phm.models.core import BaseModule
-from phm.segmentation.core import BaseSegmenter, SegmentRecord, segmenter_method, label_colors_1ch8bits, simplify_train_step
-from phm.postprocessing import remove_small_regions, adapt_output
+from phm.segmentation import BaseSegmenter, SegmentRecord, segmenter_method, label_colors_1ch8bits
+from phm.postprocessing import remove_small_regions
 
 class ClassicSegmenter(BaseSegmenter):
     def __init__(
@@ -39,6 +38,7 @@ class ClassicSegmenter(BaseSegmenter):
             postprocess=postprocess if postprocess is not None else self.__postprocessing,
             **kwargs
         )
+        self.transform_func = T.ToPILImage()
 
     def __postprocessing(self, res):
         # Coloring regions
@@ -59,20 +59,23 @@ class ClassicSegmenter(BaseSegmenter):
         img = img_data.squeeze(dim=0)
         target = target_data.squeeze(dim=0)
 
-        self.loss_fn.prepare_loss(ref=img)
+        if self.loss_fn is not None:
+            self.loss_fn.prepare_loss(ref=img)
 
         output = self.segment_impl(img)
 
-        loss = self.loss_fn(
-            output=output,
-            target=target
-        )
-        loss.backward()
+        vloss = 0        
+        if self.loss_fn is not None:
+            loss = self.loss_fn(
+                output=output,
+                target=target
+            )
+            loss.backward()
+            vloss = loss.item()
 
-        vloss = loss.item()
         nLabels = len(np.unique(output))
         self.engine.state.class_count = nLabels
-        self.engine.state.last_loss = loss.item()
+        self.engine.state.last_loss = vloss
         self.engine.state.step_time = time.time() - t
 
         return SegmentRecord(
@@ -80,6 +83,7 @@ class ClassicSegmenter(BaseSegmenter):
             orig=img,
             output=output, 
             target=target,
+            processed_output=None,
             loss=vloss,
             internal_metrics={
                 'loss' : vloss,
@@ -112,14 +116,15 @@ class DBScanSegmenter(ClassicSegmenter):
         )
 
     def segment_impl(self,img):
-        data = np.array(img)
+        data = np.asarray(self.transform_func(img)) if isinstance(img, torch.Tensor) else img
+        img_size = data.shape
         data = np.float32(data.reshape((-1, 3)))
         db = DBSCAN(
             eps=self.engine.state.eps,
             min_samples=self.engine.state.min_samples,
             leaf_size=self.engine.state.leaf_size
         ).fit(data[:, :2])
-        output = np.uint8(db.labels_.reshape(img.shape[:2]))
+        output = np.uint8(db.labels_.reshape(img_size[:2]))
         return output
 
 @segmenter_method('kmeans')

@@ -23,7 +23,7 @@ from phm.segmentation.core import SegmentRecord, segmenter_method, simplify_trai
 __smp_unet_resnet18__ = 'smp_unet_resnet18'
 __smp_unetpp_resnet18__ = 'smp_unetpp_resnet18'
 
-@segmenter_method([__smp_unet_resnet18__])
+# @segmenter_method([__smp_unet_resnet18__])
 def smp_seg(
     handler : str,
     data_name : str,

@@ -7,7 +7,7 @@ import torch.optim as optim
 from phm.loss.core import load_loss
 from phm.metrics import BaseMetric
 from phm.models.core import BaseModule, load_model
-from phm.segmentation.core import load_segmenter
+from phm.segmentation.core import BaseSegmenter, load_segmenter
 
 from comet_ml import Experiment
 
@@ -37,50 +37,49 @@ def init_optimizer(opt_name, model : BaseModule, config):
         'neutral' : None
     }[opt_name]
 
-def segment_initializer(
+def segment_builder(
     config, 
+    device : str,
     experiment : Experiment,
     metrics : List[BaseMetric],
-    preprocess : Callable,
-    postprocess : Callable
-):
+    preprocess : Callable = None,
+    postprocess : Callable = None
+) -> BaseSegmenter:
     # Initialize the general configs
-    if not 'general' in config:
-        raise ValueError('general config must be included!')
-    gcfg = config['general']
+    gcfg = config['general'] if 'general' in config else {}
     # Initialize the model
-    if not 'model' in config:
-        raise ValueError('model config must be included!')
-    model_config = config['model']
-    model = load_model(
-        device=gcfg['device'],
-        model_name=model_config['name'],
-        config=model_config)
+    model = None
+    if 'model' in config:
+        model_config = config['model']
+        model = load_model(
+            model_name=model_config['name'],
+            device=device,
+            config=model_config)
     # Initialize the loss
-    if not 'loss' in config:
-        raise ValueError('loss config must be included!')
-    loss_config = config['loss']
-    loss = load_loss(
-        device=gcfg['device'],
-        loss_name=loss_config['name'],
-        config=loss_config
-    )
+    loss = None
+    if 'loss' in config:
+        loss_config = config['loss']
+        loss = load_loss(
+            loss_name=loss_config['name'],
+            device=device,
+            config=loss_config
+        )
     # Initialize the optimizer
-    if not 'optimizer' in config:
-        raise ValueError('optimizer config must be included!')
-    optim_config = config['optimizer']
-    optim_obj = init_optimizer(
-        opt_name=optim_config['name'],
-        model=model,
-        config=optim_config
-    )
+    optim_obj = None
+    if 'optimizer' in config:
+        optim_config = config['optimizer']
+        optim_obj = init_optimizer(
+            opt_name=optim_config['name'],
+            model=model,
+            config=optim_config
+        )
     # Initialize the segmenter
     if not 'segmentation' in config:
         raise ValueError('segmentation config must be included!')
     seg_config = config['segmentation']
     seg = load_segmenter(
         seg_name=seg_config['name'],
-        device=gcfg['device'],
+        device=device,
         config=seg_config,
         experiment=experiment,
         metrics=metrics,
@@ -90,5 +89,8 @@ def segment_initializer(
         loss_fn=loss,
         optimizer=optim_obj,
     )
+    # Add general configuration to engine states
+    seg.update_state(gcfg)
+
 
     return seg

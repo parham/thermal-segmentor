@@ -6,3 +6,4 @@ phm/segmentation/__pycache__/*
 phm/models/__pycache__/*
 models/*
 models/*/*/*
+phm/loss/__pycache__/*
