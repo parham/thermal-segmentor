@@ -1,4 +1,5 @@
 
+
 import os
 import sys
 import torch
@@ -10,9 +11,10 @@ from datetime import datetime
 
 from phm.core import load_config
 from phm.dataset import FileRepeaterDataset, RepetitiveDatasetWrapper
+from phm.executer import segment_builder
 from phm.transform import GrayToRGB, ImageResizeByCoefficient, NumpyImageToTensor
 from phm.metrics import ConfusionMatrix, Function_Metric, fsim, mIoU, measure_accuracy_cm__, psnr, rmse, ssim
-from phm.segmentation import list_segmenters, segment_loader
+from phm.segmentation import list_segmenters
 
 from ignite.utils import setup_logger
 from ignite.engine.events import Events
@@ -38,19 +40,17 @@ parser.add_argument('--handler', required=True, choices=list_segmenters(), help=
 parser.add_argument('--nologging', dest='dlogging', default=False, action='store_true')
 parser.add_argument('--checkpoint', '-l', type=str, required=False, help='Load the specificed checkpoint')
 parser.add_argument('--device', type=str, required=False, default='cuda', choices=['cuda','cpu'], help='Select the device')
-parser.add_argument('--cuda_index', type=int, required=False, default=0, help='Select the index of employed device')
+parser.add_argument('--cuda_index', type=int, required=False, default=argparse.SUPPRESS, help='Select the index of employed device')
 
 def main():
     args = parser.parse_args()
     parser.print_help()
 
     handler = args.handler
-    # Device selection
-    device = torch.device("cuda" if args.device == 'cuda' and torch.cuda.is_available() else  "cpu")
-    if args.device == 'cuda':
+    device = args.device
+    if device == 'cuda' and hasattr(args, 'cuda_index'):
         torch.cuda.set_device(args.cuda_index)
-    # torch.cuda.set_device(1)
-    # device = torch.device("cpu")
+        device = f'{device}:{args.cuda_index}'
     # Input Data
     in_path = args.input
     if in_path is None:
@@ -127,29 +127,34 @@ def main():
         Function_Metric(fsim, T1 = 0.85, T2 = 160),
         Function_Metric(ssim, max_p = 255)
     ]
-    # Initialize Segmentation
-    settings = segment_loader(handler, 
-        data_name=dataset_name,
-        data_loader=data_loader,
-        category=category,
-        experiment=experiment,
+
+    seg = segment_builder(
         config=config,
         device=device,
-        metrics=metrics
+        experiment=experiment,
+        metrics=metrics,
     )
 
+    settings = seg.to_record()
     engine = settings['engine']
     engine.logger = setup_logger('trainer')
 
-    if 'model' in settings:
+    if hasattr(seg, 'model'):
         checkpoint_dir = os.path.join('./models', handler, dataset_name)
         checkpoint_saver = ModelCheckpoint(
             checkpoint_dir, 'training',
             require_empty=False, create_dir=True,
             n_saved=1, global_step_transform=global_step_from_engine(engine)
         )
-        engine.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_saver, {**settings})
-
+        engine.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_saver, {'seg' : seg})
+    
+    # Load the model from checkpoint
+    if args.checkpoint is not None:
+        checkpoint_file = os.path.join('./models', handler, dataset_name, args.checkpoint)
+        if os.path.isfile(checkpoint_file):
+            checkpoint_obj = torch.load(checkpoint_file, map_location=device)
+            ModelCheckpoint.load_objects(to_load=settings, checkpoint=checkpoint_obj) 
+    
     # Define Training Events
     @engine.on(Events.STARTED)
     def __train_process_started(engine):
@@ -160,21 +165,14 @@ def main():
     def __train_process_ended(engine):
         logging.info('Training is ended ...')
         experiment.end()
-    
+
     @engine.on(Events.ITERATION_STARTED)
     def __train_iteration_started(engine):
         step_time = engine.state.step_time if hasattr(engine.state,'step_time') else 0
         logging.info(f'[ {step_time} ] {engine.state.iteration} / {engine.state.iteration_max} : {engine.state.class_count} , {engine.state.last_loss}')
     
-    # Load the model from checkpoint
-    if args.checkpoint is not None:
-        checkpoint_file = os.path.join('./models', handler, dataset_name, args.checkpoint)
-        if os.path.isfile(checkpoint_file):
-            checkpoint_obj = torch.load(checkpoint_file, map_location=device)
-            ModelCheckpoint.load_objects(to_load=settings, checkpoint=checkpoint_obj) 
-    
     # Run the pipeline
-    state = engine.run(data_loader, max_epochs=2)
+    state = engine.run(data_loader, max_epochs=engine.state.max_epoch)
     print(state)
     return 0
 
