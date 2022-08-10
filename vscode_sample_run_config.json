@@ -2,17 +2,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(BIA-LOWPROFILE) Segmentation CLI",
+            "name": "BIA: Segmentation CLI",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args" : [
-                "--input", "/home/phm/SSH_Drive/BIA-LOWPROFILE/Dataset/thermal-segmentor/Samples/labeled_img",
+                "--input", "/home/paperspace/Dataset/thermal-segmenter/Samples/labeled_img",
                 "--dtype", "dataset",
-                "--config", "configs/phm_wonjik2020.json",
-                "--handler", "phm_wonjik2020",
+                "--config", "configs/dbscan.json",
+                "--handler", "dbscan",
                 "--nologging"
             ]
         },

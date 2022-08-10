@@ -152,12 +152,13 @@ class KMeanSegmenter(ClassicSegmenter):
         )
 
     def segment_impl(self,img):
-        data = np.array(img)
+        data = np.asarray(self.transform_func(img)) if isinstance(img, torch.Tensor) else img
+        img_size = data.shape
         data = np.float32(data.reshape((-1, 3)))
         db = KMeans(
             n_clusters=self.engine.state.n_clusters
         ).fit(data[:, :2])
-        output = np.uint8(db.labels_.reshape(img.shape[:2]))
+        output = np.uint8(db.labels_.reshape(img_size[:2]))
         return output
 
 @segmenter_method('meanshift')
@@ -185,7 +186,8 @@ class MeanShiftSegmenter(ClassicSegmenter):
         )
 
     def segment_impl(self,img):
-        data = np.array(img)
+        data = np.asarray(self.transform_func(img)) if isinstance(img, torch.Tensor) else img
+        img_size = data.shape
         data = np.float32(data.reshape((-1, 3)))
         bandwidth = estimate_bandwidth(data, 
             quantile=self.engine.state.quantile, 
@@ -194,7 +196,7 @@ class MeanShiftSegmenter(ClassicSegmenter):
             bandwidth=bandwidth, 
             bin_seeding=True
         ).fit(data[:, :2])
-        output = np.uint8(db.labels_.reshape(img.shape[:2]))
+        output = np.uint8(db.labels_.reshape(img_size[:2]))
         return output
 
 @segmenter_method('graphcut')
@@ -222,11 +224,12 @@ class GraphcutSegmenter(ClassicSegmenter):
         )
 
     def segment_impl(self,img):
-        data = np.array(img)
+        data = np.asarray(self.transform_func(img)) if isinstance(img, torch.Tensor) else img
         labels = segmentation.slic(data, 
             compactness=self.engine.state.compactness, 
-            n_segments=self.engine.state.n_segments)
+            n_segments=self.engine.state.n_segments,
+            start_label=1)
         g = graph.rag_mean_color(data, labels, mode='similarity')
         labels = graph.cut_normalized(labels, g)
-        output = color.label2rgb(labels, data, kind='avg')
+        output = color.label2rgb(labels, data, kind='avg', bg_label=0)
         return output

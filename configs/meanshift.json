@@ -1,12 +1,13 @@
 {
+    "general" : {
+        "log_image" : true,
+        "log_metrics" : true
+    },
     "segmentation": {
+        "max_epoch" : 3,
         "quantile" : 0.2,
         "n_samples" : 500,
         "min_area" : 0,
         "iou_thresh" : 0.1
-    },
-    "general" : {
-        "log_image" : true,
-        "log_metrics" : true
     }
 }

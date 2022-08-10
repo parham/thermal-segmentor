@@ -38,7 +38,8 @@ def init_optimizer(opt_name, model : BaseModule, config):
     }[opt_name]
 
 def segment_builder(
-    config, 
+    config,
+    handler : str,
     device : str,
     experiment : Experiment,
     metrics : List[BaseMetric],
@@ -78,7 +79,7 @@ def segment_builder(
         raise ValueError('segmentation config must be included!')
     seg_config = config['segmentation']
     seg = load_segmenter(
-        seg_name=seg_config['name'],
+        seg_name=handler,
         device=device,
         config=seg_config,
         experiment=experiment,

@@ -27,7 +27,7 @@ RUN echo "" && \
     echo "-----------------------------------------"
 
 # Install Dependencies
-RUN pip install pytorch-ignite torchmetrics torchvision comet-ml opencv-python scikit-image scikit-learn dotmap phasepack cython pyyaml matplotlib
+RUN pip install pytorch-ignite torchmetrics torchvision scipy comet-ml opencv-python scikit-image scikit-learn dotmap phasepack cython pyyaml matplotlib
 RUN pip install crfseg tqdm pyfftw dotmap
 RUN pip install segmentation-models-pytorch
 RUN pip install git+https://github.com/waspinator/coco.git@2.1.0

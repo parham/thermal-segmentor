@@ -10,6 +10,7 @@
 
 import math
 import cv2
+import scipy.misc
 import numpy as np
 import phasepack.phasecong as pc
 

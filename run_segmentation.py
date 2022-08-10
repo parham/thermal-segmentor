@@ -71,7 +71,7 @@ def main():
     # Configuration file
     fconfig = args.config
     if fconfig is None or not os.path.isfile(fconfig):
-        msg = f'{fconfig} is invalid!'
+        msg = f'clear{fconfig} is invalid!'
         logging.error(msg)
         raise ValueError(msg)
     config = load_config(fconfig)
@@ -129,6 +129,7 @@ def main():
     ]
 
     seg = segment_builder(
+        handler=handler,
         config=config,
         device=device,
         experiment=experiment,

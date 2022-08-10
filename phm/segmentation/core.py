@@ -8,12 +8,12 @@ import numpy as np
 
 from comet_ml import Experiment
 from ignite.engine import Engine
-from typing import Any, Callable, Dict, List, NamedTuple, Union
+from typing import Any, Callable, Dict, List, Union
 
 from phm.core import phmCore
 from phm.metrics import BaseMetric
 
-label_colors_1ch8bits = np.random.randint(10,255,size=200)
+label_colors_1ch8bits = np.random.randint(255,size=255,dtype=np.uint8)
 
 __segmenter_handler = {}
 
@@ -131,7 +131,7 @@ class BaseSegmenter(phmCore):
         res = self.postprocess(res)
         res.iteration = self.engine.state.iteration
 
-        orig_output = np.asarray(transform(res.orig_output)) if isinstance(res.orig_output, torch.Tensor) else res.orig_output
+        orig_output = np.asarray(transform(res.output)) if isinstance(res.output, torch.Tensor) else res.output
         processed_output = np.asarray(transform(res.processed_output)) if isinstance(res.processed_output, torch.Tensor) else res.processed_output
 
         if self.engine.state.log_metrics:

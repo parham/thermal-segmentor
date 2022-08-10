@@ -4,7 +4,6 @@
         "log_metrics" : true
     },
     "segmentation": {
-        "name" : "dbscan",
         "max_epoch" : 3,
         "eps" : 1.2,
         "min_samples" : 70,
