@@ -7,12 +7,14 @@
 """
 
 from typing import Any, Dict
+from dotmap import DotMap
+
 import torch.nn as nn
 import torch.nn.functional as F
 
-from phm.models.core import model_selector
+from phm.models.core import model_register
 
-# @model_selector('wonjik2020')
+@model_register('wonjik2020')
 class Wonjik2020Module (nn.Module):
     """ Implementation of the model presented in:
     @name           Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering   
@@ -22,9 +24,9 @@ class Wonjik2020Module (nn.Module):
     @citation       Wonjik Kim*, Asako Kanezaki*, and Masayuki Tanaka. Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering. IEEE Transactions on Image Processing, accepted, 2020.
     """
 
-    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+    def __init__(self, name : str, config : DotMap) -> None:
         super().__init__(
-            device=device,
+            name='wonjik2020',
             config=config
         )
 

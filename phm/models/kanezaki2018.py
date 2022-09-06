@@ -9,12 +9,14 @@
 """
 
 from typing import Any, Dict
+from dotmap import DotMap
+
 import torch.nn as nn
 import torch.nn.functional as F
 
-from phm.models.core import BaseModule, model_selector
+from phm.models.core import BaseModule, model_register
 
-# @model_selector('kanezaki2018')
+@model_register('kanezaki2018')
 class Kanezaki2018Module(BaseModule):
     """ Implementation of the model presented in:
     @name           Unsupervised Image Segmentation by Backpropagation
@@ -24,9 +26,9 @@ class Kanezaki2018Module(BaseModule):
     @citation       Asako Kanezaki. Unsupervised Image Segmentation by Backpropagation. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018.
     """
 
-    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+    def __init__(self, name : str, config : DotMap) -> None:
         super().__init__(
-            device=device,
+            name='kanezaki2018',
             config=config
         )
 

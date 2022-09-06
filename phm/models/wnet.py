@@ -9,13 +9,15 @@
 """
 
 import numpy as np
+
+from dotmap import DotMap
 from typing import Any, Dict, Tuple
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from phm.models.core import BaseModule, model_selector
+from phm.models.core import BaseModule, model_register
 
 def make_same_size(src, ref):
     pt = np.array(ref.shape) - np.array(src.shape)
@@ -194,7 +196,7 @@ class UNetDecoder(nn.Module):
 
         return x
 
-# @model_selector('wnet')
+@model_register('wnet')
 class WNet(BaseModule):
     """
     Implements a W-Net CNN model for learning unsupervised image segmentations.  
@@ -202,13 +204,13 @@ class WNet(BaseModule):
     the labels into a reconstruction of the original image using a second UNet.
     """
 
-    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+    def __init__(self, name : str, config : DotMap) -> None:
         """
         :param num_channels: Number of channels in the raw image data
         :param num_classes: Number of classes in the output class probabilities
         """
         super().__init__(
-            device=device,
+            name='wnet',
             config=config
         )
         self.encoder = UNetEncoder(
