@@ -1,10 +1,10 @@
 
 """ 
-    @author        Parham Nooralishahi
-    @email         parham.nooralishahi@gmail.com
-    @professor     Professor Xavier Maldague
+    @title A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components
     @organization Laval University
-    @description Functions for smoothing/filtering 2D images adopted from https://github.com/fkodom/wnet-unsupervised-image-segmentation
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
 """
 
 import numpy as np

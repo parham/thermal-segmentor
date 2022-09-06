@@ -1,13 +1,21 @@
 
+""" 
+    @title A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components
+    @organization Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
+
 from typing import Any, Dict, Optional, Sequence
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from phm.loss import BaseLoss
-from phm.loss.core import loss_selector
+from phm.loss.core import loss_register
 
-@loss_selector('focal_loss')
+@loss_register('focal_loss')
 class FocalLoss(BaseLoss):
     """ 
     Focal Loss, as described in https://arxiv.org/abs/1708.02002.
@@ -22,18 +30,8 @@ class FocalLoss(BaseLoss):
     adopted from https://github.com/AdeelH/pytorch-multi-class-focal-loss/
     """
     
-    def __init__(self, device : str, config : Dict[str,Any]) -> None:
-        super().__init__(
-            device=device, 
-            config=config
-        )
-
-        #              alpha: Optional[torch.Tensor] = None,
-        #              gamma: float = 0.,
-        #              reduction: str = 'mean',
-        #              ignore_index: int = -100):
-
-        """Constructor.
+    def __init__(self, name : str, config) -> None:
+        """
         Args:
             alpha (Tensor, optional): Weights for each class. Defaults to None.
             gamma (float, optional): A constant, as described in the paper.
@@ -43,6 +41,8 @@ class FocalLoss(BaseLoss):
             ignore_index (int, optional): class label to ignore.
                 Defaults to -100.
         """
+        super().__init__(name=name, config=config)
+
         if self.reduction not in ('mean', 'sum', 'none'):
             raise ValueError(
                 'Reduction must be one of: "mean", "sum", "none".')

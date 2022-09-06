@@ -1,4 +1,12 @@
 
+""" 
+    @title A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components
+    @organization Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,18 +16,21 @@ from scipy.ndimage import grey_opening
 
 from phm.loss import BaseLoss
 from phm.filter import gaussian_kernel
+from phm.loss.core import loss_register
 
-
+@loss_register('wnet_loss')
 class WNetLoss(BaseLoss):
-    def __init__(self, device : str, config : Dict[str,Any]) -> None:
-        super().__init__(
-            device=device, 
-            config=config
-        )
-
-        #     alpha = 1e-3, 
-        #     beta = 1, 
-        #     gamma = 1e-1
+    def __init__(self, name : str, config) -> None:
+        """
+        Args:
+            device (str): _description_
+            config (Dict[str,Any]): _description_
+        Defaults:
+            alpha = 1e-3, 
+            beta = 1, 
+            gamma = 1e-1
+        """
+        super().__init__(name=name, config=config)
 
     def forward(self, output, target, input, mask): # labels > target
         input, label, output = input.contiguous(), target.contiguous(), output.contiguous()
@@ -30,27 +41,20 @@ class WNetLoss(BaseLoss):
         loss = ncut_loss + mse_loss + smooth_loss
         return loss
 
+@loss_register('ncut2d_loss')
 class NCutLoss2D(BaseLoss):
     """
         Implementation of the continuous N-Cut loss, as in:
         'W-Net: A Deep Model for Fully Unsupervised Image Segmentation', by Xia, Kulis (2017)
         adopted from https://github.com/fkodom/wnet-unsupervised-image-segmentation
     """
-    def __init__(self, device : str, config : Dict[str,Any]) -> None:
-        super().__init__(
-            device=device, 
-            config=config
-        )
-
-        #   radius: int = 4, 
-        #   sigma_1: float = 5, # Spatial standard deviation
-        #   sigma_2: float = 1  # Pixel value standard deviation
-
+    def __init__(self, name : str, config) -> None:
         """
         :param radius: Radius of the spatial interaction term
         :param sigma_1: Standard deviation of the spatial Gaussian interaction
         :param sigma_2: Standard deviation of the pixel value Gaussian interaction
         """
+        super().__init__(name=name, config=config)
 
     def forward(self, inputs: torch.Tensor, labels: torch.Tensor, **kwargs) -> torch.Tensor:
         """
@@ -88,6 +92,7 @@ class NCutLoss2D(BaseLoss):
 
         return num_classes - loss
 
+@loss_register('opening2d_loss')
 class OpeningLoss2D(BaseLoss):
     """
         Computes the Mean Squared Error between computed class probabilities their grey opening.  Grey opening is a

@@ -68,8 +68,4 @@ class RepetitiveDatasetWrapper(Dataset):
     
     def __getitem__(self, idx):
         actual_idx = idx % self.actual_size
-        # actual_idx = idx + 1
-        # iter = actual_idx % self.actual_size
-        # sample_index = (actual_idx // actual_idx) + 1
-        # return self.dataset_[sample_index]
         return self.dataset_[actual_idx]

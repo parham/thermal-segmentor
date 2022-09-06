@@ -1,14 +1,21 @@
 
+""" 
+    @title A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components
+    @organization Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
 
-from typing import Any, Dict
 import torch
 
 import numpy as np
 from skimage import segmentation
 
 from phm.loss import BaseLoss
+from phm.loss.core import loss_register
 
-
+@loss_register('unsupervised_superres_loss')
 class UnsupervisedLoss_SuperResolusion(BaseLoss):
     """Loss function implemented based on the loss function defined in,
     @name           Unsupervised Image Segmentation by Backpropagation
@@ -18,14 +25,16 @@ class UnsupervisedLoss_SuperResolusion(BaseLoss):
     @citation       Asako Kanezaki. Unsupervised Image Segmentation by Backpropagation. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018.
     """
 
-    def __init__(self, device : str, config : Dict[str,Any]) -> None:
-        super().__init__(
-            device=device, 
-            config=config
-        )
-
-        #              compactness: int = 100,
-        #              superpixel_regions: int = 30) -> None:
+    def __init__(self, name : str, config) -> None:
+        """
+        Args:
+            device (str): _description_
+            config (Dict[str,Any]): _description_
+                Defaults:
+                    compactness: int = 100
+                    superpixel_regions: int = 30
+        """
+        super().__init__(name=name, config=config)
 
         self.l_inds = None
         self.loss_fn = torch.nn.CrossEntropyLoss()

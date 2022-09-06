@@ -1,8 +1,16 @@
 
+""" 
+    @title A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components
+    @organization Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
+
 import torch
 import numpy as np
 
-from typing import Any, Dict, List
+from typing import Any, List
 from PIL import Image
 from skimage import color
 
@@ -15,6 +23,12 @@ class GrayToRGB(torch.nn.Module):
         if len(sample.shape) < 3:
             res = np.expand_dims(res, axis=2)
             res = np.concatenate((res,res,res), axis=2)
+        return res
+
+class FilterOutAlphaChannel(torch.nn.Module):
+    def forward(self, img) -> Any:
+        channel = img.shape[0]
+        res = img[:-1,:,:] if channel > 3 else img
         return res
 
 class ImageResize(torch.nn.Module):
@@ -75,7 +89,6 @@ class ClassMapToMDTarget(torch.nn.Module):
         print(img)
         gt = np.zeros(img.shape)
         tt = np.ones(img.shape)
-        # layers = ((np.ones(img.shape) * self.background_classid), *[np.where(img == i, img, gt) for i in self.categories])
         layers = []
         for i in self.categories:
             tmp = np.where(img == i, tt, gt)

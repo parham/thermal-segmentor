@@ -1,22 +1,22 @@
 
-
 """ 
-    @organization: Laval University
+    @title A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components
+    @organization Laval University
     @professor  Professor Xavier Maldague
     @author     Parham Nooralishahi
     @email      parham.nooralishahi@gmail.com
 """
 
 import logging
-from typing import Any, Dict, List, Union
+from dotmap import DotMap
+from typing import List, Union
 
-from phm.core import phmCore
+from phm.core import BaseCore
 
-class BaseLoss(phmCore):
-    def __init__(self, name : str, device : str, config : Dict[str,Any]) -> None:
+class BaseLoss(BaseCore):
+    def __init__(self, name : str, config) -> None:
         super().__init__(
             name=name,
-            device=device,
             config=config
         )
         
@@ -28,8 +28,13 @@ class BaseLoss(phmCore):
 
 __loss_handler = {}
 
-def loss_selector(name : Union[str, List[str]]):
-    def __embed_func(clss):
+def loss_register(name : Union[str, List[str]]):
+    """Register the loss (decorator)
+
+    Args:
+        name (Union[str, List[str]]): the name of given loss
+    """
+    def __embed_clss(clss):
         global __loss_handler
         hname = name if isinstance(name, list) else [name]
         if not issubclass(clss, BaseLoss):
@@ -37,24 +42,72 @@ def loss_selector(name : Union[str, List[str]]):
         for n in hname:
             __loss_handler[n] = clss
 
-    return __embed_func
+    return __embed_clss
 
 def list_losses() -> List[str]:
+    """List of losses
+
+    Returns:
+        List[str]: list containing the names of registered losses
+    """
     global __loss_handler
     return list(__loss_handler.keys())
 
-def load_loss(loss_name : str, device : str, config : Dict[str,Any]):
+def load_loss(experiment_config : DotMap):
+    """_summary_
+
+    Args:
+        loss_name (str): _description_
+        device (str): _description_
+        config (Dict[str,Any]): _description_
+
+    Raises:
+        ValueError: _description_
+
+    Returns:
+        _type_: _description_
+    """
+
+    # Get loss name
+    loss_name = experiment_config.loss.name
+    # Get the experiment configuration
+    loss_config = experiment_config.loss.config
+
     if not loss_name in list_losses():
         msg = f'{loss_name} model is not supported!'
         logging.error(msg)
         raise ValueError(msg)
     
-    return __loss_handler[loss_name](loss_name, device, config)
+    return __loss_handler[loss_name](
+        name=loss_name,
+        config=loss_config
+    )
 
-@loss_selector('neutral')
-class NeutralLoss(BaseLoss):
-    def __init__(self, 
-        device: str, 
-        config: Dict[str, Any]
-    ) -> None:
-        super().__init__(device, config)
+def load_loss(experiment_config : DotMap):
+    """Load an instance of a registered model based on the given name
+
+    Args:
+        experiment_config (DotMap): configuration
+
+    Raises:
+        ValueError: model is not supported
+
+    Returns:
+        BaseModule: the instance of the given model
+    """
+
+    loss_config = experiment_config.loss
+    # Get model name
+    loss_name = loss_config.name
+    # Get the experiment configuration
+    loss_config = loss_config.config
+
+    if not loss_name in list_losses():
+        msg = f'{loss_name} model is not supported!'
+        logging.error(msg)
+        raise ValueError(msg)
+    
+    return __loss_handler[loss_name](
+        name=loss_name,
+        config=loss_config
+    )

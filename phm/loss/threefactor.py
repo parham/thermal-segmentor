@@ -1,22 +1,32 @@
 
+""" 
+    @title A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components
+    @organization Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
 
 import torch
 from phm.loss import SSIM, BaseLoss
+from phm.loss.core import loss_register
 
-
+@loss_register('unsupervised_threefactor_loss')
 class UnsupervisedLoss_ThreeFactors(BaseLoss):
-    def __init__(self, device : str, config : Dict[str,Any]) -> None:
-        super().__init__(
-            device=device, 
-            config=config
-        )
-
-        #     num_channel: int = 100,
-        #     similarity_loss: float = 1.0,
-        #     continuity_loss: float = 0.5,
-        #     overall_similarity_loss : float = 0.4,
-        #     window_size = 11, 
-        #     size_average = True
+    def __init__(self, name : str, config) -> None:
+        """
+        Args:
+            name (str): _description_
+            config (_type_): _description_
+                Defaults:
+                    num_channel: int = 100,
+                    similarity_loss: float = 1.0,
+                    continuity_loss: float = 0.5,
+                    overall_similarity_loss : float = 0.4,
+                    window_size = 11, 
+                    size_average = True
+        """
+        super().__init__(name=name, config=config)
 
         self.loss_fn = torch.nn.CrossEntropyLoss()
         self.loss_hpy = torch.nn.L1Loss(reduction='mean')

@@ -1,6 +1,12 @@
 
+""" 
+    @title A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components
+    @organization Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
+"""
 
-from typing import Any, Dict
 import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
@@ -8,7 +14,7 @@ from torch.autograd import Variable
 from math import exp
 from phm.loss import BaseLoss
 
-from phm.loss.core import loss_selector
+from phm.loss.core import loss_register
 
 def gaussian(window_size, sigma):
     gauss = torch.Tensor([exp(-(x - window_size//2)**2/float(2*sigma**2)) for x in range(window_size)])
@@ -38,18 +44,23 @@ def _ssim(img1, img2, window, window_size, channel, size_average = True):
     ssim_map = ((2*mu1_mu2 + C1)*(2*sigma12 + C2))/((mu1_sq + mu2_sq + C1)*(sigma1_sq + sigma2_sq + C2))
     return ssim_map.mean() if size_average else ssim_map.mean(1).mean(1).mean(1)
 
-@loss_selector('ssim_loss')
+@loss_register('ssim_loss')
 class SSIM(BaseLoss):
-    def __init__(self, device : str, config : Dict[str,Any]) -> None:
+    def __init__(self, name : str, config) -> None:
+        """
+        Args:
+            name (str): _description_
+            config (Dict): _description_
+        Parameters:
+            window_size: window size
+            size_average: the size of averaging window
+            channel: the number of channels
+        """
         super().__init__(
-            device=device, 
+            name=name,
             config=config
         )
-
-        # self.window_size = window_size
-        # self.size_average = size_average
-        # self.channel = 1
-
+        
         self.window = create_window(self.window_size, self.channel)
 
     def forward(self, img1, img2):

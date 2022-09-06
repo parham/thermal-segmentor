@@ -1,10 +1,12 @@
 
 
-from typing import Any, Dict
 import torch
+from typing import Any, Dict
+
 from phm.loss import BaseLoss
+from phm.loss.core import loss_register
 
-
+@loss_register('unsupervised_twofactor_loss')
 class UnsupervisedLoss_TwoFactors(BaseLoss):
     """ Loss function implemented based on the loss function defined in,
     @name           Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering   
@@ -14,15 +16,18 @@ class UnsupervisedLoss_TwoFactors(BaseLoss):
     @citation       Wonjik Kim*, Asako Kanezaki*, and Masayuki Tanaka. Unsupervised Learning of Image Segmentation Based on Differentiable Feature Clustering. IEEE Transactions on Image Processing, accepted, 2020.
     """
 
-    def __init__(self, device : str, config : Dict[str,Any]) -> None:
-        super().__init__(
-            device=device, 
-            config=config
-        )
+    def __init__(self, name : str, config) -> None:
+        """
+        Args:
+            name (str): _description_
+            config (_type_): _description_
+                Defaults:
+                    num_channel: int = 100,
+                    similarity_loss: float = 1.0,
+                    continuity_loss: float = 0.5
+        """
 
-        #     num_channel: int = 100,
-        #     similarity_loss: float = 1.0,
-        #     continuity_loss: float = 0.5
+        super().__init__(name=name, config=config)
 
         self.loss_fn = torch.nn.CrossEntropyLoss()
         self.loss_hpy = torch.nn.L1Loss(reduction='mean')

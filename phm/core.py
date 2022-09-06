@@ -1,7 +1,7 @@
+
 """ 
-    @name core.py   
-    @info   core.py provides common codes and imports that can be used in the project
-    @organization: Laval University
+    @title A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components
+    @organization Laval University
     @professor  Professor Xavier Maldague
     @author     Parham Nooralishahi
     @email      parham.nooralishahi@gmail.com
@@ -34,7 +34,7 @@ Returns:
 """
 generate_random_str = lambda x: ''.join(random.choice(string.ascii_lowercase) for i in range(x))
 
-class phmCore(torch.nn.Module):
+class BaseCore(torch.nn.Module):
     """Base class for all module like components"""
     def __init__(self, name : str, config) -> None:
         super().__init__()
