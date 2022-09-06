@@ -1,92 +1,165 @@
 
 """ 
-    @name metrics.py   
-    @info   metrics.py provides metrics for evaluation of prediction or training
-    @organization: Laval University
+    @title A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components
+    @organization Laval University
     @professor  Professor Xavier Maldague
     @author     Parham Nooralishahi
     @email      parham.nooralishahi@gmail.com
 """
 
-import math
+import logging
 import cv2
-import scipy.misc
 import numpy as np
-import phasepack.phasecong as pc
 
-from comet_ml import Experiment
 from dataclasses import dataclass
 from typing import Callable, Dict, List
 from skimage.metrics import structural_similarity
 from scipy.spatial.distance import directed_hausdorff
+from comet_ml import Experiment
+from dotmap import DotMap
 
+import phasepack.phasecong as pc
+
+from ignite.engine import Engine
 from ignite.exceptions import NotComputableError
-from ignite.metrics import Metric
 
-def segment_metric(name):
+__metric_handler = {}
+
+def metric_register(name : str):
+    """ register metrics to be used """
     def __embed_func(clss):
-        if not issubclass(clss,BaseMetric):
-            raise ValueError(f'{name} must be a subclass of BaseMetric')
-        clss._name = name
-        
-        def get_name(self):
-            return self._name
-        
-        clss.get_name = get_name
+        global __metric_handler
+        if not issubclass(clss, BaseMetric):
+            raise NotImplementedError('The specified metric is not correctly implemented!')
 
-        return clss
-    
+        clss.get_name = lambda _: name
+        __metric_handler[name] = clss
+
     return __embed_func
 
+def list_metrics() -> List[str]:
+    """List of registered models
+
+    Returns:
+        List[str]: list of registered models
+    """
+    global __metric_handler
+    return list(__metric_handler.keys())
+
 class BaseMetric(object):
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+    """ Base class for metrics """
+    def __init__(self, config):
+        # Initialize the configuration
+        for key, value in config.items():
+            setattr(self, key, value)
 
     def reset(self):
+        """ reset the internal states """
         return
 
-    def update(self, output):
-        pass
-
-    def compute(self, 
-        experiment : Experiment = None, 
-        prefix : str = '',
-        step : int = 1, epoch : int = 1):
-        """Computes the metric and log it in comet.ml if the experiment is provided.
+    def update(self, batch, **kwargs):
+        """ update the internal states with given output
 
         Args:
-            experiment (Experiment, optional): comet.ml experiment object to log the metric. Defaults to None.
+            batch (Tuple): the variable containing data
         """
         pass
 
+    def compute(self,
+        engine : Engine,
+        experiment : Experiment,
+        prefix : str = '',
+        **kwargs
+    ):
+        """ Compute the metrics
+
+        Args:
+            prefix (str, optional): prefix for logging metrics. Defaults to ''.
+            step (int, optional): the given step. Defaults to 1.
+            epoch (int, optional): the given epoch. Defaults to 1.
+        """
+        pass
+
+def load_metric(name, config) -> BaseMetric:
+    if not name in list_metrics():
+        msg = f'{name} metric is not supported!'
+        logging.error(msg)
+        raise ValueError(msg)
+    
+    return __metric_handler[name](config)
+
+def load_metrics(experiment_config : DotMap, categories):
+    metrics_configs = experiment_config.metrics
+
+    metrics_obj = []
+    for metric_name, config in metrics_configs.items():
+        config.categories = categories
+        metrics_obj.append(load_metric(metric_name, config))
+    return metrics_obj
+
+@dataclass
+class CMRecord:
+    """ Confusion Matrix """
+    confusion_matrix : np.ndarray
+    step_confusion_matrix : np.ndarray
+    class_labels : List[str]
+    cm_metrics : Dict[str, float]
+
 class Function_Metric(BaseMetric):
+    """
+        Function_Metric is a metric class that allows you to wrap a metric function inside.
+        It lets a metric function to be integrated into the prepared platform.
+    """
     def __init__(self, 
         func : Callable, 
-        **kwargs):
-        super().__init__()
+        config
+    ):
+        super().__init__(config)
         self.__func = func
         self.__last_ret = None
-        self.__args = kwargs
+        self.__args = config
 
-    def update(self, output):
-        output, target = output[-2], output[-1]
+    def update(self, batch, **kwargs):
+        """ update the internal states with given batch """
+        output, target = batch[-2], batch[-1]
         self.__last_ret = self.__func(output, target, **self.__args)
 
-    def compute(self, 
-        experiment : Experiment = None, 
+    def compute(self,
+        engine : Engine,
+        experiment : Experiment,
         prefix : str = '',
-        step : int = 1, epoch : int = 1):
+        **kwargs
+    ):
+        """Compute the metrics
 
-        if self.__last_ret is not None and \
-            experiment is not None:
-            experiment.log_metrics(self.__last_ret, prefix=prefix, step=step, epoch=epoch)
+        Args:
+            prefix (str, optional): prefix for logging metrics. Defaults to ''.
+            step (int, optional): the given step. Defaults to 1.
+            epoch (int, optional): the given epoch. Defaults to 1.
+        """
+        
+        if self.__last_ret is not None:
+            experiment.log_metrics(
+                self.__last_ret, 
+                prefix=prefix, 
+                step=engine.state.iteration, 
+                epoch=engine.state.epoch
+            )
         
         return self.__last_ret
 
 def measure_accuracy_cm__(
-    cmatrix : np.ndarray, 
-    labels : List[str]   
-):
+    cmatrix : np.ndarray
+) -> Dict:
+    """Measuring accuracy metrics
+
+    Args:
+        cmatrix (np.ndarray): confusion matrix
+        labels (List[str]): _description_
+
+    Returns:
+        Dict: _description_
+    """
     fp = cmatrix.sum(axis=0) - np.diag(cmatrix)  
     fn = cmatrix.sum(axis=1) - np.diag(cmatrix)
     tp = np.diag(cmatrix)
@@ -110,32 +183,20 @@ def measure_accuracy_cm__(
         'accuracy' : np.average(accuracy, weights=weights),
         'fscore' : np.average(fscore, weights=weights),
     }
-    
-@dataclass
-class CMRecord:
-    confusion_matrix : np.ndarray
-    step_confusion_matrix : np.ndarray
-    class_labels : List[str]
-    cm_metrics : Dict[str, float]
 
-@segment_metric('confusion_matrix')
+@metric_register('confusion_matrix')
 class ConfusionMatrix(BaseMetric):
-    def __init__(self, 
-        category : Dict[str, int],
-        cm_based_metrics : List[Callable] = None,
-        log_steps : bool = False) -> None:
-        self.category = category
-        lbl = list(self.category.values())
+    def __init__(self, config) -> None:
+        super().__init__(config)
+        lbl = list(self.categories.values())
         lbl.sort()
-        self.labels = {}
         self.class_ids = lbl
-        self.class_labels = [list(self.category.keys())[self.class_ids.index(v)] for v in self.class_ids]
+        self.class_labels = [list(self.categories.keys())[self.class_ids.index(v)] for v in self.class_ids]
         self.reset()
-        self.log_steps = log_steps
-        self.cm_metrics = cm_based_metrics
 
     def reset(self):
-        lcount = len(self.category.keys())
+        """ Reset the internal metrics """
+        lcount = len(self.categories.keys())
         self.confusion_matrix = np.zeros((lcount, lcount), np.uint)
         self.step_confusion_matrix = np.zeros((lcount, lcount), np.uint)
 
@@ -152,7 +213,7 @@ class ConfusionMatrix(BaseMetric):
         self.confusion_matrix = newc
         self.step_confusion_matrix = newc_step
 
-    def update(self, data):
+    def update(self, data, **kwargs):
         output, target = data[-2], data[-1]
         # Flattening the output and target
         out = output.flatten()
@@ -177,46 +238,51 @@ class ConfusionMatrix(BaseMetric):
         self.step_confusion_matrix = cmatrix
         self.confusion_matrix += cmatrix
     
-    def compute(self, 
-        experiment : Experiment = None, 
+    def compute(self,  
+        engine : Engine,
+        experiment : Experiment,
         prefix : str = '',
-        step : int = 1, epoch : int = 1):
-        
-        if experiment is not None:
-            experiment.log_confusion_matrix(
-                matrix=self.confusion_matrix, 
-                labels=self.class_labels, 
-                title=f'{prefix}Confusion Matrix',
-                file_name=f'{prefix}confusion-matrix.json', 
-                step=step, epoch=epoch)
+        **kwargs
+    ):
+        experiment.log_confusion_matrix(
+            matrix=self.confusion_matrix, 
+            labels=self.class_labels, 
+            title=f'{prefix}Confusion Matrix',
+            file_name=f'{prefix}confusion-matrix.json', 
+            step=engine.state.iteration, 
+            epoch=engine.state.epoch
+        )
         
         # Calculate confusion matrix based metrics
         stats = {}
-        if self.cm_metrics is not None and self.cm_metrics:
-            for __cx in self.cm_metrics:
-                sts = __cx(self.confusion_matrix, self.class_labels)
-                stats = {**stats, **sts}
-            
-            if experiment is not None:
-                experiment.log_metrics(stats, prefix=prefix, step=step, epoch=epoch)
 
-        cm = CMRecord(
+        sts = measure_accuracy_cm__(self.confusion_matrix)
+        stats = {**stats, **sts}
+        
+        experiment.log_metrics(stats, 
+            prefix=prefix, 
+            step=engine.state.iteration, 
+            epoch=engine.state.epoch
+        )
+
+        return CMRecord(
             self.confusion_matrix,
             self.step_confusion_matrix,
             self.class_labels,
             cm_metrics=stats
         )
 
-        return cm
-
-@segment_metric('mIoU')
+@metric_register('mIoU')
 class mIoU(BaseMetric):
-    def __init__(self, ignored_class, 
-        iou_thresh : float = 0.1
-    ) -> None:
-        super().__init__()
-        self.ignore_class = ignored_class
-        self.iou_thresh = iou_thresh
+    def __init__(self, config) -> None:
+        """measure mIoU metric 
+
+        Args:
+            config (_type_): _description_
+            *    ignored_class (_type_): _description_
+            *    iou_thresh (float, optional): _description_. Defaults to 0.1.
+        """
+        super().__init__(config)
         self._mIoU = 0.0
         self._mIoU_count = 0
         self._iou_map = None
@@ -226,26 +292,37 @@ class mIoU(BaseMetric):
         self._mIoU_count = 0
         super(mIoU, self).reset()
     
-    def update(self, data):
+    def update(self, data, **kwargs):
         output, target = data[-2], data[-1]
         iou, iou_map, maxv, maxind, _, _ = mIoU_func(output, target, iou_thresh=self.iou_thresh)
         self._mIoU += iou
         self._mIoU_count += 1
         self._iou_map = iou_map
     
-    def compute(self, 
-        experiment : Experiment = None,
+    def compute(self,
+        engine : Engine,
+        experiment : Experiment,
         prefix : str = '',
-        step : int = 1, epoch : int = 1):
+        **kwargs
+    ):
         if self._mIoU_count == 0:
             raise NotComputableError()
+
         metric = float(self._mIoU) / float(self._mIoU_count)
-        if experiment is not None:
-            experiment.log_table('iou.csv', self._iou_map)
-            experiment.log_metric(name=f'{prefix}{self.get_name()}', value=metric, step=step, epoch=epoch)
+
+        experiment.log_table('iou.csv', self._iou_map)
+        experiment.log_metric(
+            name=f'{prefix}{self.get_name()}', 
+            value=metric, 
+            step=engine.state.iteration, 
+            epoch=engine.state.epoch
+        )
         return metric
 
-def iou_binary(prediction : np.ndarray, target : np.ndarray):
+def iou_binary(
+    prediction : np.ndarray, 
+    target : np.ndarray
+):
     """Measuring mean IoU metric for binary images
 
     Args:
@@ -264,7 +341,10 @@ def iou_binary(prediction : np.ndarray, target : np.ndarray):
     iou = float(intersection) / float(union) if union != 0 else 0
     return iou
 
-def extract_regions(data : np.ndarray, min_size : int = 0) -> List[Dict]:
+def extract_regions(
+    data : np.ndarray, 
+    min_size : int = 0
+) -> List[Dict]:
     """Extract independent regions from segmented image
 
     Args:
@@ -296,7 +376,8 @@ def extract_regions(data : np.ndarray, min_size : int = 0) -> List[Dict]:
 def mIoU_func(
     output : np.ndarray, 
     target : np.ndarray, 
-    iou_thresh : float = 0):
+    iou_thresh : float = 0,
+    **kwargs):
     """ Measuring mean IoU
 
     Args:
@@ -348,7 +429,7 @@ def _assert_image_shapes_equal(org: np.ndarray, pred: np.ndarray, metric: str):
 
     assert org.shape == pred.shape, msg
 
-def rmse(org: np.ndarray, pred: np.ndarray, max_p: int = 255) :
+def rmse(org: np.ndarray, pred: np.ndarray, max_p: int = 255, **kwargs) :
     """rmse : Root Mean Squared Error Calculated individually for all bands, then averaged
     Based on: https://github.com/up42/image-similarity-measures
 
@@ -374,7 +455,15 @@ def rmse(org: np.ndarray, pred: np.ndarray, max_p: int = 255) :
 
     return {'rmse' : np.mean(rmse_bands)}
 
-def psnr(org_img: np.ndarray, pred_img: np.ndarray, max_p: int = 255) -> float:
+@metric_register('rmse')
+class RMSE(Function_Metric):
+    def __init__(self, config):
+        super().__init__(
+            func=rmse,
+            config=config
+        )
+
+def psnr(org_img: np.ndarray, pred_img: np.ndarray, max_p: int = 255, **kwargs) -> float:
     """
     Peek Signal to Noise Ratio, implemented as mean squared error converted to dB.
     Based on: https://github.com/up42/image-similarity-measures
@@ -393,6 +482,14 @@ def psnr(org_img: np.ndarray, pred_img: np.ndarray, max_p: int = 255) -> float:
         mse_bands.append(np.mean(np.square(org[:, :, i] - pred[:, :, i])))
 
     return {'psnr' : 20 * np.log10(max_p) - 10.0 * np.log10(np.mean(mse_bands))}
+
+@metric_register('psnr')
+class PSNR(Function_Metric):
+    def __init__(self, config):
+        super().__init__(
+            func=psnr,
+            config=config
+        )
 
 def _similarity_measure(x: np.array, y: np.array, constant: float):
     """
@@ -416,14 +513,23 @@ def _gradient_magnitude(img: np.ndarray, img_depth: int):
         res = 0
     return res
 
-def directed_hausdorff_distance(img: np.ndarray, target: np.ndarray):
+def directed_hausdorff_distance(img: np.ndarray, target: np.ndarray, **kwargs):
     hdvalue = max(directed_hausdorff(img, target)[0], directed_hausdorff(target, img)[0])
     return {'directed_hausdorff' : hdvalue}
+
+@metric_register('hausdorff_distance')
+class Hausdorff_Distance(Function_Metric):
+    def __init__(self, config):
+        super().__init__(
+            func=directed_hausdorff_distance,
+            config=config
+        )
 
 def fsim(
     org: np.ndarray, 
     pred: np.ndarray, 
-    T1: float = 0.85, T2: float = 160
+    T1: float = 0.85, T2: float = 160,
+    **kwargs
 ) -> float:
     """
     Based on: https://github.com/up42/image-similarity-measures
@@ -482,6 +588,14 @@ def fsim(
 
     return {'fsim' : np.mean(fsim_list)}
 
+@metric_register('fsim')
+class FSIM(Function_Metric):
+    def __init__(self, config):
+        super().__init__(
+            func=fsim,
+            config=config
+        )
+
 def _ehs(x: np.ndarray, y: np.ndarray):
     """
     Entropy-Histogram Similarity measure
@@ -506,7 +620,15 @@ def _edge_c(x: np.ndarray, y: np.ndarray):
 
     return numerator / denominator
 
-def ssim(org_img: np.ndarray, pred_img: np.ndarray, max_p: int = 255) -> float:
+@metric_register('ssim')
+class SSIM(Function_Metric):
+    def __init__(self, config):
+        super().__init__(
+            func=ssim,
+            config=config
+        )
+
+def ssim(org_img: np.ndarray, pred_img: np.ndarray, max_p: int = 255, **kwargs) -> float:
     """
     Structural Simularity Index
     Based on: https://github.com/up42/image-similarity-measures
@@ -516,7 +638,15 @@ def ssim(org_img: np.ndarray, pred_img: np.ndarray, max_p: int = 255) -> float:
     res = structural_similarity(org_img, pred_img, data_range=max_p, multichannel=True)
     return {'ssim' : res}
 
-def issm(org: np.ndarray, pred: np.ndarray) -> float:
+@metric_register('issm')
+class ISSM(Function_Metric):
+    def __init__(self, config):
+        super().__init__(
+            func=issm,
+            config=config
+        )
+
+def issm(org: np.ndarray, pred: np.ndarray, **kwargs) -> float:
     """
     Information theoretic-based Statistic Similarity Measure
     Note that the term e which is added to both the numerator as well as the denominator is not properly
@@ -550,9 +680,19 @@ def sliding_window(image: np.ndarray, stepSize: int, windowSize: int):
             # yield the current window
             yield (x, y, image[y : y + windowSize[1], x : x + windowSize[0]])
 
-def uiq (org: np.ndarray, pred: np.ndarray, 
+@metric_register('uiq')
+class UIQ(Function_Metric):
+    def __init__(self, config):
+        super().__init__(
+            func=uiq,
+            config=config
+        )
+
+def uiq (org: np.ndarray, 
+    pred: np.ndarray, 
     step_size: int = 1, 
-    window_size: int = 8
+    window_size: int = 8,
+    **kwargs
 ):
     """
     Universal Image Quality index
@@ -604,7 +744,15 @@ def uiq (org: np.ndarray, pred: np.ndarray,
 
     return {'uiq' : np.mean(q_all)}
 
-def sam(org: np.ndarray, pred: np.ndarray, convert_to_degree: bool = True):
+@metric_register('sam')
+class SAM(Function_Metric):
+    def __init__(self, config):
+        super().__init__(
+            func=sam,
+            config=config
+        )
+
+def sam(org: np.ndarray, pred: np.ndarray, convert_to_degree: bool = True, **kwargs):
     """
     Spectral Angle Mapper which defines the spectral similarity between two spectra
     Based on: https://github.com/up42/image-similarity-measures
@@ -626,7 +774,15 @@ def sam(org: np.ndarray, pred: np.ndarray, convert_to_degree: bool = True):
     # et al. (2018) use degrees. We therefore made this configurable, with degree the default
     return {'sam' : np.mean(np.nan_to_num(sam_angles))}
 
-def sre(org: np.ndarray, pred: np.ndarray):
+@metric_register('sre')
+class SRE(Function_Metric):
+    def __init__(self, config):
+        super().__init__(
+            func=sre,
+            config=config
+        )
+
+def sre(org: np.ndarray, pred: np.ndarray, **kwargs):
     """
     Signal to Reconstruction Error Ratio
     Based on: https://github.com/up42/image-similarity-measures
