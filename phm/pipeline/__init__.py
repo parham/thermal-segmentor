@@ -8,7 +8,3 @@
 """
 
 from .core import *
-from .classics import *
-# from .iterative_seg import *
-# from .wnet_seg import *
-# from .smp_seg import *

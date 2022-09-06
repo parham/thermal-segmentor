@@ -17,7 +17,7 @@ def extract_regions(
     data : np.ndarray, 
     min_size : int = 0
 ) -> List[Dict]:
-    """Extract independent regions from segmented image
+    """ Extract independent regions from segmented image
 
     Args:
         data (np.ndarray): segmented image which each pixel presented the class id.
@@ -49,7 +49,7 @@ def iou_binary(
     prediction : np.ndarray, 
     target : np.ndarray
 ):
-    """Measuring mean IoU metric for binary images
+    """ Measuring mean IoU metric for binary images
 
     Args:
         prediction (np.ndarray): The image containing the prediction
