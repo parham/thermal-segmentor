@@ -18,8 +18,9 @@ from .segmentation import *
 import torch, gc
 
 if not torch.cuda.is_available():
-    print('CUDA is not available!')
+    logging.warning('CUDA is not available')
 else:
+    # Clearing the GPU memory
     gc.collect()
     torch.cuda.empty_cache()
 
