@@ -1,9 +1,10 @@
 
 """ 
-    @author        Parham Nooralishahi
-    @email         parham.nooralishahi@gmail.com
-    @professor     Professor Xavier Maldague
+    @title A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components
     @organization Laval University
+    @professor  Professor Xavier Maldague
+    @author     Parham Nooralishahi
+    @email      parham.nooralishahi@gmail.com
     @description Implementation of a W-Net CNN for unsupervised learning of image segmentations.
                  adopted from https://github.com/fkodom/wnet-unsupervised-image-segmentation
 """
