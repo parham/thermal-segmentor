@@ -1,8 +1,7 @@
 
 """ 
-    @name dataset.py   
-    @info   dataset.py provides customizable dataset
-    @organization: Laval University
+    @title A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components
+    @organization Laval University
     @professor  Professor Xavier Maldague
     @author     Parham Nooralishahi
     @email      parham.nooralishahi@gmail.com
@@ -13,8 +12,7 @@ import numpy as np
 
 from typing import Dict
 from torch.utils.data import Dataset
-from gimp_labeling_converter import generate_cmap, gimp_helper
-
+from gimp_labeling_converter import XCFDataset, generate_cmap, gimp_helper
 
 class FileRepeaterDataset(Dataset):
 
@@ -50,22 +48,42 @@ class FileRepeaterDataset(Dataset):
             target = self.target_transform(self.target)
         return img, target
 
-class RepetitiveDatasetWrapper(Dataset):
-    def __init__(self, ds : Dataset, iteration : int  = 1) -> None:
-        super().__init__()
-        if iteration < 1:
-            raise ValueError('iteration cannot be lower than one!')
-        self.iteration = iteration
-        self.dataset_ = ds
-        self.actual_size = len(self.dataset_)
+
+class RepetitiveDatasetWrapper(XCFDataset):
+    def __init__(self, 
+        root_dir: str, 
+        category: Dict[str, int], 
+        transform=None, 
+        target_transform=None
+    ) -> None:
+        super().__init__(root_dir, category, transform, target_transform)
 
     @property
     def wrapped_dataset(self):
         return self.dataset_
 
     def __len__(self):
-        return len(self.dataset_) * self.iteration
-    
+        return super().__len__() * self.iteration
+
     def __getitem__(self, idx):
-        actual_idx = idx % self.actual_size
-        return self.dataset_[actual_idx]
+        super().__getitem__(idx % self.actual_size)
+
+# class RepetitiveDatasetWrapper(Dataset):
+#     def __init__(self, ds : Dataset, iteration : int  = 1) -> None:
+#         super().__init__()
+#         if iteration < 1:
+#             raise ValueError('iteration cannot be lower than one!')
+#         self.iteration = iteration
+#         self.dataset_ = ds
+#         self.actual_size = len(self.dataset_)
+
+#     @property
+#     def wrapped_dataset(self):
+#         return self.dataset_
+
+#     def __len__(self):
+#         return len(self.dataset_) * self.iteration
+    
+#     def __getitem__(self, idx):
+#         actual_idx = idx % self.actual_size
+#         return self.dataset_[actual_idx]
