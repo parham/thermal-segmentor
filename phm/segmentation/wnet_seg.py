@@ -10,7 +10,7 @@ from comet_ml import Experiment
 from phm.loss import UnsupervisedLoss_TwoFactors, WNetLoss
 from phm.metrics import BaseMetric
 from phm.models.wnet import WNet
-from phm.postprocessing import adapt_output
+from phm.processing import adapt_output
 from phm.segmentation.core import SegmentRecord, segmenter_method, simplify_train_step
 
 import torch

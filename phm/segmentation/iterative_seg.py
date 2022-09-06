@@ -22,7 +22,7 @@ from phm.models.wnet import WNet
 from phm.segmentation import SegmentRecord, segmenter_method, label_colors_1ch8bits, simplify_train_step
 from phm.loss import UnsupervisedLoss_SuperResolusion, UnsupervisedLoss_TwoFactors
 from phm.models import Kanezaki2018Module, Wonjik2020Module
-from phm.postprocessing import remove_small_regions, adapt_output
+from phm.processing import remove_small_regions, adapt_output
 
 __phm_kanezaki2018__ = 'phm_kanezaki2018'
 __phm_wonjik2020__ = 'phm_wonjik2020'

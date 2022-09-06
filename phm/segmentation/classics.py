@@ -14,7 +14,7 @@ from skimage.future import graph
 
 from phm.metrics import BaseMetric
 from phm.segmentation import BaseSegmenter, SegmentRecord, segmenter_method, label_colors_1ch8bits
-from phm.postprocessing import remove_small_regions
+from phm.processing import remove_small_regions
 
 class ClassicSegmenter(BaseSegmenter):
     def __init__(

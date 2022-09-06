@@ -14,7 +14,7 @@ from skimage.color import label2rgb
 import matplotlib as ml
 import matplotlib.pyplot as plt
 
-from phm.postprocessing import remove_small_regions
+from phm.processing import remove_small_regions
 
 # iou_metric = mIoU(ignored_class=0)
 
