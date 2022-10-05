@@ -33,6 +33,8 @@ class PlateSimulationDataset(Dataset):
             raise ValueError('The label image does not exist!')
         self.label = Image.open(label_file)
         self.label = np.asarray(self.label)
+        if len(self.label.shape) > 2 and self.label.shape[-1] > 1:
+            self.label = self.label[:,:,0]
         if self.target_transforms is not None:
             self.label = self.target_transforms(self.label)
         # Loading label

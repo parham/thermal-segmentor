@@ -15,24 +15,14 @@ from lemanchot.dataset import PlateSimulationDataset
 
 class TestDataset(unittest.TestCase):
     
-    def test_Huang2020Dataset(self):
+    def test_PlateSimulationDataset(self):
         dataset = PlateSimulationDataset(
-            root_dir = '/home/phm/Datasets/texture/train',
-            categories={
-                'linen' : 1,
-                'styrofoam' : 2,
-                'ceiling' : 3,
-                'sand' : 4,
-                'stone' : 5,
-                'wood' : 6,
-                'water' : 7,
-                'wall' : 8
-            }
+            root_dir = '/data/thermal-segmentation/Plate_Simulation/Curve-CFRP'
         )
         batch_size = 2
         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-        for img, target in data_loader:
-            assert len(torch.unique(target)) <= batch_size
+        for img, target, fname in data_loader:
+            print(f'Reading {fname}')
 
 if __name__ == '__main__':
     unittest.main()
