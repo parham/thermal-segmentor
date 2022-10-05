@@ -1,13 +1,29 @@
 {
-    "general" : {
-        "log_image" : true,
-        "log_metrics" : true
+    "model" : {
+        "name" : "meanshift",
+        "config" : {
+            "quantile" : 0.3,
+            "n_samples" : 3
+        }
     },
-    "segmentation": {
-        "max_epoch" : 3,
-        "quantile" : 0.2,
-        "n_samples" : 500,
-        "min_area" : 0,
-        "iou_thresh" : 0.1
+    "metrics" : {
+        "confusion_matrix" : {
+            "just_test" : "test"
+        },
+        "rmse" : {
+            "max_p" : 255
+        },
+        "fsim" : {
+            "T1" : 0.85,
+            "T2" : 160
+        },
+        "ssim" : {
+            "max_p" : 255
+        }
+    },
+    "pipeline" : {
+        "classics" : {
+            "n_clusters" : 1
+        }
     }
 }

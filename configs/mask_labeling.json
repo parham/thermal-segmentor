@@ -1,7 +1,0 @@
-{
-    "dir_in" : "/home/phm/GoogleDrive/Personal/Datasets/my-dataset/thermal-segmentor/Pipe_Inspection/pipe_inspection_group01_20201117/label_orig",
-    "file_out" : "/home/phm/Datasets/thermal-segmentor/Pipe_Inspection/pipe_inspection_group01_20201117", 
-    "handler" : "mask",
-    "binarize" : true,
-    "num_workers" : 10
-}

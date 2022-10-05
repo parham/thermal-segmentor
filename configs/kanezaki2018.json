@@ -1,20 +1,45 @@
 {
     "model" : {
-        "num_channels" : 100,
-        "num_conv_layers" : 3
+        "name" : "kanezaki2018",
+        "config" : {
+            "num_dim" : 3,
+            "num_channels" : 100,
+            "num_convs" : 4
+        }
     },
-    "segmentation": {
-        "image_size_w" : 250,
-        "image_size_h" : 250,
-        "iteration" : 200,
-        "min_classes" : 10,
-        "learning_rate" : 0.1,
-        "momentum" : 0.9,
-        "superpixel_regions" : 30,
-        "compactness" : 10
+    "metrics" : {
+        "confusion_matrix" : {
+            "just_test" : "test"
+        },
+        "rmse" : {
+            "max_p" : 255
+        },
+        "fsim" : {
+            "T1" : 0.85,
+            "T2" : 160
+        },
+        "ssim" : {
+            "max_p" : 255
+        }
     },
-    "general" : {
-        "log_image" : true,
-        "log_metrics" : true
+    "loss" : {
+        "name" : "unsupervised_superres_loss",
+        "config" : {
+            "superpixel_regions" : 30,
+            "compactness" : 10
+        }
+    },
+    "optimizer" : {
+        "name" : "SGD",
+        "config" : {
+            "lr" : 0.1,
+            "momentum": 0.9
+        }
+    },
+    "pipeline" : {
+        "kanezaki2018" : {
+            "max_epoch" : 10,
+            "batch_size" : 1
+        }
     }
 }

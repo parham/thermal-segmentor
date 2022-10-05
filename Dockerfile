@@ -1,42 +1,20 @@
-#   
-# Thermal Segmentor - A Semi-Supervised Thermal Segmentation Algorithm using [D]eep Learning approach
-# Supervisor: Professor Xavier Maldague
-# Student: Parham Nooralishahi, PhD. student @ Computer and Electrical Engineering Department, Université Laval
-# University: Université Laval
 
-FROM pytorch/pytorch:latest
-
-# Define the metadata labels
-LABEL author1="Parham Nooralishahi"
-LABEL email1="parham.nooralishahi.1@ulaval.ca"
-LABEL superviser="Professor Xavier Maldague"
-LABEL organization="Laval University"
+FROM nvidia/cuda:11.7.1-runtime-ubuntu20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG RUN_SCRIPT=run_program.py
-
 ENV TZ=America/Montreal
 
-RUN apt-get update && \
-    apt-get install -y apt-transport-https 
+RUN apt-get update && apt-get install -y apt-utils apt-transport-https git wget zip build-essential cmake vim screen
+RUN apt-get remove python-* && apt-get autoremove
+RUN apt-get install -y python3 python3-dev python3-pip python-is-python3 
 
-RUN apt-get install -y git wget zip build-essential cmake sysvbanner
+ADD . /thermal-segmentor
 
-RUN echo "" && \
-    banner UNIVERSITE LAVAL && \
-    echo "-----------------------------------------"
+RUN cd thermal-segmentor && pip install -r requirements.txt
+WORKDIR /thermal-segmentor
 
-# Install Dependencies
-RUN pip install pytorch-ignite torchmetrics torchvision scipy comet-ml opencv-python scikit-image scikit-learn dotmap phasepack cython pyyaml matplotlib
-RUN pip install crfseg tqdm pyfftw dotmap
-RUN pip install segmentation-models-pytorch
-RUN pip install git+https://github.com/waspinator/coco.git@2.1.0
-RUN pip install git+https://github.com/waspinator/pycococreator.git@0.2.0
-RUN pip install gimp-labeling-converter
+RUN pip install git+https://github.com/qubvel/segmentation_models.pytorch \
+    git+https://github.com/waspinator/coco.git@2.1.0 \
+    git+https://github.com/waspinator/pycococreator.git@0.2.0 && pip install gimp-labeling-converter
 
-# RUN pip install pytorch-lightning comet-ml scikit-image opencv-python 
-
-RUN mkdir -p /phm
-
-COPY . /phm
-WORKDIR /phm
+CMD ["tail", "-f", "/dev/null"]

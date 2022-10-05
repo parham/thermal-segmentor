@@ -1,9 +1,9 @@
 {
     "model" : {
-        "name" : "wnet",
+        "name" : "unet_resnet18",
         "config" : {
-            "num_channels" : 3,
-            "num_classes" : 3
+            "channels" : 3,
+            "num_classes" : 5
         }
     },
     "metrics" : {
@@ -22,15 +22,10 @@
         }
     },
     "loss" : {
-        "name" : "wnet_loss",
+        "name" : "cross_entropy",
         "config" : {
-            "alpha" : 1e-3, 
-            "beta" : 1, 
-            "gamma" : 1e-1, 
-            "ncut_radius" : 4, 
-            "sigma_1" : 5, 
-            "sigma_2" : 1,
-            "open_radius" : 2
+            "reduction" : "mean",
+            "ignore_index" : 0
         }
     },
     "optimizer" : {
@@ -41,8 +36,8 @@
         }
     },
     "pipeline" : {
-        "wnet" : {
-            "max_epoch" : 100,
+        "simple_train" : {
+            "max_epoch" : 200,
             "batch_size" : 1
         }
     }
