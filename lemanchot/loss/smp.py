@@ -10,10 +10,31 @@
 import torch
 from torch import nn
 
-from segmentation_models_pytorch.losses import SoftBCEWithLogitsLoss, DiceLoss
+from segmentation_models_pytorch.losses import SoftBCEWithLogitsLoss, DiceLoss, FocalLoss
 from lemanchot.core import get_device
 
 from lemanchot.loss.core import BaseLoss, classmap_2_multilayer, loss_register
+
+@loss_register('focal_loss')
+class SMP_FocalLoss(BaseLoss):
+    """ The smp implementation of FocalLoss 
+        Example of configuration section
+        {
+            "mode" : "multiclass",
+            "alpha" : 0.5,
+            "gamma" : 0.2,
+            "normalized" : true
+        }
+    """
+    def __init__(self, name : str, config) -> None:
+        super().__init__(name=name, config=config)
+        self.criteria = FocalLoss(**config).to(get_device())
+
+    def prepare_loss(self, **kwargs):
+        return
+    
+    def forward(self, output, target, **kwargs):
+        return self.criteria(output, target)
 
 @loss_register('soft_bce')
 class SMP_BCEWithLogitsLoss(BaseLoss):

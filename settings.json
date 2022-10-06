@@ -12,11 +12,11 @@
       "log_env_host" : true,
       "enable_logging" : true,
       "enable_image_logging" : true,
-      "pipeline" : "wonjik2020",
+      "pipeline" : "unet50_train",
       "checkpoint_save" : true,
       "checkpoint_load" : true,
       "checkpoint_log_cometml" : true,
-      "experiment_config_name" : "wonjik2020",
+      "experiment_config_name" : "unet50_train",
       "dataset_name" : "Curve-AlHoneycomb",
       "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb/",
       "categories" : {

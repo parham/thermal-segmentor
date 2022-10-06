@@ -1,5 +1,4 @@
 
-
 """ 
     @title A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components
     @organization Laval University
@@ -8,16 +7,19 @@
     @email      parham.nooralishahi@gmail.com
 """
 
+import time
 from comet_ml import Experiment
-from typing import Dict
+from typing import Callable, Dict
 
 import torch
 import torch.optim as optim
 
 from ignite.engine import Engine
+from lemanchot.core import get_device, get_profile, make_tensor_for_comet
 
 from lemanchot.pipeline.core import pipeline_register
 from lemanchot.models import BaseModule
+from lemanchot.pipeline.wrapper import BaseWrapper, wrapper_register
 
 @pipeline_register("kanezaki2018")
 def kanezaki2018_train_step__(

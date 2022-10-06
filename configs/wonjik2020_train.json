@@ -1,0 +1,57 @@
+{
+    "model" : {
+        "name" : "wonjik2020",
+        "config" : {
+            "num_dim" : 3,
+            "num_channels" : 100,
+            "num_convs" : 4
+        }
+    },
+    "metrics" : {
+        "confusion_matrix" : {
+            "cal_stats" : true
+        },
+        "rmse" : {
+            "max_p" : 255
+        },
+        "fsim" : {
+            "T1" : 0.85,
+            "T2" : 160
+        },
+        "ssim" : {
+            "max_p" : 255
+        }
+    },
+    "loss": {
+        "name": "focal_loss",
+        "config": {
+            "mode" : "multiclass"
+        }
+    },
+    "optimizer": {
+    "name": "SGD",
+        "config": {
+            "lr": 0.8,
+            "momentum": 0.9,
+            "weight_decay": 0.005
+        }
+    },
+    "scheduler" : {
+    "name" : "CosineAnnealingLR",
+        "config" : {
+            "period" : "epoch",
+            "start_value": 0.8,
+            "end_value": 0.1,
+            "cycle_size": 8,
+            "cycle_mult": 2,
+            "mult": 0.5
+        }
+    },
+    "pipeline" : {
+        "wonjik2020_train" : {
+            "wrapper" : "wonjik2020_train_platesimulation_wrapper",
+            "max_epoch" : 10,
+            "batch_size" : 1
+        }
+    }
+}

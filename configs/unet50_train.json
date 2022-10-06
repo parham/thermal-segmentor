@@ -1,0 +1,71 @@
+{
+    "model" : {
+        "name" : "unet_resnet18",
+        "config" : {
+            "channels": 3,
+            "num_classes": 3,
+            "weights": "imagenet"
+        }
+    },
+    "metrics" : {
+        "confusion_matrix" : {
+            "cal_stats" : true
+        },
+        "rmse" : {
+            "max_p" : 255
+        },
+        "ssim" : {
+            "max_p" : 255
+        },
+        "smp": {
+            "mode" : "multilabel",
+            "threshold" : 0.5,
+            "num_classes" : 3,
+            "metrics": {
+              "f1" : {
+               "reduction" : "macro",
+               "class_weights" : null,
+               "zero_division" : 1
+               },
+              "iou" : {
+                "reduction" : "macro",
+               "class_weights" : null,
+               "zero_division" : 1
+              }
+            }
+        }
+    },
+    "loss": {
+        "name": "soft_bce",
+        "config": {
+          "reduction": "mean",
+          "number_classes" : 3
+        }
+    },
+    "optimizer": {
+    "name": "SGD",
+        "config": {
+            "lr": 0.8,
+            "momentum": 0.9,
+            "weight_decay": 0.005
+        }
+    },
+    "scheduler" : {
+    "name" : "CosineAnnealingLR",
+        "config" : {
+            "period" : "epoch",
+            "start_value": 0.8,
+            "end_value": 0.1,
+            "cycle_size": 8,
+            "cycle_mult": 2,
+            "mult": 0.5
+        }
+    },
+    "pipeline" : {
+        "unet50_train" : {
+            "wrapper" : "platesim_wrapper",
+            "max_epoch" : 10,
+            "batch_size" : 1
+        }
+    }
+}

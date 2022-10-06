@@ -134,8 +134,6 @@ class NumpyImageToTensor(torch.nn.Module):
         tmp = torch.tensor(img, device=get_device())
         if len(tmp.shape) == 3:
             tmp = tmp.permute((-1, 0, 1))
-        if len(tmp.shape) == 2:
-            tmp = tmp.unsqueeze(0)
 
         return tmp
 

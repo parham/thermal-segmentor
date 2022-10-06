@@ -233,12 +233,17 @@ def get_experiment(profile_name : str, dataset : str = None) -> Experiment:
 
     return __experiment_instance
 
-def make_tensor_for_comet(img : torch.Tensor):
+def make_tensor_for_comet(img : torch.Tensor, coloring : bool = True):
     # B x C x W x H
     if len(img.shape) != 3:
         raise ValueError('The tensor should have C x H x W format')
 
-    tmp = mask2colormap(img)
+    tmp = img
+    if coloring:
+        tmp = mask2colormap(img)
+    elif img.shape[0] == 1:
+        tmp = torch.cat([img,img,img], dim=0)
+
     channel = tmp.shape[0]
     if channel == 3:
         tmp = tmp.permute((1,2,0))

@@ -15,7 +15,7 @@ import torch.nn.functional as F
 
 from lemanchot.loss.core import BaseLoss, loss_register
 
-@loss_register('focal_loss')
+# @loss_register('focal_loss')
 class FocalLoss(BaseLoss):
     """ 
     Focal Loss, as described in https://arxiv.org/abs/1708.02002.

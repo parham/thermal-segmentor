@@ -20,13 +20,31 @@ class PlateSimulationDataset(Dataset):
         root_dir : str,
         transforms = None,
         target_transforms = None,
-        both_transformation = None
+        both_transformation = None,
+        zero_background = False,
+        background_class = 255
     ) -> None:
+        """_summary_
+
+        Args:
+            root_dir (str): The directory containing the images.
+            transforms (_type_, optional): The transformation applying on the input. Defaults to None.
+            target_transforms (_type_, optional): The transformation applying on the target. Defaults to None.
+            both_transformation (_type_, optional): The transformation applying on both input and target. Defaults to None.
+
+        Raises:
+            ValueError: the root directory does not exist!
+            ValueError: the label image does not exist!
+            ValueError: no file exist in the dataset directory.
+            ValueError: _description_
+        """
         super().__init__()
         self.transforms = transforms
         self.target_transforms = target_transforms
         self.both_transforms = both_transformation
         self.root_dir = root_dir
+        self.zero_background = zero_background
+        self.background_class = background_class
         # Check if the root directory exist!
         if not os.path.isdir(root_dir):
             raise ValueError('The directory "%s" does not exist.' % root_dir)
@@ -39,10 +57,6 @@ class PlateSimulationDataset(Dataset):
             self.label = self.label[:,:,0]
         if self.target_transforms is not None:
             self.label = self.target_transforms(self.label)
-        # Loading label
-        self.file_list = glob.glob(os.path.join(self.root_dir, '*.png'))
-        if len(self.file_list) == 0:
-            raise ValueError('No mat file does not exist.')
         # Extract list of files
         self.file_list = glob.glob(os.path.join(self.root_dir, 'Image', '*.png'))
         if len(self.file_list) == 0:
@@ -75,10 +89,15 @@ class PlateSimulationDataset(Dataset):
         
         if self.transforms is not None:
             img = self.transforms(img)
-            
+        
         target = self.label
+        if self.zero_background:
+            tmp = np.uint8(np.mean(img, axis=2))
+            tmp = np.where(target != 0, tmp, 0.)
+            img = np.dstack((tmp,tmp,tmp))
+        
         if self.both_transforms is not None:
-            target = self.both_transforms(target)
+            target = self.both_transforms(target.unsqueeze(0)).squeeze(0)
             img = self.both_transforms(img)
             
         return (img, target, filename)
