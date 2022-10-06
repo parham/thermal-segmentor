@@ -51,13 +51,13 @@ def simple_train_step__(
     loss.backward()
     optimizer.step()
 
-    outs = torch.threshold(outputs.sigmoid(), 0.5, 0).argmax(dim=1, keepdims=True)
+    outputs = torch.threshold(outputs.sigmoid(), 0.5, 0)
 
     if len(targets.shape) == 3:
         targets = targets.unsqueeze(1)
 
     return {
         'y_true' : targets,
-        'y_pred' : outs,
+        'y_pred' : outputs,
         'loss' : loss.item()
     }

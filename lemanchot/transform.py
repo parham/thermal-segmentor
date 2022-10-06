@@ -184,7 +184,7 @@ class TargetDilation(torch.nn.Module):
 
 
 class ClassMapToMDTarget(torch.nn.Module):
-    def __init__(self, categories: List, background_classid: int = 0) -> None:
+    def __init__(self, categories: List, background_classid: int = None) -> None:
         super().__init__()
         self.categories = categories
         self.background_classid = background_classid
@@ -198,8 +198,9 @@ class ClassMapToMDTarget(torch.nn.Module):
         for i in self.categories:
             tmp = np.where(img == i, tt, gt)
             layers.append(tmp)
-        layers = ((np.ones(img.shape) * self.background_classid), *layers)
-        return np.stack(layers)
+        if self.background_classid is not None:
+            layers = ((np.ones(img.shape) * self.background_classid), *layers)
+        return np.dstack(layers)
 
 
 class TrivialAugmentWide(TAWide):

@@ -8,15 +8,6 @@
         }
     },
     "metrics" : {
-        "confusion_matrix" : {
-            "cal_stats" : true
-        },
-        "rmse" : {
-            "max_p" : 255
-        },
-        "ssim" : {
-            "max_p" : 255
-        },
         "smp": {
             "mode" : "multilabel",
             "threshold" : 0.5,
@@ -43,22 +34,21 @@
         }
     },
     "optimizer": {
-    "name": "SGD",
+        "name": "SGD",
         "config": {
-            "lr": 0.8,
-            "momentum": 0.9,
-            "weight_decay": 0.005
+          "lr": 0.5,
+          "momentum": 0.9,
+          "weight_decay": 0.005
         }
     },
     "scheduler" : {
-    "name" : "CosineAnnealingLR",
+        "name" : "CosineAnnealingLR",
         "config" : {
-            "period" : "epoch",
-            "start_value": 0.8,
-            "end_value": 0.1,
-            "cycle_size": 8,
-            "cycle_mult": 2,
-            "mult": 0.5
+          "start_value": 0.5,
+          "end_value": 0,
+          "cycle_size": 8,
+          "cycle_mult": 2,
+          "mult": 0.5
         }
     },
     "pipeline" : {
