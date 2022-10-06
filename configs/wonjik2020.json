@@ -39,10 +39,12 @@
     },
     "pipeline" : {
         "wonjik2020" : {
+            "wrapper" : "default_pipeline",
             "max_epoch" : 10,
             "batch_size" : 1
         },
         "wonjik2020_iterative" : {
+            "wrapper" : "default_pipeline",
             "max_iteration" : 50
         }
     }

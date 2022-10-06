@@ -19,11 +19,13 @@ class PlateSimulationDataset(Dataset):
     def __init__(self,
         root_dir : str,
         transforms = None,
-        target_transforms = None             
+        target_transforms = None,
+        both_transformation = None
     ) -> None:
         super().__init__()
         self.transforms = transforms
         self.target_transforms = target_transforms
+        self.both_transforms = both_transformation
         self.root_dir = root_dir
         # Check if the root directory exist!
         if not os.path.isdir(root_dir):
@@ -74,4 +76,9 @@ class PlateSimulationDataset(Dataset):
         if self.transforms is not None:
             img = self.transforms(img)
             
-        return (img, self.label, filename)
+        target = self.label
+        if self.both_transforms is not None:
+            target = self.both_transforms(target)
+            img = self.both_transforms(img)
+            
+        return (img, target, filename)

@@ -19,7 +19,7 @@ class TestDataset(unittest.TestCase):
         dataset = PlateSimulationDataset(
             root_dir = '/data/thermal-segmentation/Plate_Simulation/Curve-CFRP'
         )
-        batch_size = 2
+        batch_size = 1
         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
         for img, target, fname in data_loader:
             print(f'Reading {fname}')
