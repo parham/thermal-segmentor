@@ -56,11 +56,12 @@ def main():
     target_transform = torch.nn.Sequential(
         ImageResize(300),
         ImageResizeByCoefficient(32),
-        NumpyImageToTensor()
+        NumpyImageToTensor(),
+        ToFloatTensor(),
         # FilterOutAlphaChannel()
     )
     both_transformation = BothCompose([
-        BothRandomRotate(angles=(-90, 90))
+        BothRandomRotate(angles=range(180))
     ])
     # Load segmentation
     run_record = load_segmentation(
@@ -74,7 +75,11 @@ def main():
         root_dir=dataset_path,
         transforms=transform,
         target_transforms=target_transform,
-        both_transformation=both_transformation
+        both_transformation=both_transformation,
+        zero_background=True,
+        background_class=0,
+        multilayer_target=True,
+        class_list=[0,34,99]
     )
     train_size = int(0.3 * len(dataset))
     test_size = len(dataset) - train_size

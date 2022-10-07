@@ -89,12 +89,14 @@ class PlateSimWrapper(BaseWrapper):
             # Assume Tensor B x C x W x H
             # Logging imagery results
             for key, img in res.items():
-                if key == 'y_pred':
+                # if key == 'y_':
+                if 'y_' in key:
+                    key_lbl = key.replace('y_','')
                     # Control number of logged images with enable_image_logging setting.
                     for i in range(min(profile.enable_image_logging, img.shape[0])):
                         sample = make_tensor_for_comet(img[i, :, :, :], coloring = False)
                         label = f"{label_str}-{i}"
-                        experiment.log_image(sample, label_str, step=engine.state.iteration)
+                        experiment.log_image(sample, f'{label_str}-{key_lbl}', step=engine.state.iteration)
             
                         if img_saver is not None and key == "y_pred":
                             img_saver(label, sample)

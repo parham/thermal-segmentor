@@ -48,8 +48,8 @@ class SMP_BCEWithLogitsLoss(BaseLoss):
         return
     
     def forward(self, output, target, **kwargs):
-        trg = classmap_2_multilayer(target, self.number_classes).to(device=output.device)
-        return self.criteria(output, trg)
+        # trg = classmap_2_multilayer(target, self.number_classes).to(device=output.device)
+        return self.criteria(output, target)
 
 @loss_register('dice')
 class SMP_DiceLoss(BaseLoss):

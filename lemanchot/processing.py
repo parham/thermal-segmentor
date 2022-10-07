@@ -14,6 +14,22 @@ import numpy as np
 from random import choice
 from typing import Dict, List, Optional
 
+def classmap_2_multilayer_numpy(data, classes : List):
+    """This method assumes that data is NxHxW
+    Args:
+        data (torch.Tensor): The given data
+        number_classes (int): The number of classes
+    """
+    number_classes = len(classes)
+    sz = data.shape
+    newd = np.zeros((sz[0],sz[1], number_classes))
+    for c in range(number_classes):
+        clss = classes[c]
+        tmp = np.zeros(sz)
+        tmp[data == clss] = 1.
+        newd[:,:,c] = tmp
+    return newd
+
 def one_hot(labels: torch.Tensor,
             num_classes: int,
             device: Optional[torch.device] = None,

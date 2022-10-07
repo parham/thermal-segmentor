@@ -15,6 +15,9 @@ from PIL import Image
 
 from torch.utils.data import Dataset
 
+from lemanchot.loss.core import classmap_2_multilayer
+from lemanchot.processing import classmap_2_multilayer_numpy
+
 class PlateSimulationDataset(Dataset):
     def __init__(self,
         root_dir : str,
@@ -22,7 +25,9 @@ class PlateSimulationDataset(Dataset):
         target_transforms = None,
         both_transformation = None,
         zero_background = False,
-        background_class = 255
+        background_class = 255,
+        multilayer_target = False,
+        class_list = None
     ) -> None:
         """_summary_
 
@@ -45,18 +50,17 @@ class PlateSimulationDataset(Dataset):
         self.root_dir = root_dir
         self.zero_background = zero_background
         self.background_class = background_class
+        self.multilayer_target = multilayer_target
+        self.class_list = class_list
         # Check if the root directory exist!
         if not os.path.isdir(root_dir):
             raise ValueError('The directory "%s" does not exist.' % root_dir)
         label_file = os.path.join(root_dir, 'label.png')
         if not os.path.isfile(label_file):
             raise ValueError('The label image does not exist!')
-        self.label = Image.open(label_file)
-        self.label = np.asarray(self.label)
+        self.label = np.asarray(Image.open(label_file))
         if len(self.label.shape) > 2 and self.label.shape[-1] > 1:
             self.label = self.label[:,:,0]
-        if self.target_transforms is not None:
-            self.label = self.target_transforms(self.label)
         # Extract list of files
         self.file_list = glob.glob(os.path.join(self.root_dir, 'Image', '*.png'))
         if len(self.file_list) == 0:
@@ -87,16 +91,22 @@ class PlateSimulationDataset(Dataset):
         filename = os.path.splitext(os.path.basename(fs))[0]
         img = np.asarray(Image.open(fs))
         
+        target = self.label
+        if self.zero_background:
+            tmp = np.uint8(img.mean(axis=2))
+            tmp = np.where(target != self.background_class, tmp, 0.)
+            img = np.dstack((tmp,tmp,tmp))
+        
+        if self.multilayer_target:
+            target = classmap_2_multilayer_numpy(target, self.class_list)
+        
         if self.transforms is not None:
             img = self.transforms(img)
         
-        target = self.label
-        if self.zero_background:
-            tmp = np.uint8(np.mean(img, axis=2))
-            tmp = np.where(target != 0, tmp, 0.)
-            img = np.dstack((tmp,tmp,tmp))
+        if self.target_transforms is not None:
+            target = self.target_transforms(target)
         
         if self.both_transforms is not None:
             img, target = self.both_transforms(img, target)
-            
+        
         return (img, target, filename)

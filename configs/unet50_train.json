@@ -27,10 +27,9 @@
         }
     },
     "loss": {
-        "name": "soft_bce",
+        "name": "cross_entropy",
         "config": {
-            "reduction" : "mean",
-            "number_classes" : 3
+          "reduction": "mean"
         }
     },
     "optimizer": {
@@ -44,18 +43,19 @@
     "scheduler" : {
         "name" : "CosineAnnealingLR",
         "config" : {
-          "start_value": 0.5,
+          "start_value": 0.8,
           "end_value": 0.005,
-          "cycle_size": 8,
+          "cycle_size": 20,
           "cycle_mult": 2,
-          "mult": 0.5
+          "mult": 0.8
         }
     },
     "pipeline" : {
         "unet50_train" : {
             "wrapper" : "platesim_wrapper",
             "max_epoch" : 10,
-            "batch_size" : 5
+            "batch_size" : 5,
+            "multilayer_target" : true
         }
     }
 }
