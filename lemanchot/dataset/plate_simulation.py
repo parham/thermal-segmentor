@@ -97,12 +97,6 @@ class PlateSimulationDataset(Dataset):
             img = np.dstack((tmp,tmp,tmp))
         
         if self.both_transforms is not None:
-            trg = target.clone()
-            if trg.shape == 2:
-                target = target.unsqueeze(0)
-            target = self.both_transforms(target)
-            if trg.shape == 2:
-                target = target.squeeze(0)
-            img = self.both_transforms(img)
+            img, target = self.both_transforms(img, target)
             
         return (img, target, filename)

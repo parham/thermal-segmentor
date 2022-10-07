@@ -29,8 +29,8 @@
     "loss": {
         "name": "soft_bce",
         "config": {
-          "reduction": "mean",
-          "number_classes" : 3
+            "reduction" : "mean",
+            "number_classes" : 3
         }
     },
     "optimizer": {
@@ -45,7 +45,7 @@
         "name" : "CosineAnnealingLR",
         "config" : {
           "start_value": 0.5,
-          "end_value": 0,
+          "end_value": 0.005,
           "cycle_size": 8,
           "cycle_mult": 2,
           "mult": 0.5
@@ -55,7 +55,7 @@
         "unet50_train" : {
             "wrapper" : "platesim_wrapper",
             "max_epoch" : 10,
-            "batch_size" : 1
+            "batch_size" : 5
         }
     }
 }

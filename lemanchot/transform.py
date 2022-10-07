@@ -36,11 +36,9 @@ class GrayToRGB(torch.nn.Module):
             res = np.concatenate((res, res, res), axis=2)
         return res
 
-
 class FilterOutAlphaChannel(torch.nn.Module):
     def forward(self, img) -> Any:
         return img[:3, :, :] if len(img.shape) == 3 and img.shape[0] > 3 else img
-
 
 class BothRandomRotate(torch.nn.Module):
     def __init__(self, angles: Tuple[int], weights: Tuple[int] = None):
@@ -51,7 +49,6 @@ class BothRandomRotate(torch.nn.Module):
     def forward(self, img, target):
         ang = choices(self.angles, weights=self.weights, k=1)[0]
         return rotate(img, ang), rotate(target, ang)
-
 
 class BothRandomCrop(torch.nn.Module):
     def __init__(self, crop_size):
@@ -99,7 +96,6 @@ class ImageResize(torch.nn.Module):
         )
         return np.asarray(res)
 
-
 class ImageResizeByCoefficient(torch.nn.Module):
     def __init__(
         self,
@@ -125,7 +121,6 @@ class ImageResizeByCoefficient(torch.nn.Module):
         )
         return np.asarray(res)
 
-
 class NumpyImageToTensor(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -134,9 +129,10 @@ class NumpyImageToTensor(torch.nn.Module):
         tmp = torch.tensor(img, device=get_device())
         if len(tmp.shape) == 3:
             tmp = tmp.permute((-1, 0, 1))
+        if len(tmp.shape) == 2:
+            tmp = tmp.unsqueeze(0)
 
         return tmp
-
 
 class ToFloatTensor(torch.nn.Module):
     def __init__(self) -> None:
@@ -144,7 +140,6 @@ class ToFloatTensor(torch.nn.Module):
 
     def forward(self, img):
         return img.to(dtype=torch.float)
-
 
 class ToLongTensor(torch.nn.Module):
     def __init__(self) -> None:
@@ -167,7 +162,6 @@ class ToGrayscale(torch.nn.Module):
     def forward(self, img):
         return color.rgb2gray(img) if len(img.shape) > 2 else img
 
-
 class TargetDilation(torch.nn.Module):
     def __init__(self, factor) -> None:
         super().__init__()
@@ -181,7 +175,6 @@ class TargetDilation(torch.nn.Module):
             0,
             1,
         )
-
 
 class ClassMapToMDTarget(torch.nn.Module):
     def __init__(self, categories: List, background_classid: int = None) -> None:
@@ -201,7 +194,6 @@ class ClassMapToMDTarget(torch.nn.Module):
         if self.background_classid is not None:
             layers = ((np.ones(img.shape) * self.background_classid), *layers)
         return np.dstack(layers)
-
 
 class TrivialAugmentWide(TAWide):
     """Dataset-independent data-augmentation with TrivialAugment Wide, as described in

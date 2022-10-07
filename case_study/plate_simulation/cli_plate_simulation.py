@@ -26,7 +26,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from lemanchot.dataset import PlateSimulationDataset
 from lemanchot.core import get_device, get_profile, get_profile_names
 from lemanchot.pipeline import load_segmentation
-from lemanchot.transform import ClassMapToMDTarget, FilterOutAlphaChannel, ImageResize, ImageResizeByCoefficient, NumpyImageToTensor, ToFloatTensor
+from lemanchot.transform import BothCompose, BothRandomCrop, BothRandomRotate, ClassMapToMDTarget, FilterOutAlphaChannel, ImageResize, ImageResizeByCoefficient, NumpyImageToTensor, ToFloatTensor
 
 # import these just to make sure the visibility of the codes
 import unet50_train
@@ -47,21 +47,21 @@ def main():
     ######### Transformation ##########
     # Initialize Transformation
     transform = torch.nn.Sequential(
-        # ImageResize(100),
+        ImageResize(300),
         ImageResizeByCoefficient(32),
         NumpyImageToTensor(),
         ToFloatTensor(),
         FilterOutAlphaChannel()
     )
     target_transform = torch.nn.Sequential(
-        # ImageResize(100),
+        ImageResize(300),
         ImageResizeByCoefficient(32),
         NumpyImageToTensor()
         # FilterOutAlphaChannel()
     )
-    both_transformation = torch.nn.Sequential(
-        RandomRotation(degrees=(-90, 90), fill=(0,))
-    )
+    both_transformation = BothCompose([
+        BothRandomRotate(angles=(-90, 90))
+    ])
     # Load segmentation
     run_record = load_segmentation(
         profile_name=profile_name, 

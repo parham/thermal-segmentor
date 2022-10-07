@@ -143,7 +143,7 @@ class SMP_Metrics(BaseMetric):
         if "fbeta" in self.metrics:
             metrics = self.metrics["fbeta"]
             fbeta = smp.metrics.fbeta_score(
-                tp,
+                tp, 
                 fp,
                 fn,
                 tn,

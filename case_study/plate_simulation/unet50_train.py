@@ -45,13 +45,14 @@ def simple_train_step__(
     optimizer.zero_grad()
 
     outputs = model(inputs)
+    targets = targets.squeeze(1)
 
     loss = criterion(outputs, targets)
 
     loss.backward()
     optimizer.step()
 
-    outputs = torch.threshold(outputs.sigmoid(), 0.5, 0)
+    outputs = torch.threshold(outputs.sigmoid(), 0.5, 0).argmax(dim=1, keepdims=True)
 
     if len(targets.shape) == 3:
         targets = targets.unsqueeze(1)
