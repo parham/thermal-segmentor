@@ -8,21 +8,24 @@
         }
     },
     "metrics" : {
+        "confusion_matrix_multilayer" : {
+            "cal_stats" : false
+        },
         "smp": {
             "mode" : "multilabel",
             "threshold" : 0.5,
             "num_classes" : 3,
             "metrics": {
-              "f1" : {
-               "reduction" : "macro",
-               "class_weights" : null,
-               "zero_division" : 1
-               },
-              "iou" : {
-                "reduction" : "macro",
-               "class_weights" : null,
-               "zero_division" : 1
-              }
+                "f1" : {
+                    "reduction" : "macro",
+                    "class_weights" : null,
+                    "zero_division" : 1
+                },
+                "iou" : {
+                    "reduction" : "macro",
+                    "class_weights" : null,
+                    "zero_division" : 1
+                }
             }
         }
     },

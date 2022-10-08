@@ -16,9 +16,9 @@
       "checkpoint_save" : true,
       "checkpoint_load" : true,
       "checkpoint_log_cometml" : true,
-      "experiment_config_name" : "unet50_train",
-      "dataset_name" : "Curve-AlHoneycomb",
-      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb/",
+      "experiment_config_name" : "unet50_platesim",
+      "dataset_name" : "Step-PlexiGlass",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Step-PlexiGlass/",
       "categories" : {
           "Background" : 0,
           "Plate" : 34,

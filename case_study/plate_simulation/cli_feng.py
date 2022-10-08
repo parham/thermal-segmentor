@@ -27,6 +27,7 @@ from lemanchot.dataset import PlateSimulationDataset
 from lemanchot.core import get_device, get_profile, get_profile_names
 from lemanchot.pipeline import load_segmentation
 from lemanchot.transform import BothCompose, BothRandomCrop, BothRandomRotate, ClassMapToMDTarget, FilterOutAlphaChannel, ImageResize, ImageResizeByCoefficient, NumpyImageToTensor, ToFloatTensor
+from gimp_labeling_converter import XCFDataset
 
 # import these just to make sure the visibility of the codes
 import unet50_train
@@ -72,6 +73,12 @@ def main():
     engine = run_record['engine']
     engine.logger = setup_logger('trainer')
     ######### Dataset & Dataloader ##########
+    dataset = XCFDataset(
+        root_dir=dataset_path,
+        category=categories,
+        transform=transform,
+        target_transform=target_transform
+    )
     dataset = PlateSimulationDataset(
         root_dir=dataset_path,
         transforms=transform,
