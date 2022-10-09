@@ -19,19 +19,24 @@ from torchvision.transforms import RandomRotation
 
 from ignite.utils import setup_logger
 
+
 sys.path.append(os.getcwd())
 sys.path.append(__file__)
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from lemanchot.dataset import PlateSimulationDataset
+from lemanchot.dataset import BothTransformWrapperDataset, XCFDataset
 from lemanchot.core import get_device, get_profile, get_profile_names
 from lemanchot.pipeline import load_segmentation
-from lemanchot.transform import BothCompose, BothRandomCrop, BothRandomRotate, ClassMapToMDTarget, FilterOutAlphaChannel, ImageResize, ImageResizeByCoefficient, NumpyImageToTensor, ToFloatTensor
-from gimp_labeling_converter import XCFDataset
+from lemanchot.transform import (
+    BothCompose, BothRandomRotate,  
+    FilterOutAlphaChannel, ImageResize, 
+    ImageResizeByCoefficient, NumpyImageToTensor, ToFloatTensor, ToLongTensor
+)
 
 # import these just to make sure the visibility of the codes
 import unet50_train
 import platesim_wrapper
+import feng_wrapper
 import confusion_matrix_ml
 
 parser = argparse.ArgumentParser(description="A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components")
@@ -49,14 +54,14 @@ def main():
     ######### Transformation ##########
     # Initialize Transformation
     transform = torch.nn.Sequential(
-        ImageResize(300),
+        ImageResize([200, 200]),
         ImageResizeByCoefficient(32),
         NumpyImageToTensor(),
         ToFloatTensor(),
         FilterOutAlphaChannel()
     )
     target_transform = torch.nn.Sequential(
-        ImageResize(300),
+        ImageResize([200, 200]),
         ImageResizeByCoefficient(32),
         NumpyImageToTensor(),
         ToFloatTensor(),
@@ -77,17 +82,10 @@ def main():
         root_dir=dataset_path,
         category=categories,
         transform=transform,
-        target_transform=target_transform
-    )
-    dataset = PlateSimulationDataset(
-        root_dir=dataset_path,
-        transforms=transform,
-        target_transforms=target_transform,
+        target_transform=target_transform,
         both_transformation=both_transformation,
-        zero_background=True,
-        background_class=0,
         multilayer_target=True,
-        class_list=[0,34,99]
+        class_list=list(categories.values())
     )
     train_size = int(0.3 * len(dataset))
     test_size = len(dataset) - train_size

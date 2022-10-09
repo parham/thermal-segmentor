@@ -39,6 +39,10 @@ def simple_train_step__(
 
     inputs, targets = batch
 
+    device = get_device()
+    inputs = inputs.to(device)
+    targets = targets.to(device)
+
     criterion.prepare_loss(ref=batch[0])
 
     model.train()
@@ -47,7 +51,7 @@ def simple_train_step__(
     outputs = model(inputs)
     targets = targets.squeeze(1)
 
-    loss = criterion(outputs, targets)
+    loss = criterion(outputs, targets.to(device))
 
     loss.backward()
     optimizer.step()

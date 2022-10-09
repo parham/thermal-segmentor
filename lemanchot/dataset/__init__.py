@@ -14,3 +14,5 @@ from .mat import *
 from .repetitive import *
 from .unlabeled import *
 from .plate_simulation import *
+from .wrapper import *
+from .xcf import *

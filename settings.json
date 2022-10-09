@@ -11,7 +11,7 @@
       "log_env_cpu" : true,
       "log_env_host" : true,
       "enable_logging" : true,
-      "enable_image_logging" : true,
+      "enable_image_logging" : 10,
       "pipeline" : "unet50_train",
       "checkpoint_save" : true,
       "checkpoint_load" : true,
@@ -24,7 +24,30 @@
           "Plate" : 34,
           "Defect" : 99
       }
-  },
+    },
+    "zephyrus-feng" : {
+      "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
+      "project_name" : "thermal-segmentor",
+      "workspace" : "parham",
+      "log_git_metadata" : true,
+      "log_env_gpu" : true,
+      "log_env_cpu" : true,
+      "log_env_host" : true,
+      "enable_logging" : true,
+      "enable_image_logging" : 2,
+      "pipeline" : "unet50_train",
+      "checkpoint_save" : true,
+      "checkpoint_load" : true,
+      "checkpoint_log_cometml" : true,
+      "experiment_config_name" : "unet50_feng",
+      "dataset_name" : "Plate Inspection - Feng",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Inspection_Feng",
+      "categories" : {
+          "background" : 0,
+          "defect" : 100,
+          "surface_defect" : 200
+      }
+    },
     "iterative-thermal-segmentation-piping" : {
         "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
         "project_name" : "texture-analysis",
