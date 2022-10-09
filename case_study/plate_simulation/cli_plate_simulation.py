@@ -29,6 +29,7 @@ from lemanchot.pipeline import load_segmentation
 from lemanchot.transform import BothCompose, BothRandomCrop, BothRandomRotate, ClassMapToMDTarget, FilterOutAlphaChannel, ImageResize, ImageResizeByCoefficient, NumpyImageToTensor, ToFloatTensor
 
 # import these just to make sure the visibility of the codes
+import wnet_train
 import unet50_train
 import platesim_wrapper
 import confusion_matrix_ml

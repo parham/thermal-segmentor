@@ -15,6 +15,7 @@ from typing import Callable, Dict
 
 import torch
 import torch.optim as optim
+from torchvision.transforms import ToPILImage
 from ignite.engine import Engine
 
 sys.path.append(os.getcwd())
@@ -34,6 +35,7 @@ class PlateSimWrapper(BaseWrapper):
         **kwargs
     ) -> None:
         super().__init__(step_func, device, **kwargs)
+        self.to_pil = ToPILImage()
     
     def __call__(self,
         engine: Engine,
@@ -97,8 +99,11 @@ class PlateSimWrapper(BaseWrapper):
                         sample = make_tensor_for_comet(img[i, :, :, :], coloring = False)
                         label = f"{label_str}-{i}"
                         experiment.log_image(sample, f'{label_str}-{key_lbl}', step=engine.state.iteration)
-            
-                        if img_saver is not None and key == "y_pred":
-                            img_saver(label, sample)
+
+            # Save all samples in a batch
+            if img_saver is not None:
+                for i in range(img.shape[0]):
+                    sample = img[i, :, :, :]
+                    img_saver(label, self.to_pil(sample))
         
         return res

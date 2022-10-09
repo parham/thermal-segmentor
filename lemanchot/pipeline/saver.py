@@ -8,11 +8,13 @@
     @industrial-partner TORNGATS
 """
 
-from abc import abstractmethod
 import os
+from abc import abstractmethod
 from pathlib import Path
 from typing import Dict
 from comet_ml import Experiment
+
+import numpy as np
 from PIL import Image
 
 from ignite.engine import Engine
@@ -56,3 +58,4 @@ class ImageSaver:
     def __call__(self, label : str, img):
         file = os.path.join(self.root_dir, f'{label}.png')
         Image.fromarray(img).save(file)
+        
