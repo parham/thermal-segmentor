@@ -52,6 +52,7 @@ def simple_train_step__(
     targets = targets.squeeze(1)
 
     loss = criterion(outputs, targets.to(device))
+    outmax = outputs.argmax(dim=1, keepdims=True)
 
     loss.backward()
     optimizer.step()
@@ -62,5 +63,6 @@ def simple_train_step__(
     return {
         'y_true' : targets,
         'y_pred' : outputs,
+        'y_res' : outmax,
         'loss' : loss.item()
     }

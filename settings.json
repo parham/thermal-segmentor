@@ -2,6 +2,28 @@
   "device": "cuda",
   "checkpoint_dir": "/data/checkpoints",
   "profiles": {
+    "zephyrus-clemente" : {
+      "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
+      "project_name" : "thermal-segmentor",
+      "workspace" : "parham",
+      "log_git_metadata" : true,
+      "log_env_gpu" : true,
+      "log_env_cpu" : true,
+      "log_env_host" : true,
+      "enable_logging" : true,
+      "enable_image_logging" : 2,
+      "pipeline" : "unet50_train",
+      "checkpoint_save" : true,
+      "checkpoint_load" : true,
+      "checkpoint_log_cometml" : true,
+      "experiment_config_name" : "unet50_clemente",
+      "dataset_name" : "Plate Inspection - Clemente",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Inspection",
+      "categories" : {
+          "background" : 0,
+          "defect" : 100
+      }
+    },
     "zephyrus-plate-simulation" : {
       "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
       "project_name" : "thermal-segmentor",

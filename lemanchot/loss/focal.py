@@ -15,7 +15,7 @@ import torch.nn.functional as F
 
 from lemanchot.loss.core import BaseLoss, loss_register
 
-# @loss_register('focal_loss')
+@loss_register('focal_loss_extra')
 class FocalLoss(BaseLoss):
     """ 
     Focal Loss, as described in https://arxiv.org/abs/1708.02002.
@@ -38,6 +38,7 @@ class FocalLoss(BaseLoss):
                 Defaults to 'mean'.
             ignore_index (int, optional): class label to ignore.
                 Defaults to -100.
+            alpha : alpha value
         """
         
         super().__init__(name=name, config=config)
@@ -48,7 +49,6 @@ class FocalLoss(BaseLoss):
 
         self.ignore_index = self.ignore_index if hasattr(self, 'ignore_index') else -100
         self.nll_loss = nn.NLLLoss(
-            weight=self.alpha, 
             reduction=self.reduction, 
             ignore_index=self.ignore_index
         )

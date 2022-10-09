@@ -243,6 +243,8 @@ def make_tensor_for_comet(img : torch.Tensor, coloring : bool = True):
         tmp = mask2colormap(img)
     elif img.shape[0] == 1:
         tmp = torch.cat([img,img,img], dim=0)
+    elif img.shape[0] == 2:
+        tmp = torch.cat([img, torch.zeros(img.shape[1:]).unsqueeze(0).to(device=img.device)], dim=0)
 
     channel = tmp.shape[0]
     if channel == 3:
