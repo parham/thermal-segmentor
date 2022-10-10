@@ -33,7 +33,6 @@ class Unet_Resnet18(BaseModule):
     def forward(self, x):
         return self.clss(x)
 
-
 @model_register('unet_resnet50')
 class Unet_Resnet50(BaseModule):
     """ Implementation of SMP UNET RESNET-50 """
@@ -53,7 +52,6 @@ class Unet_Resnet50(BaseModule):
     def forward(self, x):
         return self.clss(x)
 
-
 @model_register('unetplusplus_resnet18')
 class UnetPlusPlus_Resnet18(BaseModule):
     """ Implementation of SMP UNET++ RESNET-18 """
@@ -63,6 +61,25 @@ class UnetPlusPlus_Resnet18(BaseModule):
             config=config
         )
         self.clss = smp.UnetPlusPlus(
+            encoder_name='resnet18',
+            encoder_weights=get_or_default(config, 'weights', None),
+            in_channels=get_or_default(config, 'channels', 3),
+            classes=get_or_default(config, 'num_classes', 2),
+            activation=get_or_default(config, 'activation', None)
+        )
+
+    def forward(self, x):
+        return self.clss(x)
+
+@model_register('deeplabv3_resnet18')
+class UnetPlusPlus_Resnet18(BaseModule):
+    """ Implementation of SMP DeepLab-v3 RESNET-18 """
+    def __init__(self, name : str, config : DotMap) -> None:
+        super().__init__(
+            name='deeplabv3_resnet18',
+            config=config
+        )
+        self.clss = smp.DeepLabV3(
             encoder_name='resnet18',
             encoder_weights=get_or_default(config, 'weights', None),
             in_channels=get_or_default(config, 'channels', 3),

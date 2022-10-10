@@ -102,8 +102,9 @@ class PlateSimWrapper(BaseWrapper):
 
             # Save all samples in a batch
             if img_saver is not None:
-                for i in range(img.shape[0]):
-                    sample = img[i, :, :, :]
-                    img_saver(label, self.to_pil(sample))
-        
+                record = {'labels' : label_str}
+                record['metrics'] = engine.state.metrics
+                for key, img in res.items():
+                    record = {**record, **res}
+                    img_saver(f'{engine.state.epoch}-{engine.state.iteration}', record)
         return res

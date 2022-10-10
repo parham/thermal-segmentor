@@ -16,6 +16,7 @@ from comet_ml import Experiment
 
 import numpy as np
 from PIL import Image
+from scipy.io import savemat, loadmat
 
 from ignite.engine import Engine
 from ignite.handlers import ModelCheckpoint
@@ -58,4 +59,13 @@ class ImageSaver:
     def __call__(self, label : str, img):
         file = os.path.join(self.root_dir, f'{label}.png')
         Image.fromarray(img).save(file)
-        
+
+class MatSaver:
+    def __init__(self, root_dir : str) -> None:
+        self.root_dir = root_dir
+        if not os.path.isdir(root_dir):
+            Path(root_dir).mkdir(parents=True, exist_ok=True)
+    
+    def __call__(self, label : str, data : Dict):
+        file = os.path.join(self.root_dir, f'{label}.mat')
+        savemat(file, data)

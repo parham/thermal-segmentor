@@ -37,7 +37,7 @@ from lemanchot.core import (
 from lemanchot.loss import load_loss
 from lemanchot.metrics import load_metrics
 from lemanchot.models import BaseModule, load_model
-from lemanchot.pipeline.saver import ImageSaver, ModelLogger_CometML
+from lemanchot.pipeline.saver import ImageSaver, MatSaver, ModelLogger_CometML
 from lemanchot.pipeline.wrapper import load_wrapper
 from lemanchot.visualization import COLORS
 from torch.optim.lr_scheduler import ExponentialLR, StepLR
@@ -350,7 +350,7 @@ def load_segmentation(profile_name: str, database_name: str) -> Dict:
     img_saver = None
     if "image_saving" in profile:
         image_saving = profile.image_saving
-        img_saver = ImageSaver(**image_saving)
+        img_saver = MatSaver(**image_saving)
 
     wrapper_name = pipeline_config.wrapper
     seg_func = load_wrapper(
