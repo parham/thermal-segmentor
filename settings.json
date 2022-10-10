@@ -39,15 +39,15 @@
       "checkpoint_load" : true,
       "checkpoint_log_cometml" : true,
       "image_saving" : {
-        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Curve-CFRP"
+        "root_dir" : "/data/results/thermal-segmentation/real_scenarios"
       },
-      "experiment_config_name" : "deeplabv3_platesim",
-      "dataset_name" : "Curve-CFRP",
-      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-CFRP/",
+      "experiment_config_name" : "unet50_realscenarios",
+      "dataset_name" : "Real Scenarios",
+      "dataset_path" : "/data/thermal-segmentation/real_scenarios",
       "categories" : {
-          "Background" : 0,
-          "Plate" : 34,
-          "Defect" : 99
+        "background" : 0,
+        "defect" : 100,
+        "surface_defect" : 200	
       }
     },
     "zephyrus-feng" : {

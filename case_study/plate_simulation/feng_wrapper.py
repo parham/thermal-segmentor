@@ -99,7 +99,14 @@ class FengWrapper(BaseWrapper):
                         label = f"{lbl}-{i}"
                         experiment.log_image(sample, f'{lbl}-{key_lbl}', step=engine.state.iteration)
             
-                        if img_saver is not None and key == "y_pred":
-                            img_saver(label, sample)
+
+            # Save all samples in a batch
+            if img_saver is not None:
+                record = {'labels' : labels}
+                record['metrics'] = engine.state.metrics
+                for key, img in res.items():
+                    tmp = img.cpu().detach().numpy()
+                    record[key] = tmp
+                img_saver(f'{engine.state.epoch}-{engine.state.iteration}', record)
         
         return res
