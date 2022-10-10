@@ -49,14 +49,14 @@ def main():
     ######### Transformation ##########
     # Initialize Transformation
     transform = torch.nn.Sequential(
-        ImageResize(300),
+        ImageResize(200),
         ImageResizeByCoefficient(32),
         NumpyImageToTensor(),
         ToFloatTensor(),
         FilterOutAlphaChannel()
     )
     target_transform = torch.nn.Sequential(
-        ImageResize(300),
+        ImageResize(200),
         ImageResizeByCoefficient(32),
         NumpyImageToTensor(),
         ToFloatTensor(),
