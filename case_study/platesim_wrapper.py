@@ -105,6 +105,8 @@ class PlateSimWrapper(BaseWrapper):
                 record = {'labels' : label_str}
                 record['metrics'] = engine.state.metrics
                 for key, img in res.items():
-                    record = {**record, **res}
-                    img_saver(f'{engine.state.epoch}-{engine.state.iteration}', record)
+                    tmp = img.cpu().detach().numpy() if isinstance(img, torch.Tensor) else img
+                    record[key] = tmp
+                img_saver(f'{engine.state.epoch}-{engine.state.iteration}', record)
+
         return res

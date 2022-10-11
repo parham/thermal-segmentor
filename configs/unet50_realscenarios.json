@@ -11,6 +11,9 @@
         "confusion_matrix_multilayer" : {
             "cal_stats" : false
         },
+        "precision_recall" : {
+            
+        },
         "smp": {
             "mode" : "multilabel",
             "threshold" : 0.5,
@@ -44,9 +47,9 @@
     "scheduler" : {
         "name" : "CosineAnnealingLR",
         "config" : {
-          "start_value": 0.4,
+          "start_value": 0.3,
           "end_value": 0.0005,
-          "cycle_size": 3,
+          "cycle_size": 5,
           "cycle_mult": 2,
           "mult": 0.8
         }

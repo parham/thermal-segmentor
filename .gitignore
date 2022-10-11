@@ -15,3 +15,4 @@ lemanchot/metrics/__pycache__/*
 lemanchot/pipeline/__pycache__/*
 lemanchot/models/__pycache__/*
 case_study/plate_simulation/__pycache__/*
+case_study/__pycache__/*

@@ -19,7 +19,6 @@ from torchvision.transforms import RandomRotation
 
 from ignite.utils import setup_logger
 
-
 sys.path.append(os.getcwd())
 sys.path.append(__file__)
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -87,17 +86,18 @@ def main():
         multilayer_target=True,
         class_list=list(categories.values())
     )
-    train_size = int(0.3 * len(dataset))
-    test_size = len(dataset) - train_size
-    train_dataset, test_dataset = torch.utils.data.random_split(
-        dataset, [train_size, test_size], 
-        generator=torch.Generator().manual_seed(42)
-    )
+    # train_size = int(0.3 * len(dataset))
+    # test_size = len(dataset) - train_size
+    # train_dataset, test_dataset = torch.utils.data.random_split(
+    #     dataset, [train_size, test_size], 
+    #     generator=torch.Generator().manual_seed(42)
+    # )
     data_loader = DataLoader(
-        train_dataset, 
+        dataset, 
         batch_size=engine.state.batch_size, 
         shuffle=True
     )
+    # Add precision-curve
     # Run the pipeline
     state = engine.run(
         data_loader, 

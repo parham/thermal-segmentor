@@ -9,6 +9,7 @@
 
 from .core import *
 from .confusion_matrix import *
+from .precision_recall_curve import *
 from .hausdorff_distance import *
 from .fsim import *
 from .miou import *

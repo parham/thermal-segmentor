@@ -105,7 +105,7 @@ class FengWrapper(BaseWrapper):
                 record = {'labels' : labels}
                 record['metrics'] = engine.state.metrics
                 for key, img in res.items():
-                    tmp = img.cpu().detach().numpy()
+                    tmp = img.cpu().detach().numpy() if isinstance(img, torch.Tensor) else img
                     record[key] = tmp
                 img_saver(f'{engine.state.epoch}-{engine.state.iteration}', record)
         
