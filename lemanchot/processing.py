@@ -106,7 +106,7 @@ def extract_regions(
     for i in range(1, len(labels)):
         clss_id = labels[i]
         class_layer = data * (data == clss_id)
-        numLabels, area, _, _ = cv2.connectedComponentsWithStats(class_layer, 8)
+        numLabels, area, _, _ = cv2.connectedComponentsWithStats(class_layer.astype(np.uint8), 8)
         for j in range(1, numLabels):
             region = data * (area == j)
             if np.count_nonzero(region) > min_size:

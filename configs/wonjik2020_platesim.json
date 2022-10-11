@@ -1,9 +1,10 @@
 {
     "model" : {
-        "name" : "deeplabv3_resnet18",
+        "name" : "wonjik2020",
         "config" : {
-            "num_channels": 3,
-            "num_classes": 3
+            "num_dim" : 3,
+            "num_channels" : 100,
+            "num_convs" : 5
         }
     },
     "metrics" : {
@@ -31,35 +32,28 @@
             }
         }
     },
-    "loss": {
-        "name": "cross_entropy",
-        "config": {
-          "reduction": "mean"
-        }
-    },
-    "optimizer": {
-        "name": "SGD",
-        "config": {
-          "lr": 0.5,
-          "momentum": 0.9,
-          "weight_decay": 0.005
-        }
-    },
-    "scheduler" : {
-        "name" : "CosineAnnealingLR",
+    "loss" : {
+        "name" : "unsupervised_twofactor_loss",
         "config" : {
-          "start_value": 0.1,
-          "end_value": 0.0005,
-          "cycle_size": 10,
-          "cycle_mult": 2,
-          "mult": 0.8
+            "num_channels" : 100,
+            "similarity_loss" : 0.6,
+            "continuity_loss" : 0.4
+        }
+    },
+    "optimizer" : {
+        "name" : "SGD",
+        "config" : {
+            "lr" : 0.3,
+            "momentum": 0.9
         }
     },
     "pipeline" : {
-        "unet50_train" : {
-            "wrapper" : "platesim_wrapper",
-            "max_epoch" : 10,
-            "batch_size" : 5,
+        "wonjik2020" : {
+            "wrapper" : "iterative_wrapper",
+            "max_epoch" : 1,
+            "batch_size" : 1,
+            "max_iteration" : 100,
+            "iou_thresh" : 0.5,
             "multilayer_target" : true
         }
     }

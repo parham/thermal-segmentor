@@ -11,6 +11,9 @@
         "confusion_matrix_multilayer" : {
             "cal_stats" : false
         },
+        "precision_recall" : {
+            
+        },
         "smp": {
             "mode" : "multilabel",
             "threshold" : 0.5,

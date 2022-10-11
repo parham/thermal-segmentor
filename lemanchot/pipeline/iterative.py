@@ -79,9 +79,6 @@ def wonjik2020_train_step__(
     inputs = inputs.to(dtype=torch.float32, device=device)
     targets = targets.to(dtype=torch.float32, device=device)
 
-    img_w = inputs.shape[-1]
-    img_h = inputs.shape[-2]
-
     criterion.prepare_loss(ref=inputs)
 
     model.train()
@@ -94,6 +91,7 @@ def wonjik2020_train_step__(
 
     loss = criterion(outputs, trg)
     trg = trg.unsqueeze(0).unsqueeze(0).to(dtype=torch.uint8)
+    num_classes = len(torch.unique(trg))
 
     loss.backward()
     optimizer.step()
@@ -101,5 +99,6 @@ def wonjik2020_train_step__(
     return {
         'y_true' : batch[1],
         'y_pred' : trg,
-        'loss' : loss.item()
+        'loss' : loss.item(),
+        'num_classes' : num_classes
     }

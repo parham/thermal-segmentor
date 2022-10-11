@@ -34,20 +34,20 @@
       "log_env_host" : true,
       "enable_logging" : true,
       "enable_image_logging" : 3,
-      "pipeline" : "unet50_train",
+      "pipeline" : "wonjik2020",
       "checkpoint_save" : true,
       "checkpoint_load" : true,
       "checkpoint_log_cometml" : true,
       "image_saving" : {
-        "root_dir" : "/data/results/thermal-segmentation/real_scenarios"
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Curve-CFRP"
       },
-      "experiment_config_name" : "unet50_realscenarios",
-      "dataset_name" : "Real Scenarios",
-      "dataset_path" : "/data/thermal-segmentation/real_scenarios",
+      "experiment_config_name" : "wonjik2020_platesim",
+      "dataset_name" : "Plate Simulation",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-CFRP",
       "categories" : {
-        "background" : 0,
-        "defect" : 100,
-        "surface_defect" : 200	
+        "Background": 0, 
+        "Plate": 34,
+        "Defect": 99 
       }
     },
     "zephyrus-feng" : {
