@@ -10,6 +10,7 @@
 import os
 import sys
 import time
+import copy
 from comet_ml import Experiment
 from typing import Callable, Dict
 from tqdm import tqdm

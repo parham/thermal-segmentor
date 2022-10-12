@@ -14,6 +14,9 @@
         "precision_recall" : {
             
         },
+        "jaccard" : {
+            "average" : "micro"
+        },
         "smp": {
             "mode" : "multilabel",
             "threshold" : 0.5,

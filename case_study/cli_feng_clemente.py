@@ -19,7 +19,6 @@ from torchvision.transforms import InterpolationMode
 
 from ignite.utils import setup_logger
 
-
 sys.path.append(os.getcwd())
 sys.path.append(__file__)
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))

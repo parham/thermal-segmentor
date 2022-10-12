@@ -9,7 +9,7 @@
 
 import torch
 from lemanchot.loss.ssim import SSIMLoss
-from lemanchot.loss.core import BaseLoss, loss_register
+from lemanchot.loss.core import BaseLoss, load_loss_inline__, loss_register
 
 @loss_register('unsupervised_threefactor_loss')
 class UnsupervisedLoss_ThreeFactors(BaseLoss):
@@ -19,7 +19,7 @@ class UnsupervisedLoss_ThreeFactors(BaseLoss):
             name (str): _description_
             config (_type_): _description_
                 Defaults:
-                    num_channel: int = 100,
+                    num_channels: int = 100,
                     similarity_loss: float = 1.0,
                     continuity_loss: float = 0.5,
                     overall_similarity_loss : float = 0.4,
@@ -34,8 +34,8 @@ class UnsupervisedLoss_ThreeFactors(BaseLoss):
         self.HPy_target = None
         self.HPz_target = None
 
-        self.overal_simloss = SSIMLoss(self.window_size, self.size_average)
-        self.overall_similarity_loss = self.overall_similarity_loss
+        self.overal_simloss = load_loss_inline__(name='ssim_loss', config=config)
+        # self.overal_simloss = SSIMLoss(self.window_size, self.size_average)
     
     def prepare_loss(self, **kwargs):
         ref = kwargs['ref']
@@ -43,9 +43,9 @@ class UnsupervisedLoss_ThreeFactors(BaseLoss):
         img_w = ref.shape[-1]
         img_h = ref.shape[-2]
         self.HPy_target = torch.zeros(
-            self.num_channel, img_h - 1, img_w).to(self.device)
+            self.num_channels, img_h - 1, img_w).to(self.device)
         self.HPz_target = torch.zeros(
-            self.num_channel, img_h, img_w - 1).to(self.device)
+            self.num_channels, img_h, img_w - 1).to(self.device)
 
     def forward(self, output, target, **kwargs):
         HPy = output[:, 1:, :] - output[:, 0:-1, :]

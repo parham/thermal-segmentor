@@ -14,6 +14,9 @@
         "precision_recall" : {
             
         },
+        "jaccard" : {
+            "average" : "micro"
+        },
         "smp": {
             "mode" : "multilabel",
             "threshold" : 0.5,
@@ -36,14 +39,14 @@
         "name" : "unsupervised_twofactor_loss",
         "config" : {
             "num_channels" : 100,
-            "similarity_loss" : 0.6,
-            "continuity_loss" : 0.4
+            "similarity_loss" : 0.4,
+            "continuity_loss" : 0.6
         }
     },
     "optimizer" : {
         "name" : "SGD",
         "config" : {
-            "lr" : 0.3,
+            "lr" : 0.2,
             "momentum": 0.9
         }
     },

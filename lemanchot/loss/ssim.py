@@ -59,11 +59,11 @@ class SSIMLoss(BaseLoss):
             name=name,
             config=config
         )
-        
+        self.channel = self.num_channels
         self.window = create_window(self.window_size, self.channel)
 
     def forward(self, img1, img2):
-        (_, channel, _, _) = img1.size()
+        channel = img1.shape[0]
 
         if channel == self.channel and self.window.data.type() == img1.data.type():
             window = self.window
