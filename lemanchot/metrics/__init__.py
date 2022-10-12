@@ -20,3 +20,4 @@ from .sre import *
 from .ssim import *
 from .uiq import *
 from .smp import *
+from .jaccard import *
