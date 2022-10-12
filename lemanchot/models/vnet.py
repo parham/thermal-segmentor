@@ -153,18 +153,21 @@ class OutputTransition(nn.Module):
 class VNet(BaseModule):
     # the number of convolutions in each layer corresponds
     # to what is in the actual prototxt, not the intent
-    def __init__(self, elu=True, nll=False):
-        super(VNet, self).__init__()
-        self.in_tr = InputTransition(16, elu)
-        self.down_tr32 = DownTransition(16, 1, elu)
-        self.down_tr64 = DownTransition(32, 2, elu)
-        self.down_tr128 = DownTransition(64, 3, elu, dropout=True)
-        self.down_tr256 = DownTransition(128, 2, elu, dropout=True)
-        self.up_tr256 = UpTransition(256, 256, 2, elu, dropout=True)
-        self.up_tr128 = UpTransition(256, 128, 2, elu, dropout=True)
-        self.up_tr64 = UpTransition(128, 64, 1, elu)
-        self.up_tr32 = UpTransition(64, 32, 1, elu)
-        self.out_tr = OutputTransition(32, elu, nll)
+    def __init__(self, name : str, config) -> None:
+        super().__init__(
+            name='vnet',
+            config=config
+        )
+        self.in_tr = InputTransition(16, self.elu)
+        self.down_tr32 = DownTransition(16, 1, self.elu)
+        self.down_tr64 = DownTransition(32, 2, self.elu)
+        self.down_tr128 = DownTransition(64, 3, self.elu, dropout=True)
+        self.down_tr256 = DownTransition(128, 2, self.elu, dropout=True)
+        self.up_tr256 = UpTransition(256, 256, 2, self.elu, dropout=True)
+        self.up_tr128 = UpTransition(256, 128, 2, self.elu, dropout=True)
+        self.up_tr64 = UpTransition(128, 64, 1, self.elu)
+        self.up_tr32 = UpTransition(64, 32, 1, self.elu)
+        self.out_tr = OutputTransition(32, self.elu, self.nll)
 
     def forward(self, x):
         out16 = self.in_tr(x)

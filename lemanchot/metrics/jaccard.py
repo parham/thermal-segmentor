@@ -49,13 +49,13 @@ class JaccardMetric(BaseMetric):
         prefix : str = '',
         **kwargs
     ):
-        out = self.output_.flatten()
-        trg = self.target_.flatten()
+        out = self.output_.argmax(axis=1).flatten()
+        trg = self.target_.argmax(axis=1).flatten()
         jscore = jaccard_score(trg, out, average=self.average)
         self.log_metrics(
             engine,
             experiment,
             {'jaccard' : jscore},
-            prefix=self.prefix
+            prefix=prefix
         )
         return jscore

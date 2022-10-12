@@ -1,9 +1,10 @@
 {
     "model" : {
-        "name" : "vnet",
+        "name" : "unetplusplus_resnet18",
         "config" : {
-            "elu" : true,
-            "nll" : true
+            "channels": 3,
+            "num_classes": 3,
+            "weights": "imagenet"
         }
     },
     "metrics" : {
@@ -12,6 +13,9 @@
         },
         "precision_recall" : {
             
+        },
+        "jaccard" : {
+            "average" : "micro"
         },
         "smp": {
             "mode" : "multilabel",
@@ -49,14 +53,14 @@
         "name" : "CosineAnnealingLR",
         "config" : {
           "start_value": 0.3,
-          "end_value": 0.0005,
-          "cycle_size": 10,
+          "end_value": 0.005,
+          "cycle_size": 6,
           "cycle_mult": 2,
           "mult": 0.8
         }
     },
     "pipeline" : {
-        "wnet_train" : {
+        "unet50_train" : {
             "wrapper" : "platesim_wrapper",
             "max_epoch" : 10,
             "batch_size" : 5,
