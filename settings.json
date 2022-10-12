@@ -2,7 +2,7 @@
   "device": "cuda",
   "checkpoint_dir": "/data/checkpoints",
   "profiles": {
-    "zephyrus-clemente" : {
+    "plate-simulation-unet50" : {
       "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
       "project_name" : "thermal-segmentor",
       "workspace" : "parham",
@@ -16,15 +16,71 @@
       "checkpoint_save" : true,
       "checkpoint_load" : true,
       "checkpoint_log_cometml" : true,
-      "experiment_config_name" : "unet50_clemente",
-      "dataset_name" : "Plate Inspection - Clemente",
-      "dataset_path" : "/data/thermal-segmentation/Plate_Inspection",
+      "image_saving" : {
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb"
+      },
+      "experiment_config_name" : "unet50_platesim",
+      "dataset_name" : "Plate Simulation",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb",
       "categories" : {
-          "background" : 0,
-          "defect" : 100
+        "Background": 0,
+        "Plate": 34,
+        "Defect": 99
       }
     },
-    "zephyrus-plate-simulation" : {
+    "plate-simulation-deeplabv3" : {
+      "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
+      "project_name" : "thermal-segmentor",
+      "workspace" : "parham",
+      "log_git_metadata" : true,
+      "log_env_gpu" : true,
+      "log_env_cpu" : true,
+      "log_env_host" : true,
+      "enable_logging" : true,
+      "enable_image_logging" : 2,
+      "pipeline" : "unet50_train",
+      "checkpoint_save" : true,
+      "checkpoint_load" : true,
+      "checkpoint_log_cometml" : true,
+      "image_saving" : {
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb"
+      },
+      "experiment_config_name" : "deeplabv3_platesim",
+      "dataset_name" : "Plate Simulation",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb",
+      "categories" : {
+        "Background": 0,
+        "Plate": 34,
+        "Defect": 99
+      }
+    },
+    "plate-simulation-wnet" : {
+      "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
+      "project_name" : "thermal-segmentor",
+      "workspace" : "parham",
+      "log_git_metadata" : true,
+      "log_env_gpu" : true,
+      "log_env_cpu" : true,
+      "log_env_host" : true,
+      "enable_logging" : true,
+      "enable_image_logging" : 2,
+      "pipeline" : "wnet_train",
+      "checkpoint_save" : true,
+      "checkpoint_load" : true,
+      "checkpoint_log_cometml" : true,
+      "image_saving" : {
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb"
+      },
+      "experiment_config_name" : "wnet_platesim",
+      "dataset_name" : "Plate Simulation",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb",
+      "categories" : {
+        "Background": 0,
+        "Plate": 34,
+        "Defect": 99
+      }
+    },
+    "plate-simulation-iterative" : {
       "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
       "project_name" : "thermal-segmentor",
       "workspace" : "parham",
@@ -39,11 +95,11 @@
       "checkpoint_load" : true,
       "checkpoint_log_cometml" : true,
       "image_saving" : {
-        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Curve-CFRP"
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb"
       },
       "experiment_config_name" : "wonjik2020_platesim",
       "dataset_name" : "Plate Simulation",
-      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-CFRP",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb",
       "categories" : {
         "Background": 0, 
         "Plate": 34,

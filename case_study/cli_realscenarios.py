@@ -15,7 +15,7 @@ import logging
 
 import torch
 from torch.utils.data import DataLoader
-from torchvision.transforms import RandomRotation
+from torchvision.transforms import InterpolationMode
 
 from ignite.utils import setup_logger
 
@@ -53,15 +53,15 @@ def main():
     ######### Transformation ##########
     # Initialize Transformation
     transform = torch.nn.Sequential(
-        ImageResize([200, 200]),
-        ImageResizeByCoefficient(32),
+        ImageResize(200, interpolation=InterpolationMode.NEAREST),
+        ImageResizeByCoefficient(32, interpolation=InterpolationMode.NEAREST),
         NumpyImageToTensor(),
         ToFloatTensor(),
         FilterOutAlphaChannel()
     )
     target_transform = torch.nn.Sequential(
-        ImageResize([200, 200]),
-        ImageResizeByCoefficient(32),
+        ImageResize(200, interpolation=InterpolationMode.NEAREST),
+        ImageResizeByCoefficient(32, interpolation=InterpolationMode.NEAREST),
         NumpyImageToTensor(),
         ToFloatTensor(),
         # FilterOutAlphaChannel()
