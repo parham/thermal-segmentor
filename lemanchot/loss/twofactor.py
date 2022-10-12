@@ -50,10 +50,8 @@ class UnsupervisedLoss_TwoFactors(BaseLoss):
         self._ref = ref
         img_h = ref.shape[0]
         img_w = ref.shape[1]
-        self.HPy_target = torch.zeros(
-            self.num_channels, img_h - 1, img_w).to(self.device)
-        self.HPz_target = torch.zeros(
-            self.num_channels, img_h, img_w - 1).to(self.device)
+        self.HPy_target = torch.zeros(self.num_channels, img_h - 1, img_w).to(self.device)
+        self.HPz_target = torch.zeros(self.num_channels, img_h, img_w - 1).to(self.device)
 
     def forward(self, output, target, **kwargs):
         HPy = output[:, 1:, :] - output[:, 0:-1, :]

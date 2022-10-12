@@ -26,6 +26,7 @@ def create_window(window_size, channel):
     return window
 
 def _ssim(img1, img2, window, window_size, channel, size_average = True):
+    
     mu1 = F.conv2d(img1, window, padding = window_size // 2, groups = channel)
     mu2 = F.conv2d(img2, window, padding = window_size // 2, groups = channel)
 
@@ -65,7 +66,8 @@ class SSIMLoss(BaseLoss):
     def forward(self, img1, img2):
         channel = img1.shape[0]
 
-        if channel == self.channel and self.window.data.type() == img1.data.type():
+        if channel == self.channel and \
+           self.window.data.type() == img1.data.type():
             window = self.window
         else:
             window = create_window(self.window_size, channel)
