@@ -12,7 +12,7 @@
             "cal_stats" : false
         },
         "precision_recall" : {
-            
+            "skip_iterations" : 10
         },
         "jaccard" : {
             "average" : "micro"
