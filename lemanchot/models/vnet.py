@@ -5,15 +5,15 @@
     @professor  Professor Xavier Maldague
     @author     Parham Nooralishahi
     @email      parham.nooralishahi@gmail.com
-    @description Implementation of a W-Net CNN for unsupervised learning of image segmentations.
-                 adopted from https://github.com/fkodom/wnet-unsupervised-image-segmentation
+    @description Implementation of a V-Net CNN 
+                 Adopted from https://github.com/Lyken17/vnet.pytorch
 """
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from lemanchot.models.core import model_register
+from lemanchot.models.core import BaseModule, model_register
 
 def passthrough(x, **kwargs):
     return x
@@ -60,7 +60,6 @@ def _make_nConv(nchan, depth, elu):
     for _ in range(depth):
         layers.append(LUConv(nchan, elu))
     return nn.Sequential(*layers)
-
 
 class InputTransition(nn.Module):
     def __init__(self, outChans, elu):
@@ -151,7 +150,7 @@ class OutputTransition(nn.Module):
         return out
 
 @model_register('vnet')
-class VNet(nn.Module):
+class VNet(BaseModule):
     # the number of convolutions in each layer corresponds
     # to what is in the actual prototxt, not the intent
     def __init__(self, elu=True, nll=False):
