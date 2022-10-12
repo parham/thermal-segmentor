@@ -43,11 +43,11 @@
       "checkpoint_load" : true,
       "checkpoint_log_cometml" : true,
       "image_saving" : {
-        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Curve-Steel"
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Square-AlHoneycomb"
       },
       "experiment_config_name" : "unetpp50_platesim",
-      "dataset_name" : "Curve-Steel",
-      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-Steel",
+      "dataset_name" : "Square-AlHoneycomb",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Square-AlHoneycomb",
       "categories" : {
         "Background": 0,
         "Plate": 34,
