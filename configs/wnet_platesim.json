@@ -61,7 +61,7 @@
     "pipeline" : {
         "wnet_train" : {
             "wrapper" : "platesim_wrapper",
-            "max_epoch" : 10,
+            "max_epoch" : 6,
             "batch_size" : 5,
             "multilayer_target" : true
         }

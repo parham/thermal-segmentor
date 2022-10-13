@@ -52,7 +52,7 @@ def main():
     transform = torch.nn.Sequential(
         ImageResize(200, interpolation=InterpolationMode.NEAREST),
         ImageResizeByCoefficient(32, interpolation=InterpolationMode.NEAREST),
-        NumpyImageToTensor(),
+        NumpyImageToTensor(), 
         ToFloatTensor(),
         FilterOutAlphaChannel()
     )

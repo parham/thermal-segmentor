@@ -5,6 +5,7 @@
     @professor  Professor Xavier Maldague
     @author     Parham Nooralishahi
     @email      parham.nooralishahi@gmail.com
+    @description Adopted from https://github.com/bfortuner/pytorch_tiramisu
 """
 
 import torch
