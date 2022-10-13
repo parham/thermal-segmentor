@@ -147,11 +147,11 @@
       "checkpoint_load" : true,
       "checkpoint_log_cometml" : true,
       "image_saving" : {
-        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Curve-CFRP"
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Step-PlexiGlass"
       },
       "experiment_config_name" : "wnet_platesim",
-      "dataset_name" : "Curve-CFRP",
-      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-CFRP",
+      "dataset_name" : "Step-PlexiGlass",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Step-PlexiGlass",
       "categories" : {
         "Background": 0,
         "Plate": 34,
