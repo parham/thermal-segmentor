@@ -30,6 +30,7 @@ from lemanchot.transform import BothCompose, BothRandomCrop, BothRandomRotate, C
 
 # import these just to make sure the visibility of the codes
 import wnet_train
+import wnet_ssim_train
 import unet50_train
 import platesim_wrapper
 import confusion_matrix_ml
@@ -77,7 +78,7 @@ def main():
         root_dir=dataset_path,
         transforms=transform,
         target_transforms=target_transform,
-        both_transformation=both_transformation,
+        # both_transformation=both_transformation,
         zero_background=True,
         background_class=0,
         multilayer_target=True,

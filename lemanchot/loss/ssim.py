@@ -5,6 +5,7 @@
     @professor  Professor Xavier Maldague
     @author     Parham Nooralishahi
     @email      parham.nooralishahi@gmail.com
+    @description Adopted from https://github.com/Po-Hsun-Su/pytorch-ssim
 """
 
 from math import exp
@@ -54,7 +55,7 @@ class SSIMLoss(BaseLoss):
         Parameters:
             window_size: window size
             size_average: the size of averaging window
-            channel: the number of channels
+            num_channels: the number of channels
         """
         super().__init__(
             name=name,
@@ -64,7 +65,7 @@ class SSIMLoss(BaseLoss):
         self.window = create_window(self.window_size, self.channel)
 
     def forward(self, img1, img2):
-        channel = img1.shape[0]
+        channel = img1.shape[1]
 
         if channel == self.channel and \
            self.window.data.type() == img1.data.type():
