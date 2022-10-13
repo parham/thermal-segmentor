@@ -10,7 +10,7 @@
 import torch
 import torch.nn as nn
 
-from lemanchot.models.core import model_register
+from lemanchot.models.core import BaseModule, model_register
 
 class DenseLayer(nn.Sequential):
     def __init__(self, in_channels, growth_rate):
@@ -95,7 +95,7 @@ def center_crop(layer, max_height, max_width):
     xy2 = (h - max_height) // 2
     return layer[:, :, xy2:(xy2 + max_height), xy1:(xy1 + max_width)]
 
-class FCDenseNet(nn.Module):
+class FCDenseNet(BaseModule):
     def __init__(self, in_channels=3, down_blocks=(5,5,5,5,5),
                  up_blocks=(5,5,5,5,5), bottleneck_layers=5,
                  growth_rate=16, out_chans_first_conv=48, n_classes=12):
@@ -188,7 +188,7 @@ class FCDenseNet(nn.Module):
         return out
 
 @model_register('fcdensenet57')
-class FCDenseNet57(nn.Module):
+class FCDenseNet57(FCDenseNet):
     def __init__(self, name : str, config) -> None:
         super().__init__(
             in_channels=3, 
@@ -201,7 +201,7 @@ class FCDenseNet57(nn.Module):
         )
 
 @model_register('fcdensenet67')
-class FCDenseNet67(nn.Module): 
+class FCDenseNet67(FCDenseNet): 
     def __init__(self, name : str, config) -> None:
         super().__init__(
             in_channels=3, 
@@ -214,7 +214,7 @@ class FCDenseNet67(nn.Module):
         )
 
 @model_register('fcdensenet103')
-class FCDenseNet103(nn.Module): 
+class FCDenseNet103(FCDenseNet): 
     def __init__(self, name : str, config) -> None:
         super().__init__(
             in_channels=3, 

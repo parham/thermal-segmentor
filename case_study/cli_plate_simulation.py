@@ -78,7 +78,7 @@ def main():
         root_dir=dataset_path,
         transforms=transform,
         target_transforms=target_transform,
-        # both_transformation=both_transformation,
+        both_transformation=both_transformation,
         zero_background=True,
         background_class=0,
         multilayer_target=True,
