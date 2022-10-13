@@ -37,6 +37,7 @@ import wnet_train
 import unet50_train
 import iterative_wrapper
 import confusion_matrix_ml
+import platesim_wrapper
 
 parser = argparse.ArgumentParser(description="A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components")
 parser.add_argument('--profile', required=True, choices=get_profile_names(), help="Select the name of profiles.")
