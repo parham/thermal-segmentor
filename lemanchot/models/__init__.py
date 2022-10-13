@@ -14,3 +14,5 @@ from .kanezaki2018 import *
 from .wonjik2020 import *
 from .wnet import *
 from .vnet import *
+from .phmiterative import *
+from .fcdensenet import *

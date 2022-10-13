@@ -43,25 +43,15 @@ class PrecisionRecallCurveMetric(BaseMetric):
         prefix : str = '',
         **kwargs
     ):
-        nclasses = self.target_.shape[1]
-        for i in range(nclasses):
-            out = self.output_[:,i,:,:].flatten()
-            trg = self.target_[:,i,:,:].flatten()
-            precision, recall, thresholds = precision_recall_curve(trg, out)
-            if self.thresholds is None:
-                self.thresholds = thresholds
-            else:
-                self.thresholds = np.concatenate((self.thresholds, thresholds), axis=0)
-            # Logging the Precision-Recall Curve
-            experiment.log_curve(f'pr-curve-class-{i}', recall, precision, step=engine.state.iteration)
-            # # Logging the threshold histogram
-            # bins = np.unique(self.thresholds)
-            # bins.sort()
-            # hist, th = np.histogram(self.thresholds, bins=bins)
-            # th = 1.0 / (1.0 + np.exp(th))
-            # experiment.log_curve(
-            #     f'pr-threshold-class-{i}', 
-            #     th[:-1].astype(np.float64), 
-            #     hist.astype(np.float64), 
-            #     step=engine.state.iteration
-            # )
+        if (engine.state.iteration % self.skip_iterations) == 0:
+            nclasses = self.target_.shape[1]
+            for i in range(nclasses):
+                out = self.output_[:,i,:,:].flatten()
+                trg = self.target_[:,i,:,:].flatten()
+                precision, recall, thresholds = precision_recall_curve(trg, out)
+                if self.thresholds is None:
+                    self.thresholds = thresholds
+                else:
+                    self.thresholds = np.concatenate((self.thresholds, thresholds), axis=0)
+                # Logging the Precision-Recall Curve
+                experiment.log_curve(f'pr-curve-class-{i}', recall, precision, step=engine.state.iteration)

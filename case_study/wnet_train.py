@@ -27,7 +27,7 @@ from lemanchot.models import BaseModule
 from lemanchot.pipeline.wrapper import BaseWrapper, wrapper_register
 
 @pipeline_register("wnet_train")
-def simple_train_step__(
+def wnet_train_step__(
     engine : Engine,
     batch,
     device,

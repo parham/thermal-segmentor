@@ -30,6 +30,7 @@ from lemanchot.transform import BothCompose, BothRandomCrop, BothRandomRotate, C
 
 # import these just to make sure the visibility of the codes
 import wnet_train
+import wnet_ssim_train
 import unet50_train
 import platesim_wrapper
 import confusion_matrix_ml
@@ -51,7 +52,7 @@ def main():
     transform = torch.nn.Sequential(
         ImageResize(200, interpolation=InterpolationMode.NEAREST),
         ImageResizeByCoefficient(32, interpolation=InterpolationMode.NEAREST),
-        NumpyImageToTensor(),
+        NumpyImageToTensor(), 
         ToFloatTensor(),
         FilterOutAlphaChannel()
     )

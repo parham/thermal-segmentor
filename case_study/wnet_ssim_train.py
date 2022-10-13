@@ -26,8 +26,8 @@ from lemanchot.pipeline.core import pipeline_register
 from lemanchot.models import BaseModule
 from lemanchot.pipeline.wrapper import BaseWrapper, wrapper_register
 
-@pipeline_register("unet50_train")
-def unet50_train_step__(
+@pipeline_register("wnet_ssim_train")
+def wnet_ssim_train_step__(
     engine : Engine,
     batch,
     device,
@@ -47,8 +47,8 @@ def unet50_train_step__(
 
     model.train()
     optimizer.zero_grad()
-
-    outputs = model(inputs)
+    
+    mask, outputs = model(inputs)
     targets = targets.squeeze(1)
 
     loss = criterion(outputs, targets.to(device))
@@ -64,5 +64,6 @@ def unet50_train_step__(
         'y_true' : targets,
         'y_pred' : outputs,
         'y_res' : outmax,
+        'y_mask' : mask,
         'loss' : loss.item()
     }

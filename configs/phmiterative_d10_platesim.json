@@ -1,10 +1,11 @@
 {
     "model" : {
-        "name" : "unet_resnet18",
+        "name" : "phm_iterative",
         "config" : {
-            "channels": 3,
-            "num_classes": 3,
-            "weights": "imagenet"
+            "num_dim" : 3,
+            "num_channels" : 100,
+            "num_convs" : 10,
+            "zero_probability" : 0.3
         }
     },
     "metrics" : {
@@ -35,35 +36,28 @@
             }
         }
     },
-    "loss": {
-        "name": "cross_entropy",
-        "config": {
-          "reduction": "mean"
-        }
-    },
-    "optimizer": {
-        "name": "SGD",
-        "config": {
-          "lr": 0.5,
-          "momentum": 0.9,
-          "weight_decay": 0.005
-        }
-    },
-    "scheduler" : {
-        "name" : "CosineAnnealingLR",
+    "loss" : {
+        "name" : "unsupervised_twofactor_loss",
         "config" : {
-          "start_value": 0.5,
-          "end_value": 0.0005,
-          "cycle_size": 5,
-          "cycle_mult": 2,
-          "mult": 0.8
+            "num_channels" : 100,
+            "similarity_loss" : 0.4,
+            "continuity_loss" : 0.6
+        }
+    },
+    "optimizer" : {
+        "name" : "SGD",
+        "config" : {
+            "lr" : 0.2,
+            "momentum": 0.9
         }
     },
     "pipeline" : {
-        "unet50_train" : {
-            "wrapper" : "feng_wrapper",
-            "max_epoch" : 10,
-            "batch_size" : 5,
+        "wonjik2020" : {
+            "wrapper" : "iterative_wrapper",
+            "max_epoch" : 1,
+            "batch_size" : 1,
+            "max_iteration" : 100,
+            "iou_thresh" : 0.5,
             "multilayer_target" : true
         }
     }
