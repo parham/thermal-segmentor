@@ -29,7 +29,7 @@ services:
           devices:
             - driver: nvidia
               capabilities: [gpu]
-              device_ids: ['3']
+              device_ids: ['2']
     volumes:
       - /home/phm/Datasets:/data
       - ~/.ssh/id_rsa:/root/.ssh/id_rsa
