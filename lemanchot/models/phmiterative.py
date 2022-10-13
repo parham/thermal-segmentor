@@ -94,7 +94,7 @@ class phmIterativeModule (BaseModule):
         # The number of convolutional layers are determined based on "nCov" parameters.
         for i in range(self.num_convs-1):
             tmpConv = nn.Conv2d(
-                self.num_channels, 
+                self.num_channels * 2, 
                 self.num_channels,
                 kernel_size=3, 
                 stride=1, 
@@ -107,7 +107,7 @@ class phmIterativeModule (BaseModule):
             self.dp2.append(tmpBatch2)
         # The reference normalization for extracting class labels
         self.conv3 = nn.Conv2d(
-            self.num_channels, 
+            self.num_channels * 2, 
             self.num_channels, 
             kernel_size=1, 
             stride=1, 
