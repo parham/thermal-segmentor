@@ -37,6 +37,7 @@ class IterativeWrapper(BaseWrapper):
         **kwargs
     ) -> None:
         super().__init__(step_func, device, **kwargs)
+        self.ref_model = copy.deepcopy(self.model)
     
     def __call__(self,
         engine: Engine,
@@ -62,7 +63,9 @@ class IterativeWrapper(BaseWrapper):
         # Apply the model to data
         res = None
         cat_num = len(profile.categories)
+        
         pbar = tqdm(range(engine.state.max_iteration))
+        model.load_state_dict(self.ref_model.state_dict())
         for i in pbar:
             res = step_func(
                 engine=engine,
@@ -101,6 +104,7 @@ class IterativeWrapper(BaseWrapper):
         
         out = torch.permute(out.unsqueeze(0), [0,-1,1,2])
         trg = torch.permute(trg.unsqueeze(0), [0,-1,1,2])
+        res['y_res'] = out
 
         # Calculate metrics
         for m in metrics:
