@@ -65,7 +65,7 @@ class IterativeWrapper(BaseWrapper):
         cat_num = len(profile.categories)
         
         pbar = tqdm(range(engine.state.max_iteration))
-        model.load_state_dict(self.ref_model.state_dict())
+        # model.load_state_dict(self.ref_model.state_dict())
         for i in pbar:
             res = step_func(
                 engine=engine,

@@ -7,6 +7,7 @@
     @email      parham.nooralishahi@gmail.com
 """
 
+import random
 from torch.utils.data import Dataset
 
 class WrapperDataset(Dataset):
@@ -21,6 +22,19 @@ class WrapperDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.dataset[idx]
+
+class RandomLabelWrapperDataset(WrapperDataset):
+    def __init__(self, 
+        dataset: Dataset, 
+        unlabel_probability : float = 0.0
+    ) -> None:
+        super().__init__(dataset)
+        self.probability = unlabel_probability
+
+    def __getitem__(self, idx):
+        batch = super().__getitem__(idx)
+        batch = [*batch, random.random() < self.probability]
+        return batch
 
 class BothTransformWrapperDataset(WrapperDataset):
     def __init__(self, 

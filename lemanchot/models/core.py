@@ -53,6 +53,25 @@ def list_models() -> List[str]:
     global __model_handler
     return list(__model_handler.keys())
 
+def load_model_inline__(mconfig : DotMap) -> BaseModule:
+    
+    global __model_handler
+    # Get model name
+    model_name = mconfig.name
+    # Get the model configuration
+    model_config = mconfig.config if 'config' in mconfig else {}
+
+    if not model_name in list_models():
+        msg = f'{model_name} model is not supported!'
+        logging.error(msg)
+        raise ValueError(msg)
+    
+    return __model_handler[model_name](
+        name=model_name,
+        config=model_config
+    )
+
+
 def load_model(experiment_config : DotMap) -> BaseModule:
     """
     Load an instance of a registered model based on the given name
@@ -67,22 +86,24 @@ def load_model(experiment_config : DotMap) -> BaseModule:
         BaseModule: the instance of the given model
     """
 
-    global __model_handler
     if not 'model' in experiment_config:
         return None
 
-    # Get model name
-    model_name = experiment_config.model.name
-    # Get the model configuration
-    model_config = experiment_config.model.config if 'config' in experiment_config.model else {}
+    # global __model_handler
 
-    if not model_name in list_models():
-        msg = f'{model_name} model is not supported!'
-        logging.error(msg)
-        raise ValueError(msg)
+    return load_model_inline__(experiment_config.model)
+
+    # # Get model name
+    # model_name = experiment_config.model.name
+    # # Get the model configuration
+    # model_config = experiment_config.model.config if 'config' in experiment_config.model else {}
+
+    # if not model_name in list_models():
+    #     msg = f'{model_name} model is not supported!'
+    #     logging.error(msg)
+    #     raise ValueError(msg)
     
-    return __model_handler[model_name](
-        name=model_name,
-        config=model_config
-    )
-
+    # return __model_handler[model_name](
+    #     name=model_name,
+    #     config=model_config
+    # )

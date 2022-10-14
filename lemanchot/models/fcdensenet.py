@@ -25,7 +25,6 @@ class DenseLayer(nn.Sequential):
     def forward(self, x):
         return super().forward(x)
 
-
 class DenseBlock(nn.Module):
     def __init__(self, in_channels, growth_rate, n_layers, upsample=False):
         super().__init__()
@@ -50,7 +49,6 @@ class DenseBlock(nn.Module):
                 x = torch.cat([x, out], 1) # 1 = channel axis
             return x
 
-
 class TransitionDown(nn.Sequential):
     def __init__(self, in_channels):
         super().__init__()
@@ -65,7 +63,6 @@ class TransitionDown(nn.Sequential):
     def forward(self, x):
         return super().forward(x)
 
-
 class TransitionUp(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -79,7 +76,6 @@ class TransitionUp(nn.Module):
         out = torch.cat([out, skip], 1)
         return out
 
-
 class Bottleneck(nn.Sequential):
     def __init__(self, in_channels, growth_rate, n_layers):
         super().__init__()
@@ -88,7 +84,6 @@ class Bottleneck(nn.Sequential):
 
     def forward(self, x):
         return super().forward(x)
-
 
 def center_crop(layer, max_height, max_width):
     _, _, h, w = layer.size()

@@ -4,7 +4,7 @@
         "config" : {
             "num_dim" : 3,
             "num_channels" : 100,
-            "num_convs" : 10,
+            "num_convs" : 20,
             "zero_probability" : 0.3
         }
     },

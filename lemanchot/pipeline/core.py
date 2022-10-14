@@ -42,7 +42,6 @@ from lemanchot.pipeline.wrapper import load_wrapper
 from lemanchot.visualization import COLORS
 from torch.optim.lr_scheduler import ExponentialLR, StepLR
 
-
 def load_optimizer(model: BaseModule, experiment_config: DotMap) -> optim.Optimizer:
     """Load the optimizer based on given configuration
 
@@ -74,7 +73,6 @@ def load_optimizer(model: BaseModule, experiment_config: DotMap) -> optim.Optimi
         "Adamax": lambda ps, config: optim.Adamax(ps, **config),
         "RMSprop": lambda ps, config: optim.RMSprop(ps, **config),
     }[optim_name](params, optim_config)
-
 
 def load_scheduler(
     engine: Engine, optimizer: optim.Optimizer, experiment_config: DotMap
@@ -248,9 +246,7 @@ def load_scheduler(
 
     return scheduler
 
-
 __pipeline_handler = {}
-
 
 def pipeline_register(name: Union[str, List[str]]):
     """Register a pipeline into the pipeline repository
@@ -267,7 +263,6 @@ def pipeline_register(name: Union[str, List[str]]):
 
     return __embed_func
 
-
 def list_pipelines() -> List[str]:
     """List of registered pipeline
 
@@ -276,7 +271,6 @@ def list_pipelines() -> List[str]:
     """
     global __pipeline_handler
     return list(__pipeline_handler.keys())
-
 
 @exception_logger
 def load_pipeline(pipeline_name: str) -> Callable:
@@ -299,7 +293,6 @@ def load_pipeline(pipeline_name: str) -> Callable:
         raise ValueError(msg)
 
     return __pipeline_handler[pipeline_name]
-
 
 @exception_logger
 def load_segmentation(profile_name: str, database_name: str) -> Dict:
