@@ -68,15 +68,11 @@ def load_phm2022_segmentation(profile_name: str, database_name: str) -> Dict:
     opt_cfg = experiment_config.optimizer['phm_nolabel']
     optim_nolbl = load_optimizer(model.get_model('phm_unsupervised'), DotMap({'optimizer' : opt_cfg}))
     
-    opt_cfg = experiment_config.optimizer['phm_label']
-    optim_lbl = load_optimizer(model.get_model('phm_unsupervised'), DotMap({'optimizer' : opt_cfg}))
-    
     opt_cfg = experiment_config.optimizer['phm_supervised']
     optim_sup = load_optimizer(model.get_model('phm_supervised'), DotMap({'optimizer' : opt_cfg}))
         
     optimizer = {
         'phm_nolabel' : optim_nolbl,
-        'phm_label' : optim_lbl,
         'phm_supervised' : optim_sup
     }
     ############ Comet.ml Experiment ##############
@@ -133,9 +129,9 @@ def load_phm2022_segmentation(profile_name: str, database_name: str) -> Dict:
 
     run_record = {
         "engine": engine,
-        "model": model,
-        "optimizer": optimizer,
-        "loss": loss,
+        "model": model.get_model('phm_supervised'),
+        "optimizer": optimizer['phm_supervised'],
+        "loss": loss['phm_supervised'],
     }
     enable_checkpoint_save = get_or_default(profile, "checkpoint_save", False)
     enable_checkpoint_log = get_or_default(profile, "checkpoint_log_cometml", False)
