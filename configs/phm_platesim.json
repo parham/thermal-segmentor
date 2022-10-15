@@ -81,14 +81,14 @@
         "phm_label" : {
             "name": "SGD",
             "config": {
-              "lr": 0.5,
+              "lr": 0.01,
               "momentum": 0.03
             }
         },
         "phm_supervised" : {
             "name": "SGD",
             "config": {
-              "lr": 0.5,
+              "lr": 0.3,
               "momentum": 0.9,
               "weight_decay": 0.005
             }
@@ -97,7 +97,7 @@
     "scheduler" : {
         "name" : "CosineAnnealingLR",
         "config" : {
-            "start_value": 0.3,
+            "start_value": 0.5,
             "end_value": 0.005,
             "cycle_size": 6,
             "cycle_mult": 2,
@@ -105,12 +105,13 @@
         }
     },
     "pipeline" : {
-        "unet50_train" : {
-            "wrapper" : "platesim_wrapper",
+        "phm2022novel_train" : {
+            "wrapper" : "platesim_phm_wrapper",
             "max_epoch" : 6,
             "batch_size" : 5,
             "multilayer_target" : true,
-            "max_iteration" : 100
+            "max_iteration" : 100,
+            "label_probability" : 0.7
         }
     }
 }

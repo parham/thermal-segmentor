@@ -14,6 +14,22 @@ import numpy as np
 from random import choice
 from typing import Dict, List, Optional
 
+def target_2_multilayer(data, num_classes : int):
+    # Assume: data B x 1 x H x W
+    classes = torch.unique(data).tolist()
+    num_samples = data.shape[0]
+    sz = list(data.shape)
+    sz[1] = num_classes
+    res = torch.zeros(sz, dtype=torch.long, device=data.device)
+    for index in range(num_samples):
+        d = data[index,:,:,:].unsqueeze(0)
+        for cindex in range(min(len(classes), num_classes)):
+            clss = classes[cindex]
+            tmp = torch.zeros((1,1,sz[-2],sz[-1]))
+            tmp[d == clss] = 1
+            res[index,cindex,:,:] = tmp
+    return res
+
 def classmap_2_multilayer_numpy(data, classes : List):
     """This method assumes that data is NxHxW
     Args:

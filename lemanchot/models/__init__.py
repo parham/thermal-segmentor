@@ -16,3 +16,4 @@ from .wnet import *
 from .vnet import *
 from .phmiterative import *
 from .fcdensenet import *
+from .multimodel import *
