@@ -236,7 +236,7 @@
         "Defect": 99 
       }
     },
-    "zephyrus-feng" : {
+    "plate-simulation-phm2022" : {
       "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
       "project_name" : "thermal-segmentor",
       "workspace" : "parham",
@@ -245,18 +245,21 @@
       "log_env_cpu" : true,
       "log_env_host" : true,
       "enable_logging" : true,
-      "enable_image_logging" : 2,
-      "pipeline" : "unet50_train",
+      "enable_image_logging" : 3,
+      "pipeline" : "phm2022novel_train",
       "checkpoint_save" : true,
       "checkpoint_load" : true,
       "checkpoint_log_cometml" : true,
-      "experiment_config_name" : "unet50_feng",
-      "dataset_name" : "Plate Inspection - Feng",
-      "dataset_path" : "/data/thermal-segmentation/Plate_Inspection_Feng",
+      "image_saving" : {
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb"
+      },
+      "experiment_config_name" : "phm_platesim",
+      "dataset_name" : "Curve-AlHoneycomb",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb",
       "categories" : {
-          "background" : 0,
-          "defect" : 100,
-          "surface_defect" : 200
+        "Background": 0, 
+        "Plate": 34,
+        "Defect": 99 
       }
     },
     "iterative-thermal-segmentation-piping" : {

@@ -59,7 +59,7 @@ def load_phm2022_segmentation(profile_name: str, database_name: str) -> Dict:
     ############ Loss function ##############
     # Create loss instance
     # Get the loss configuration
-    loss_config = experiment_config.loss.config if 'config' in experiment_config.loss else {}
+    loss_config = experiment_config.loss
     loss = {}
     for name, cfg in loss_config.items():
         loss[name] = load_loss_inline__(cfg.name, cfg.config)

@@ -95,7 +95,7 @@ class FCDenseNet(BaseModule):
     def __init__(self, in_channels=3, down_blocks=(5,5,5,5,5),
                  up_blocks=(5,5,5,5,5), bottleneck_layers=5,
                  growth_rate=16, out_chans_first_conv=48, n_classes=12):
-        super().__init__()
+        super().__init__('fcdensenet', {})
         self.down_blocks = down_blocks
         self.up_blocks = up_blocks
         cur_channels_count = 0
@@ -193,7 +193,7 @@ class FCDenseNet57(FCDenseNet):
             bottleneck_layers=4,
             growth_rate=12, 
             out_chans_first_conv=48, 
-            n_classes=self.n_classes
+            n_classes=config.n_classes
         )
 
 @model_register('fcdensenet67')
@@ -206,7 +206,7 @@ class FCDenseNet67(FCDenseNet):
             bottleneck_layers=5,
             growth_rate=16, 
             out_chans_first_conv=48, 
-            n_classes=self.n_classes
+            n_classes=config.n_classes
         )
 
 @model_register('fcdensenet103')
@@ -219,5 +219,5 @@ class FCDenseNet103(FCDenseNet):
             bottleneck_layers=15,
             growth_rate=16, 
             out_chans_first_conv=48, 
-            n_classes=self.n_classes
+            n_classes=config.n_classes
         )
