@@ -11,10 +11,10 @@ from segmentation_models_pytorch.losses import SoftBCEWithLogitsLoss
 
 from lemanchot.core import get_device
 from lemanchot.loss.core import (
-    BaseLoss, 
-    classmap_2_multilayer, 
+    BaseLoss,
     loss_register
 )
+from lemanchot.processing import classmap_2_multilayer
 
 @loss_register('soft_bce')
 class BCEWithLogitsLoss(BaseLoss):

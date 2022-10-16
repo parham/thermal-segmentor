@@ -30,11 +30,27 @@ def target_2_multilayer(data, num_classes : int):
             res[index,cindex,:,:] = tmp
     return res
 
-def classmap_2_multilayer_numpy(data, classes : List):
+def classmap_2_multilayer(data, number_classes : int):
     """This method assumes that data is NxHxW
     Args:
         data (torch.Tensor): The given data
-        number_classes (int): The number of classes
+        classes (List): list of classes
+    """
+    sz = data.shape
+    ml_data = torch.zeros((sz[0], number_classes, sz[1], sz[2]))
+    for i in range(sz[0]):
+        for c in range(number_classes):
+            tmp = torch.zeros(sz[1], sz[2])
+            ctmp = data[i,:,:]
+            tmp[ctmp == c] = 1.
+            ml_data[i,c,:,:] = tmp
+    return ml_data
+
+def classmap_2_multilayer_numpy(data, classes : List):
+    """This method assumes that data is NxHxW
+    Args:
+        data (numpy.ndarray): The given data
+        classes (List): list of classes
     """
     number_classes = len(classes)
     sz = data.shape

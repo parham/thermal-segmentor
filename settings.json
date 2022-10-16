@@ -38,7 +38,7 @@
       "log_env_host" : true,
       "enable_logging" : true,
       "enable_image_logging" : 2,
-      "pipeline" : "unet50_train",
+      "pipeline" : "fcdensenet_train",
       "checkpoint_save" : true,
       "checkpoint_load" : true,
       "checkpoint_log_cometml" : true,
@@ -48,6 +48,7 @@
       "experiment_config_name" : "fcdensenet57_platesim",
       "dataset_name" : "Curve-AlHoneycomb",
       "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb",
+      "make_multilayer_data" : false,
       "categories" : {
         "Background": 0,
         "Plate": 34,

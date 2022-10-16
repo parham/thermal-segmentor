@@ -26,14 +26,19 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from lemanchot.dataset import PlateSimulationDataset
 from lemanchot.core import get_device, get_profile, get_profile_names
 from lemanchot.pipeline import load_segmentation
-from lemanchot.transform import BothCompose, BothRandomCrop, BothRandomRotate, ClassMapToMDTarget, FilterOutAlphaChannel, ImageResize, ImageResizeByCoefficient, NumpyImageToTensor, ToFloatTensor
+from lemanchot.transform import (
+    BothCompose, BothRandomRotate, 
+    FilterOutAlphaChannel, ImageResize, ImageResizeByCoefficient, 
+    NumpyImageToTensor, ToFloatTensor, ToLongTensor
+)
 
 # import these just to make sure the visibility of the codes
 import wnet_train
 import unet50_train
+import fcdensenet_train
 import platesim_wrapper
 import confusion_matrix_ml
-
+5
 parser = argparse.ArgumentParser(description="A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components")
 parser.add_argument('--profile', required=True, choices=get_profile_names(), help="Select the name of profiles.")
 
@@ -46,6 +51,7 @@ def main():
     dataset_name = profile.dataset_name
     dataset_path = profile.dataset_path
     categories = profile.categories
+    make_multilayer_data = profile.make_multilayer_data if 'make_multilayer_data' in profile else True
     ######### Transformation ##########
     # Initialize Transformation
     transform = torch.nn.Sequential(
@@ -80,7 +86,7 @@ def main():
         both_transformation=both_transformation,
         zero_background=True,
         background_class=0,
-        multilayer_target=True,
+        multilayer_target=make_multilayer_data,
         class_list=[0,34,99]
     )
     train_size = int(0.3 * len(dataset))

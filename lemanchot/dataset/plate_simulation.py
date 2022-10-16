@@ -10,12 +10,10 @@
 import glob
 import os
 import numpy as np
-
 from PIL import Image
 
 from torch.utils.data import Dataset
 
-from lemanchot.loss.core import classmap_2_multilayer
 from lemanchot.processing import classmap_2_multilayer_numpy
 
 class PlateSimulationDataset(Dataset):

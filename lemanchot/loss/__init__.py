@@ -9,7 +9,7 @@
 
 from .core import *
 from .bce_logits import *
-from .cross_entropy import *
+from .pytorch_loss import *
 from .dice import *
 from .focal import *
 from .smp import *

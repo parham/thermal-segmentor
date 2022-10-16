@@ -13,7 +13,7 @@ from torch import nn
 from segmentation_models_pytorch.losses import SoftBCEWithLogitsLoss, DiceLoss, FocalLoss
 from lemanchot.core import get_device
 
-from lemanchot.loss.core import BaseLoss, classmap_2_multilayer, loss_register
+from lemanchot.loss.core import BaseLoss, loss_register
 
 @loss_register('focal_loss')
 class SMP_FocalLoss(BaseLoss):
@@ -48,7 +48,6 @@ class SMP_BCEWithLogitsLoss(BaseLoss):
         return
     
     def forward(self, output, target, **kwargs):
-        # trg = classmap_2_multilayer(target, self.number_classes).to(device=output.device)
         return self.criteria(output, target)
 
 @loss_register('dice')
