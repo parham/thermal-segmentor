@@ -56,7 +56,14 @@ class PlateSimWrapper(BaseWrapper):
         profile = get_profile(engine.state.profile_name)
 
         data = list(map(lambda x: x.to(device=get_device()), batch[0:2]))
-        data = [*data, random.random() < engine.state.label_probability]
+        
+        # Determine the labeled and unlabeled
+        metric_value = engine.state.metrics[engine.state.labeled_metric] if hasattr(engine.state, 'metrics') and engine.state.labeled_metric in engine.state.metrics else 0
+        metric_thresh = engine.state.labeled_threshold
+        # Determine if sample is labeled
+        islabeled = random.random() < engine.state.label_probability if metric_value < metric_thresh else True
+        
+        data = [*data, islabeled]
         label_str = batch[2][0]
         # Logging computation time
         t = time.time()

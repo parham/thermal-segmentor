@@ -98,10 +98,8 @@ def phm_train_step__(
     # Change the learning rate in case of unlabeled data
     lr = optimizer['phm_supervised'].param_groups[0]['lr']
     if not islabeled:
-        optimizer['phm_supervised'].param_groups[0]['lr'] = 0.0001
+        optimizer['phm_supervised'].param_groups[0]['lr'] = engine.state.unsup_lr
     optimizer['phm_supervised'].step()
-    # if not islabeled:
-    #     optimizer['phm_supervised'].param_groups[0]['lr'] = lr
     
     outmax = outputs.argmax(dim=1, keepdims=True)
 

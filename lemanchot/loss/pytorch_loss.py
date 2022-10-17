@@ -38,6 +38,8 @@ class CrossEntropyLoss(BaseLoss):
     """
     def __init__(self, name : str, config) -> None:
         super().__init__(name=name, config=config)
+        if 'weight' in config:
+            config['weight'] = torch.Tensor(config['weight'])
         self.criteria = nn.CrossEntropyLoss(**config).to(self.device)
 
     def prepare_loss(self, **kwargs):
