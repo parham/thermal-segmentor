@@ -75,6 +75,7 @@ class FengWrapper(BaseWrapper):
 
         targets = res["y_true"]
         outputs = res["y_pred"] if not "y_processed" in res else res["y_processed"]
+        outputs = torch.softmax(outputs, dim=1)
 
         # Calculate metrics
         for m in metrics:

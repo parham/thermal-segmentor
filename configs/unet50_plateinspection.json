@@ -1,8 +1,10 @@
 {
     "model" : {
-        "name" : "fcdensenet57",
+        "name" : "unet_resnet18",
         "config" : {
-            "n_classes": 3
+            "channels": 3,
+            "num_classes": 3,
+            "weights": "imagenet"
         }
     },
     "metrics" : {
@@ -34,32 +36,33 @@
         }
     },
     "loss": {
-        "name": "nll_loss",
+        "name": "cross_entropy",
         "config": {
-            "weight" : [0.1, 0.7, 0.95],
-            "reduction" : "mean"
+          "reduction": "mean",
+          "weight" : [0.1, 0.7, 0.95]
         }
     },
     "optimizer": {
-        "name": "RMSprop",
+        "name": "SGD",
         "config": {
           "lr": 0.5,
-          "weight_decay": 0.995
+          "momentum": 0.9,
+          "weight_decay": 0.005
         }
     },
     "scheduler" : {
         "name" : "CosineAnnealingLR",
         "config" : {
-            "start_value": 0.1,
-            "end_value": 1e-4,
-            "cycle_size": 10,
+            "start_value": 0.5,
+            "end_value": 0.005,
+            "cycle_size": 6,
             "cycle_mult": 2,
-            "mult": 0.6
+            "mult": 0.8
         }
     },
     "pipeline" : {
-        "fcdensenet_train" : {
-            "wrapper" : "platesim_wrapper",
+        "unet50_train" : {
+            "wrapper" : "feng_wrapper",
             "max_epoch" : 6,
             "batch_size" : 5,
             "multilayer_target" : true

@@ -143,10 +143,7 @@ class SMP_Metrics(BaseMetric):
         if "fbeta" in self.metrics:
             metrics = self.metrics["fbeta"]
             fbeta = smp.metrics.fbeta_score(
-                tp, 
-                fp,
-                fn,
-                tn,
+                tp, fp, fn, tn,
                 beta=metrics["beta"] if "beta" in metrics else 1.0,
                 reduction=metrics["reduction"] if "reduction" in metrics else "micro",
                 class_weights=metrics["class_weights"]
@@ -161,10 +158,7 @@ class SMP_Metrics(BaseMetric):
         if "f1" in self.metrics:
             metrics = self.metrics["f1"]
             f1 = smp.metrics.f1_score(
-                tp,
-                fp,
-                fn,
-                tn,
+                tp, fp, fn, tn,
                 reduction=metrics["reduction"] if "reduction" in metrics else "micro",
                 class_weights=metrics["class_weights"]
                 if "class_weights" in metrics
