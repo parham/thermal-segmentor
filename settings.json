@@ -96,11 +96,11 @@
       "checkpoint_load" : true,
       "checkpoint_log_cometml" : true,
       "image_saving" : {
-        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Step-PlexiGlass"
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb"
       },
       "experiment_config_name" : "unet50_platesim",
-      "dataset_name" : "Step-PlexiGlass",
-      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Step-PlexiGlass",
+      "dataset_name" : "Curve-AlHoneycomb",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb",
       "categories" : {
         "Background": 0,
         "Plate": 34,
@@ -122,11 +122,11 @@
       "checkpoint_load" : true,
       "checkpoint_log_cometml" : true,
       "image_saving" : {
-        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Step-Steel"
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb"
       },
       "experiment_config_name" : "unetpp50_platesim",
-      "dataset_name" : "Step-Steel",
-      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Step-Steel",
+      "dataset_name" : "Curve-AlHoneycomb",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb",
       "categories" : {
         "Background": 0,
         "Plate": 34,
@@ -278,11 +278,11 @@
       "checkpoint_load" : true,
       "checkpoint_log_cometml" : true,
       "image_saving" : {
-        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb"
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Simulation/PHM-IRNET/Square-AlHoneycomb"
       },
       "experiment_config_name" : "phm_platesim",
-      "dataset_name" : "Curve-AlHoneycomb",
-      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Curve-AlHoneycomb",
+      "dataset_name" : "Square-AlHoneycomb",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Simulation/Square-AlHoneycomb",
       "categories" : {
         "Background": 0, 
         "Plate": 34,

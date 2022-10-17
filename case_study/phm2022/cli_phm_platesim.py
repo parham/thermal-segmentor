@@ -26,7 +26,10 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from lemanchot.dataset import PlateSimulationDataset
 from lemanchot.core import get_device, get_profile, get_profile_names
 from lemanchot.pipeline import load_segmentation
-from lemanchot.transform import BothCompose, BothRandomCrop, BothRandomRotate, ClassMapToMDTarget, FilterOutAlphaChannel, ImageResize, ImageResizeByCoefficient, NumpyImageToTensor, ToFloatTensor
+from lemanchot.transform import (
+    BothCompose, BothRandomRotate, FilterOutAlphaChannel, 
+    ImageResize, ImageResizeByCoefficient, NumpyImageToTensor, ToFloatTensor
+)
 from lemanchot.dataset.wrapper import RandomLabelWrapperDataset
 
 from case_study.phm2022.phm_load import load_phm2022_segmentation
