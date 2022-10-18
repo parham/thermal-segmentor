@@ -34,6 +34,7 @@ from lemanchot.transform import (
  
 # import these just to make sure the visibility of the codes
 import unet50_train
+import wnet_train
 import platesim_wrapper
 import feng_wrapper
 import clemente_wrapper

@@ -174,7 +174,7 @@ class UNetDecoder(nn.Module):
         self.deconv1 = DeconvBlock(64, 32)
         self.deconv2 = DeconvBlock(64, 32)
         self.deconv3 = DeconvBlock(64, 32)
-        self.output = OutputBlock(32, num_channels)
+        self.output = OutputBlock(32, num_classes) # replaced : num_channels
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
