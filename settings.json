@@ -102,6 +102,31 @@
         "defect": 100
       }
     },
+    "plate-clemente-phm" : {
+      "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
+      "project_name" : "thermal-segmentor",
+      "workspace" : "parham",
+      "log_git_metadata" : true,
+      "log_env_gpu" : true,
+      "log_env_cpu" : true,
+      "log_env_host" : true,
+      "enable_logging" : true,
+      "enable_image_logging" : 2,
+      "pipeline" : "phm2022novel_train",
+      "checkpoint_save" : true,
+      "checkpoint_load" : true,
+      "checkpoint_log_cometml" : true,
+      "image_saving" : {
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Inspection/WNet/"
+      },
+      "experiment_config_name" : "phm_plateinspection",
+      "dataset_name" : "Plate Inspection",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Inspection",
+      "categories" : {
+        "background": 0, 
+        "defect": 100
+      }
+    },
     "plate-simulation-test" : {
       "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
       "project_name" : "thermal-segmentor",
