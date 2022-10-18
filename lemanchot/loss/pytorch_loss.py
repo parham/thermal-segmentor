@@ -57,6 +57,8 @@ class BinaryCrossEntropyLoss(BaseLoss):
     """
     def __init__(self, name : str, config) -> None:
         super().__init__(name=name, config=config)
+        if 'pos_weight' in config:
+            config['pos_weight'] = torch.Tensor(config['pos_weight'])
         self.criteria = nn.BCEWithLogitsLoss(**config).to(self.device)
 
     def prepare_loss(self, **kwargs):

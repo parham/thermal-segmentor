@@ -26,8 +26,8 @@ from lemanchot.pipeline.core import pipeline_register
 from lemanchot.models import BaseModule
 from lemanchot.pipeline.wrapper import BaseWrapper, wrapper_register
 
-@wrapper_register('feng_wrapper')
-class FengWrapper(BaseWrapper):
+@wrapper_register('clemente_wrapper')
+class ClementeWrapper(BaseWrapper):
     def __init__(self, 
         step_func: Callable, 
         device: str, 
@@ -52,7 +52,15 @@ class FengWrapper(BaseWrapper):
 
         profile = get_profile(engine.state.profile_name)
 
-        data = list(map(lambda x: x.to(device=get_device()), batch[0:2]))
+        input = batch[0]
+        target = batch[1]
+        
+        backg_target = target[:,0,:,:]
+        forg_target = target[:,1,:,:]
+        backg_target[forg_target != 1] = 1.
+        target[:,0,:,:] = backg_target
+        
+        data = list(map(lambda x: x.to(device=get_device()), (input, target)))
         labels = batch[-1]
         # Logging computation time
         t = time.time()

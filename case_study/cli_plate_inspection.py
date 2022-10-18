@@ -36,6 +36,7 @@ from lemanchot.transform import (
 import unet50_train
 import platesim_wrapper
 import feng_wrapper
+import clemente_wrapper
 import confusion_matrix_ml
 
 parser = argparse.ArgumentParser(description="A Deep Semi-supervised Segmentation Approach for Thermographic Analysis of Industrial Components")
@@ -53,14 +54,14 @@ def main():
     ######### Transformation ##########
     # Initialize Transformation
     transform = torch.nn.Sequential(
-        ImageResize(200, interpolation=InterpolationMode.NEAREST),
+        ImageResize(150, interpolation=InterpolationMode.NEAREST),
         ImageResizeByCoefficient(32, interpolation=InterpolationMode.NEAREST),
         NumpyImageToTensor(),
         ToFloatTensor(),
         FilterOutAlphaChannel()
     )
     target_transform = torch.nn.Sequential(
-        ImageResize(200, interpolation=InterpolationMode.NEAREST),
+        ImageResize(150, interpolation=InterpolationMode.NEAREST),
         ImageResizeByCoefficient(32, interpolation=InterpolationMode.NEAREST),
         NumpyImageToTensor(),
         ToFloatTensor(),
@@ -82,11 +83,11 @@ def main():
         category=categories,
         transform=transform,
         target_transform=target_transform,
-        both_transformation=both_transformation,
+        both_transformation=both_transformation,    
         multilayer_target=True,
         class_list=list(categories.values())
     )
-    train_size = int(0.3 * len(dataset))
+    train_size = int(0.45 * len(dataset))
     test_size = len(dataset) - train_size
     train_dataset, test_dataset = torch.utils.data.random_split(
         dataset, [train_size, test_size], 
