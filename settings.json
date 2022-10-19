@@ -2,6 +2,110 @@
   "device": "cuda",
   "checkpoint_dir": "/data/checkpoints",
   "profiles": {
+    "plate-feng-wnet" : {
+      "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
+      "project_name" : "thermal-segmentor",
+      "workspace" : "parham",
+      "log_git_metadata" : true,
+      "log_env_gpu" : true,
+      "log_env_cpu" : true,
+      "log_env_host" : true,
+      "enable_logging" : true,
+      "enable_image_logging" : 2,
+      "pipeline" : "wnet_train",
+      "checkpoint_save" : true,
+      "checkpoint_load" : true,
+      "checkpoint_log_cometml" : true,
+      "image_saving" : {
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Inspection_Feng/WNet/"
+      },
+      "experiment_config_name" : "wnet_feng",
+      "dataset_name" : "Plate Inspection - Feng",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Inspection_Feng",
+      "categories" : {
+        "background": 0, 
+        "defect": 100, 
+        "surface_defect": 200
+      }
+    },
+    "plate-feng-deeplabv3" : {
+      "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
+      "project_name" : "thermal-segmentor",
+      "workspace" : "parham",
+      "log_git_metadata" : true,
+      "log_env_gpu" : true,
+      "log_env_cpu" : true,
+      "log_env_host" : true,
+      "enable_logging" : true,
+      "enable_image_logging" : 2,
+      "pipeline" : "unet50_train",
+      "checkpoint_save" : true,
+      "checkpoint_load" : true,
+      "checkpoint_log_cometml" : true,
+      "image_saving" : {
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Inspection_Feng/DeepLabv3/"
+      },
+      "experiment_config_name" : "deeplabv3_feng",
+      "dataset_name" : "Plate Inspection - Feng",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Inspection_Feng",
+      "categories" : {
+        "background": 0, 
+        "defect": 100, 
+        "surface_defect": 200
+      }
+    },
+    "plate-feng-unetpp50" : {
+      "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
+      "project_name" : "thermal-segmentor",
+      "workspace" : "parham",
+      "log_git_metadata" : true,
+      "log_env_gpu" : true,
+      "log_env_cpu" : true,
+      "log_env_host" : true,
+      "enable_logging" : true,
+      "enable_image_logging" : 2,
+      "pipeline" : "unet50_train",
+      "checkpoint_save" : true,
+      "checkpoint_load" : true,
+      "checkpoint_log_cometml" : true,
+      "image_saving" : {
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Inspection_Feng/Unet++/"
+      },
+      "experiment_config_name" : "unetpp50_feng",
+      "dataset_name" : "Plate Inspection - Feng",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Inspection_Feng",
+      "categories" : {
+        "background": 0, 
+        "defect": 100, 
+        "surface_defect": 200
+      }
+    },
+    "plate-feng-unet50" : {
+      "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
+      "project_name" : "thermal-segmentor",
+      "workspace" : "parham",
+      "log_git_metadata" : true,
+      "log_env_gpu" : true,
+      "log_env_cpu" : true,
+      "log_env_host" : true,
+      "enable_logging" : true,
+      "enable_image_logging" : 2,
+      "pipeline" : "unet50_train",
+      "checkpoint_save" : true,
+      "checkpoint_load" : true,
+      "checkpoint_log_cometml" : true,
+      "image_saving" : {
+        "root_dir" : "/data/results/thermal-segmentation/Plate_Inspection_Feng/Unet/"
+      },
+      "experiment_config_name" : "unet50_feng",
+      "dataset_name" : "Plate Inspection - Feng",
+      "dataset_path" : "/data/thermal-segmentation/Plate_Inspection_Feng",
+      "categories" : {
+        "background": 0, 
+        "defect": 100, 
+        "surface_defect": 200
+      }
+    },
     "plate-clemente-unet50" : {
       "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
       "project_name" : "thermal-segmentor",

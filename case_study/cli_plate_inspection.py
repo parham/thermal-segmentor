@@ -55,14 +55,14 @@ def main():
     ######### Transformation ##########
     # Initialize Transformation
     transform = torch.nn.Sequential(
-        ImageResize(150, interpolation=InterpolationMode.NEAREST),
+        ImageResize([200, 200], interpolation=InterpolationMode.NEAREST),
         ImageResizeByCoefficient(32, interpolation=InterpolationMode.NEAREST),
         NumpyImageToTensor(),
         ToFloatTensor(),
         FilterOutAlphaChannel()
     )
     target_transform = torch.nn.Sequential(
-        ImageResize(150, interpolation=InterpolationMode.NEAREST),
+        ImageResize([200, 200], interpolation=InterpolationMode.NEAREST),
         ImageResizeByCoefficient(32, interpolation=InterpolationMode.NEAREST),
         NumpyImageToTensor(),
         ToFloatTensor(),
@@ -88,7 +88,7 @@ def main():
         multilayer_target=True,
         class_list=list(categories.values())
     )
-    train_size = int(0.45 * len(dataset))
+    train_size = int(0.65 * len(dataset))
     test_size = len(dataset) - train_size
     train_dataset, test_dataset = torch.utils.data.random_split(
         dataset, [train_size, test_size], 

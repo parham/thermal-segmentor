@@ -1,10 +1,9 @@
 {
     "model" : {
-        "name" : "unet_resnet18",
+        "name" : "deeplabv3_resnet18",
         "config" : {
-            "channels": 3,
-            "num_classes": 3,
-            "weights": "imagenet"
+            "num_channels": 3,
+            "num_classes": 3
         }
     },
     "metrics" : {

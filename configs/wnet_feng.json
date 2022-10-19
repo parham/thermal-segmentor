@@ -1,10 +1,9 @@
 {
     "model" : {
-        "name" : "unet_resnet18",
+        "name" : "wnet",
         "config" : {
-            "channels": 3,
-            "num_classes": 3,
-            "weights": "imagenet"
+            "num_channels": 3,
+            "num_classes": 3
         }
     },
     "metrics" : {
@@ -45,23 +44,23 @@
     "optimizer": {
         "name": "SGD",
         "config": {
-          "lr": 0.5,
-          "momentum": 0.9,
-          "weight_decay": 0.005
+            "lr": 0.5,
+            "momentum": 0.9,
+            "weight_decay": 0.005
         }
     },
     "scheduler" : {
         "name" : "CosineAnnealingLR",
         "config" : {
-          "start_value": 0.3,
-          "end_value": 0.0005,
-          "cycle_size": 8,
-          "cycle_mult": 2,
-          "mult": 0.8
+            "start_value": 0.1,
+            "end_value": 0.0005,
+            "cycle_size": 10,
+            "cycle_mult": 2,
+            "mult": 0.8
         }
     },
     "pipeline" : {
-        "unet50_train" : {
+        "wnet_train" : {
             "wrapper" : "feng_wrapper",
             "max_epoch" : 10,
             "batch_size" : 5,
