@@ -2,6 +2,32 @@
   "device": "cuda",
   "checkpoint_dir": "/data/checkpoints",
   "profiles": {
+    "realscenario-phm" : {
+      "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
+      "project_name" : "thermal-segmentor",
+      "workspace" : "parham",
+      "log_git_metadata" : true,
+      "log_env_gpu" : true,
+      "log_env_cpu" : true,
+      "log_env_host" : true,
+      "enable_logging" : true,
+      "enable_image_logging" : 2,
+      "pipeline" : "phm2022novel_train",
+      "checkpoint_save" : true,
+      "checkpoint_load" : true,
+      "checkpoint_log_cometml" : true,
+      "image_saving" : {
+        "root_dir" : "/data/results/thermal-segmentation/Real_Scenario/PHM-IRNET/"
+      },
+      "experiment_config_name" : "phm_realscenarios",
+      "dataset_name" : "Real Scenario",
+      "dataset_path" : "/data/thermal-segmentation/real_scenarios",
+      "categories" : {
+        "background": 0, 
+        "defect": 100, 
+        "surface_defect": 200
+      }
+    },
     "realscenario-unetpp" : {
       "api_key" : "8CuCMLyaa23fZDEY2uTxm5THf",
       "project_name" : "thermal-segmentor",
