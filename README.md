@@ -13,7 +13,7 @@
   </p>
 </p>
 
-Automating thermographic analysis for industrial and construction inspection is one of the essential aspects of NDT 4.0 in industrial transformation. Thermal segmentation is a preliminary step for characterizing a component's heat signatures by detecting and extracting thermal patterns. Manual segmentation of areas with distinctive thermal patterns is a time-consuming task that consecutively can increase the operation cost. Thus, automatic thermal segmentation can significantly assist companies in avoiding possible misinterpretation and decrease the operation cost. Due to the lack of enough labeled thermal images to train deep neural networks and the fact that, by nature, thermal abnormalities may have non-uniform patterns and form in different shapes and sizes, training a deep neural network can be a challenging task. Moreover, selecting common features can cause possible convergence onto dependency toward specific shapes or patterns. Thus, this paper proposes a self-training thermal segmentation method involving a novel process pipeline for using labeled and unlabeled data for training the presented deep-learning model. The method uses an unsupervised approach for predicting the ground truth in case of unlabeled data before passing the data to the secondary model for segmentation. For this paper, three experiments are conducted to evaluate the method's performance and provide a comparative analysis of the most recent techniques. The first experiment uses a simulated inspection designed using COMSOL software. The second experiment employs several plate inspections in isolated environments. Finally, the third experiment uses thermal images acquired during an actual inspection of the piping structure and aerospace components.
+Automating thermographic analysis for industrial and construction inspection is one of the essential aspects of NDT 4.0 in industrial transformation. Thermal segmentation is a preliminary step for characterizing a component's heat signatures by detecting and extracting thermal patterns. Manual segmentation of areas with distinctive thermal patterns is a time-consuming task that consecutively can increase the operation cost. Thus, automatic thermal segmentation can significantly assist companies in avoiding possible misinterpretation and decrease the operation cost. Due to the lack of enough labeled thermal images to train deep neural networks and the fact that, by nature, thermal abnormalities may have non-uniform patterns and form in different shapes and sizes, training a deep neural network can be a challenging task. Moreover, selecting common features can cause possible convergence onto dependency toward specific shapes or patterns. Thus, this paper proposes a self-training thermal segmentation method involving a novel process pipeline for using labeled and unlabeled data for training the presented deep-learning model. The method uses an unsupervised approach for predicting the ground truth in case of unlabeled data before passing the data to the secondary model for segmentation. For this paper, three experiments are conducted to evaluate the method's performance and provide a comparative analysis of the most recent techniques. The first experiment uses a simulated inspection designed using COMSOL software. The second experiment employs several plate inspections in isolated environments. Finally, the third experiment uses thermal images acquired during an actual inspection of the piping structure and aerospace components
 
 <p align="center">
   <img src="resources/pipeline_setup.png" width="700" title="Design of Training Pipeline">
@@ -24,7 +24,17 @@ Automating thermographic analysis for industrial and construction inspection is 
 </p>
 
 
-## Datasets
+### Datasets
+
+For downloading the dataset of plate inspection simulation use the following link, 
+
+<a href="https://data.mendeley.com/datasets/ms5x8hnmg4/draft?a=c8acdc50-2f37-42e4-a86c-73e2bbed3a82">Mendeley Data</a>
+
+### Results and Experiments
+
+For reviewing the results, you can go to our repo in Comet.ml website,
+
+<a href="https://www.comet.com/parham/thermal-segmentor/view/new/experiments">Comet.ml</a>
 
 ### Plate Simulation
 
