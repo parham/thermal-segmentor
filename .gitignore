@@ -6,3 +6,14 @@ phm/segmentation/__pycache__/*
 phm/models/__pycache__/*
 models/*
 models/*/*/*
+phm/loss/__pycache__/*
+lemanchot/__pycache__/*
+lemanchot/dataset/__pycache__/*
+lemanchot/__pycache__/*
+lemanchot/loss/__pycache__/*
+lemanchot/metrics/__pycache__/*
+lemanchot/pipeline/__pycache__/*
+lemanchot/models/__pycache__/*
+case_study/plate_simulation/__pycache__/*
+case_study/__pycache__/*
+case_study/phm2022/__pycache__/*

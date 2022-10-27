@@ -1,6 +1,35 @@
-version: "3.9"
 services:
-  thermal-segmentor:
+  thermal_segmentation_01:
     image: thermal-segmentor:latest
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.20'
+          memory: 12G
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+              device_ids: ['0']
     volumes:
-      - .:/phm
+      - /home/phm/Datasets:/data
+      - ~/.ssh/id_rsa:/root/.ssh/id_rsa
+  thermal_segmentation_02:
+    image: thermal-segmentor:latest
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.20'
+          memory: 12G
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+              device_ids: ['2']
+    volumes:
+      - /home/phm/Datasets:/data
+      - ~/.ssh/id_rsa:/root/.ssh/id_rsa

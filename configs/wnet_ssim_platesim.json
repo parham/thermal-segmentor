@@ -1,0 +1,61 @@
+{
+    "model" : {
+        "name" : "wnet",
+        "config" : {
+            "num_channels": 3,
+            "num_classes": 3
+        }
+    },
+    "metrics" : {
+        "confusion_matrix_multilayer" : {
+            "cal_stats" : false
+        },
+        "precision_recall" : {
+            "skip_iterations" : 10
+        },
+        "jaccard" : {
+            "average" : "micro"
+        },
+        "smp": {
+            "mode" : "multilabel",
+            "threshold" : 0.5,
+            "num_classes" : 3,
+            "metrics": {
+                "f1" : {
+                    "reduction" : "macro",
+                    "class_weights" : null,
+                    "zero_division" : 1
+                },
+                "iou" : {
+                    "reduction" : "macro",
+                    "class_weights" : null,
+                    "zero_division" : 1
+                }
+            }
+        }
+    },
+    "loss": {
+        "name": "ssim_loss",
+        "config": {
+            "window_size" : 20,
+            "size_average" : true,
+            "num_channels" : 3
+        }
+    },
+    "optimizer": {
+        "name": "SGD",
+        "config": {
+          "lr": 0.6,
+          "momentum": 0.9,
+          "weight_decay": 0.005
+        }
+    },
+    "pipeline" : {
+        "wnet_ssim_train" : {
+            "wrapper" : "platesim_wrapper",
+            "max_epoch" : 10,
+            "batch_size" : 5,
+            "multilayer_target" : true
+        }
+    }
+}

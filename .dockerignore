@@ -1,5 +1,2 @@
-Dockerfile
-docker-compose.yml
-run_docker.sh
 datasets/
 results/

@@ -1,0 +1,63 @@
+{
+    "model" : {
+        "name" : "wonjik2020",
+        "config" : {
+            "num_dim" : 3,
+            "num_channels" : 100,
+            "num_convs" : 10
+        }
+    },
+    "metrics" : {
+        "confusion_matrix_multilayer" : {
+            "cal_stats" : false
+        },
+        "precision_recall" : {
+            "skip_iterations" : 10
+        },
+        "jaccard" : {
+            "average" : "micro"
+        },
+        "smp": {
+            "mode" : "multilabel",
+            "threshold" : 0.5,
+            "num_classes" : 3,
+            "metrics": {
+                "f1" : {
+                    "reduction" : "macro",
+                    "class_weights" : null,
+                    "zero_division" : 1
+                },
+                "iou" : {
+                    "reduction" : "macro",
+                    "class_weights" : null,
+                    "zero_division" : 1
+                }
+            }
+        }
+    },
+    "loss" : {
+        "name" : "unsupervised_twofactor_loss",
+        "config" : {
+            "num_channels" : 100,
+            "similarity_loss" : 0.4,
+            "continuity_loss" : 0.6
+        }
+    },
+    "optimizer" : {
+        "name" : "SGD",
+        "config" : {
+            "lr" : 0.2,
+            "momentum": 0.9
+        }
+    },
+    "pipeline" : {
+        "wonjik2020" : {
+            "wrapper" : "iterative_wrapper",
+            "max_epoch" : 1,
+            "batch_size" : 1,
+            "max_iteration" : 100,
+            "iou_thresh" : 0.5,
+            "multilayer_target" : true
+        }
+    }
+}

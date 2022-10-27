@@ -1,0 +1,68 @@
+{
+    "model" : {
+        "name" : "fcdensenet57",
+        "config" : {
+            "n_classes": 3
+        }
+    },
+    "metrics" : {
+        "confusion_matrix_multilayer" : {
+            "cal_stats" : false
+        },
+        "precision_recall" : {
+            "skip_iterations" : 10
+        },
+        "jaccard" : {
+            "average" : "micro"
+        },
+        "smp": {
+            "mode" : "multilabel",
+            "threshold" : 0.5,
+            "num_classes" : 3,
+            "metrics": {
+                "f1" : {
+                    "reduction" : "macro",
+                    "class_weights" : null,
+                    "zero_division" : 1
+                },
+                "iou" : {
+                    "reduction" : "macro",
+                    "class_weights" : null,
+                    "zero_division" : 1
+                }
+            }
+        }
+    },
+    "loss": {
+        "name": "nll_loss",
+        "config": {
+            "weight" : [0.1, 0.7, 0.95],
+            "reduction" : "mean"
+        }
+    },
+    "optimizer": {
+        "name": "RMSprop",
+        "config": {
+          "lr": 0.5,
+          "weight_decay": 0.995
+        }
+    },
+    "scheduler" : {
+        "name" : "CosineAnnealingLR",
+        "config" : {
+            "start_value": 0.1,
+            "end_value": 1e-4,
+            "cycle_size": 10,
+            "cycle_mult": 2,
+            "mult": 0.6
+        }
+    },
+    "pipeline" : {
+        "fcdensenet_train" : {
+            "wrapper" : "platesim_wrapper",
+            "max_epoch" : 6,
+            "batch_size" : 5,
+            "multilayer_target" : true
+        }
+    }
+}

@@ -5,82 +5,40 @@
     <img src="https://ssc.ca/sites/default/files/logo-ulaval-reseaux-sociaux.jpg" alt="Logo" width="280" height="100">
   </a>
 
-  <h3 align="center">Drone-based Thermographic Defect Detection</h3>
-  <h4 align="center">Drone-based Thermographic Defect Detection of Large Specimens using Unsupervised Segmentation</h4>
+  <h3 align="center">PHM-IRNET</h3>
+  <h4 align="center">Self-Training Thermal Segmentation Approach for Thermographic Inspection of Industrial Components</h4>
 
   <br/>
   <br/>
   </p>
 </p>
 
-## TODO
-- [ ] Thermal Data Labeling
-- [x] Implement the project structure
-- Implement metrics:
-  - [x] Confusion Matrix
-  - [x] mIoU
-  - [x] RMSE
-  - [x] PSNR
-  - [x] Directed Hausdorff Distance
-  - [x] FSSIM
-  - [x] SSIM
-  - [x] ISSM
-  - [x] UIQ
-  - [x] SAM
-  - [x] SRE
-- Models:
-  - Deep Learning Methods:
-    - [x] Kanezaki2018
-    - [x] Wonjik2020
-    - [x] WNet
-    - [x] UNET with RESNET18 encoder
-    - [ ] UNET++ with RESNET18 encoder
-    - [ ] DFR
-    - [ ] AutoEncoder with SSIM loss (https://github.com/plutoyuxie/AutoEncoder-SSIM-for-unsupervised-anomaly-detection-)
-    - [ ] Unsupervised Semantic Segmentation by Contrasting Object Mask Proposals
-  - Classical Methods:
-    - [ ] Normalized Cut
-    - [x] DBSCAN 
-    - [x] K-Mean
-    - [x] Mean Shift 
-    - [x] Graph Cut
-    - [ ] Spectral clustering (https://scikit-learn.org/stable/auto_examples/cluster/plot_segmentation_toy.html#sphx-glr-auto-examples-cluster-plot-segmentation-toy-py)
-- Segmentor
-  - [x] Iterative Segmentor
-  - [ ] Non-Iterative Segmentor
-- Additional Layers
-  - [x] CRF Layer
 
 ## Datasets
-- [ ] Simulated Heated Plates
-- [ ] CRF, Glass, and other plates
-- [ ] Pipe inspection
-- [ ] Aerospace component inspection
 
-## Experiment
-- [ ] Apply the segmentation methods on the collected dataset.
-- [ ] Compare network with CRF layer and without CRF layer.
+### Plate Simulation
 
-<!-- TABLE OF CONTENTS -->
-## Table of Contents
+For this dataset, a scenario was simulated using COMSOL software where multiple plates with different materials and shapes were heated during a plate inspection using an external stimulation unit. The plates contain various defects of different sizes and shapes, placed in different depths. The thermal images of the heating and cooling process were exported during the execution. The dataset contains a total of 12 different experiments on plates with three different shapes and five materials. Figure 3 shows sample thermal images of simulated experiment.
 
-* [About the Project](#about-the-project)
-  * [Built With](#built-with)
-  * [Team](#team)
-* [Prerequisites](#prerequisites)
-* [Usage](#usage)
-  * [Trained Model](#trained-model)
-* [Dataset](#dataset)
-* [Evaluation Metrics](#evaluation-metrics)
-* [Results](#results)
-* [Docker](#docker)
-* [Contact](#contact)
-* [Acknowledgements](#acknowledgements)
+<p align="center">
+  <img src="resources/dataset1.png" width="600" title="Dataset #1">
+</p>
 
-## About The Project
-**Drone-based Thermographic Defect Detection** : Drone-based Thermographic Defect Detection of Large Specimens using Unsupervised Segmentation.
+### Plate Inspection
 
-**ABSTRACT** - .........
+For this section, two datasets acquired while conducting active thermography of plates with different shapes and defect patterns were employed. The datasets are used to evaluate the proposed algorithm with real cases conducted in an isolated environment. For this study, the thermal images are labeled using GIMP software with three main classes: (a) surface defect, (b) defect, and (c) background.
+
+<p align="center">
+  <img src="resources/dataset2.png" width="600" title="Dataset #2">
+</p>
+
+### Real Scenarios
+
+For this dataset, two experiments were conducted for acquired thermal images of real case inspections. GIMP software is employed to label thermal images with three main classes: (a) surface defect, (b) defect, and (c) background. For the first experiment, the inspection was conducted using an indoor piping setup prepared with different carbon steel pipes wrapped with wool isolation. The pipes are wrapped using a wool isolation layer, and part of the isolation is defected manually to create surface defects. During the experiment, the setup operated while pumping hot oil into the pipes. A FLIR T650sc camera was employed to collect thermal images. Thermal images were cropped to present the region of interest better. 
+
+<p align="center">
+  <img src="resources/dataset3.png" width="600" title="Dataset #3">
+</p>
 
 ### Team
 * Designed and Developed by: Parham Nooralishahi, PhD. candidate @ Computer and Electrical Engineering Department, Université Laval
@@ -92,11 +50,11 @@
 ### Built With
 * [PyTorch](https://pytorch.org/)
 * [Pillow](https://pypi.org/project/Pillow/)
-* [pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning)
+* [pytorch-ignite](https://github.com/pytorch/ignite)
 
 ## Contact
 Parham Nooralishahi - parham.nooralishahi.1@ulaval.ca | [@phm](https://www.linkedin.com/in/parham-nooralishahi/) <br/>
 
 ## Acknowledgements
-Thanks to **TORNGATS** for providing the required equipment and support for performing the experiment and requirement analysis.
+We acknowledge the support of the Natural Sciences and Engineering Council of Canada (NSERC), CREATE-oN DuTy Program [funding reference number 496439-2017], DG program, the Canada Research Chair in Multipolar Infrared Vision (MIVIM), and the Canada Foundation for Innovation. The authors thanks Dr. Clemente Ibarra Castanedo for sharing the dataset used in part of this study. Also, the authors want to thank Marcos Paulo Souza for supporting the data acquisition by permitting the use of the piping setup that he prepared and maintained. Special thanks to TORNGATS company for providing the required equipment and support for performing the experiments.
 

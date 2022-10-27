@@ -1,0 +1,69 @@
+{
+    "model" : {
+        "name" : "unet_resnet18",
+        "config" : {
+            "channels": 3,
+            "num_classes": 3,
+            "weights": "imagenet"
+        }
+    },
+    "metrics" : {
+        "confusion_matrix_multilayer" : {
+            "cal_stats" : false
+        },
+        "precision_recall" : {
+            "skip_iterations" : 10
+        },
+        "jaccard" : {
+            "average" : "micro"
+        },
+        "smp": {
+            "mode" : "multilabel",
+            "threshold" : 0.5,
+            "num_classes" : 3,
+            "metrics": {
+                "f1" : {
+                    "reduction" : "macro",
+                    "class_weights" : null,
+                    "zero_division" : 1
+                },
+                "iou" : {
+                    "reduction" : "macro",
+                    "class_weights" : null,
+                    "zero_division" : 1
+                }
+            }
+        }
+    },
+    "loss": {
+        "name": "cross_entropy",
+        "config": {
+          "reduction": "mean",
+          "weight" : [0.1, 0.9, 0.8]
+        }
+    },
+    "optimizer": {
+        "name" : "Adam",
+        "config" : {
+            "lr" : 0.85
+        }
+    },
+    "scheduler" : {
+        "name" : "CosineAnnealingLR",
+        "config" : {
+          "start_value": 0.1,
+          "end_value": 0.0001,
+          "cycle_size": 8,
+          "cycle_mult": 2,
+          "mult": 0.8
+        }
+    },
+    "pipeline" : {
+        "unet50_train" : {
+            "wrapper" : "feng_wrapper",
+            "max_epoch" : 60,
+            "batch_size" : 5,
+            "multilayer_target" : true
+        }
+    }
+}

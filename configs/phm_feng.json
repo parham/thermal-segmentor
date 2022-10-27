@@ -1,0 +1,110 @@
+{
+    "model" : {
+        "name" : "multimodel",
+        "config" : {
+            "phm_unsupervised" : {
+                "name" : "phm_iterative",
+                "config" : {
+                    "num_dim" : 3,
+                    "num_channels" : 100,
+                    "num_convs" : 20,
+                    "zero_probability" : 0.3
+                }
+            },
+            "phm_supervised" : {
+                "name" : "unetplusplus_resnet18",
+                "config" : {
+                    "channels": 3,
+                    "num_classes": 3,
+                    "weights": "imagenet"
+                }
+            }
+        }
+    },
+    "metrics" : {
+        "confusion_matrix_multilayer" : {
+            "cal_stats" : false
+        },
+        "precision_recall" : {
+            "skip_iterations" : 10
+        },
+        "jaccard" : {
+            "average" : "micro"
+        },
+        "smp": {
+            "mode" : "multilabel",
+            "threshold" : 0.5,
+            "num_classes" : 3,
+            "metrics": {
+                "f1" : {
+                    "reduction" : "macro",
+                    "class_weights" : null,
+                    "zero_division" : 1
+                },
+                "iou" : {
+                    "reduction" : "macro",
+                    "class_weights" : null,
+                    "zero_division" : 1
+                }
+            }
+        }
+    },
+    "loss": {
+        "phm_nolabel" : {
+            "name" : "unsupervised_twofactor_loss",
+            "config" : {
+                "num_channels" : 100,
+                "similarity_loss" : 0.4,
+                "continuity_loss" : 0.6
+            }
+        },
+        "phm_supervised" : {
+            "name": "cross_entropy",
+            "config": {
+              "reduction": "mean",
+              "weight" : [0.1, 0.9, 0.5]
+            }
+        }
+    },
+    "optimizer": {
+        "phm_nolabel" : {
+            "name": "SGD",
+            "config": {
+              "lr": 0.2,
+              "momentum": 0.9,
+              "weight_decay": 0.005
+            }
+        },
+        "phm_supervised" : {
+            "name": "SGD",
+            "config": {
+              "lr": 0.3,
+              "momentum": 0.9,
+              "weight_decay": 0.005
+            }
+        }
+    },
+    "scheduler" : {
+        "name" : "CosineAnnealingLR",
+        "config" : {
+            "start_value": 0.3,
+            "end_value": 0.0005,
+            "cycle_size": 8,
+            "cycle_mult": 2,
+            "mult": 0.8
+        }
+    },
+    "pipeline" : {
+        "phm2022novel_train" : {
+            "wrapper" : "plateinspection_phm_wrapper",
+            "max_epoch" : 10,
+            "batch_size" : 5,
+            "multilayer_target" : true,
+            "max_iteration" : 100,
+            "label_probability" : 0.9,
+            "unsup_lr" : 0.0001,
+            "labeled_metric" : "fscore",
+            "labeled_threshold" : 0.7
+        }
+    }
+}
