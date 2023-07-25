@@ -24,6 +24,20 @@
 </p>
 
 
+### Citation
+
+```
+@article{nooralishahi2023phm,
+  title={PHM-IRNET: Self-training thermal segmentation approach for thermographic inspection of industrial components},
+  author={Nooralishahi, Parham and Rezayiye, Reza Khoshkbary and L{\'o}pez, Fernando and Maldague, Xavier PV},
+  journal={NDT \& E International},
+  volume={138},
+  pages={102884},
+  year={2023},
+  publisher={Elsevier}
+}
+```
+
 ### Datasets
 
 For downloading the dataset of plate inspection simulation use the following link, 
