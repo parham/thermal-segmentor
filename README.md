@@ -81,7 +81,6 @@ For this dataset, two experiments were conducted for acquired thermal images of 
 ### Team
 * Designed and Developed by: Parham Nooralishahi, PhD. candidate @ Computer and Electrical Engineering Department, Université Laval
 * Supervisor: Professor Xavier Maldague
-* Industrial Supervisor: Dr. Fernando Lopez
 * Program: Doctorate in Electrical Engineering
 * University: Université Laval
 
